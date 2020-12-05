@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import Player from 'Player';
 //import { Anims } from './anims';
 
 /**
@@ -24,15 +25,61 @@ export class GameScene extends Phaser.Scene {
 	preload() {
 		//this.load.image('heart', 'assets/images/heart_full.png');
 		//this.animsManager.preload();
+		this.load.spritesheet('ship', '../../assets/sprites/anim_ship_spin.png', { frameWidth: 192, frameHeight: 63 });
+		this.load.image('landing_gear', '../../assets/sprites/LandingGear.png');
 	}
 
 	create(settings) {
+		this.cursors = this.input.keyboard.createCursorKeys();
+
+		this.InitAnims();
+
+		this.player = new Player({
+			scene: this,
+			x: 400,
+			y: 300,
+			ship: {
+				x: 48,
+				y: 16,
+				asset: 'ship'
+			},
+			gear: 'gear'
+		});
 
 	}
 
 	update(time, delta) {
 
+		if (this.cursors.up.isDown){
+			this.player.SteerUp();
+		}
+		if (this.cursors.down.isDown){
+			this.player.SteerDown();
+		}
 
+		if (this.cursors.left.isDown){
+			//this.ConsoleWrite('left');
+			this.player.SteerLeft();
+		}else if (this.cursors.right.isDown){
+			//this.ConsoleWrite('right');
+			this.player.SteerRight();
+		}else{
+			this.player.SteerRelax();
+		}
+		this.player.Idle();
+
+		if(this.cursors.space.isDown){
+			this.player.ToggleFlightMode();
+		}
+	}
+
+	InitAnims(){
+		this.anims.create({
+			key: 'spin',
+			frames: this.anims.generateFrameNumbers('ship', { start: 0, end: 3 }),
+			frameRate: 10,
+			repeat: -1
+		});
 	}
 	
 }
