@@ -33,12 +33,9 @@ jobs:
       - run: ssh-keyscan -H mwilber.com >> ~/.ssh/known_hosts
       - run: npm run build
       - run: scp -r dist/* greenzeta@mwilber.com:/home/greenzeta/staging.greenzeta.com/zetaburger/
-      
+
 workflows:
   version: 2
   build_project:
     jobs:
       - build:
-          filters:
-            branches:
-              only: master
