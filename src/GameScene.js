@@ -15,6 +15,12 @@ export class GameScene extends Phaser.Scene {
 		this.cursors = null;
 		this.player = null;
 
+		this.shipSprite = {
+			url: 'assets/sprites/anim_ship_spin.png',
+			width: 192,
+			height: 63
+		}
+
 
 		// The Anims class is tightly coupled to this GameScene class and
 		// is used to break the animation setup code into its own file.
@@ -25,7 +31,7 @@ export class GameScene extends Phaser.Scene {
 	preload() {
 		//this.load.image('heart', 'assets/images/heart_full.png');
 		//this.animsManager.preload();
-		this.load.spritesheet('ship', 'assets/sprites/anim_ship_spin.png', { frameWidth: 192, frameHeight: 63 });
+		this.load.spritesheet('ship', this.shipSprite.url, { frameWidth: this.shipSprite.width, frameHeight: this.shipSprite.height });
 		this.load.image('landing_gear', 'assets/sprites/LandingGear.png');
 	}
 
@@ -39,8 +45,10 @@ export class GameScene extends Phaser.Scene {
 			x: 400,
 			y: 300,
 			ship: {
-				x: 48,
-				y: 16,
+				x: 0,
+				y: 0,
+				width: this.shipSprite.width, 
+				height: this.shipSprite.height,
 				asset: 'ship'
 			},
 			gear: 'gear'

@@ -23,24 +23,26 @@ export default class Player extends Phaser.GameObjects.Container{
 			game: scene
 		  });
 
-		this.gear = scene.add.sprite(48, 66, 'landing_gear');
+		this.gear = scene.add.sprite(0, ship.height, 'landing_gear');
 		this.gear.visible = true;
 		this.relax = 0;
 
 		this.add([this.ship, this.gear]);
 
-		this.setSize(96, 55);
 		this.setActive(true);
-		this.setScale(0.5);
+		this.setScale(0.25);
 		scene.physics.world.enable(this, 0);
+		this.setSize(ship.width, ship.height);
+		this.body.setSize(ship.width, ship.height, true);
 		this.body.setMass(500);
-		this.body.setBounceY(0.5);
+		this.body.setBounce(0.5);
 		//this.body.setGravity(1,1);
 		this.body.setAllowDrag(true);
 		this.body.setDrag(70, 70);
 		//this.body.setFriction(1, 0);
 		this.body.setCollideWorldBounds(true);
 		//this.body.allowGravity = false;
+		//this.body.width = 192;
 		
 		scene.add.existing(this);
 	}
@@ -113,14 +115,14 @@ export default class Player extends Phaser.GameObjects.Container{
 	RetractGear(){
 		//this.body.allowGravity = true;
 		this.gear.visible = false;
-		this.body.height = 31;
+		this.body.setSize(this.ship.width, this.ship.height, true);
 	}
 
 	ExtendGear(){
 		//this.body.allowGravity = false;
 		//this.body.setVelocityY(0);
 		this.gear.visible = true;
-		this.body.height = 55;
+		this.body.setSize(this.ship.width, (this.ship.height + 55), true);
 	}
 
 	ChangeFlightMode(newMode){
