@@ -45,24 +45,16 @@ export class GameScene extends Phaser.Scene {
 			},
 			gear: 'gear'
 		});
-
+		this.player.ToggleFlightMode();
 	}
 
 	update(time, delta) {
 
-		if (this.cursors.up.isDown){
-			this.player.SteerUp();
-		}
-		if (this.cursors.down.isDown){
-			this.player.SteerDown();
-		}
-
-		if (this.cursors.left.isDown){
-			//this.ConsoleWrite('left');
-			this.player.SteerLeft();
-		}else if (this.cursors.right.isDown){
-			//this.ConsoleWrite('right');
-			this.player.SteerRight();
+		if( this.cursors.up.isDown || this.cursors.down.isDown || this.cursors.left.isDown || this.cursors.right.isDown ){
+			if (this.cursors.up.isDown) this.player.SteerUp();
+			if (this.cursors.down.isDown) this.player.SteerDown();
+			if (this.cursors.left.isDown) this.player.SteerLeft(); 
+			else if (this.cursors.right.isDown) this.player.SteerRight();
 		}else{
 			this.player.SteerRelax();
 		}

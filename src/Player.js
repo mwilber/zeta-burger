@@ -11,7 +11,7 @@ export default class Player extends Phaser.GameObjects.Container{
 			landed: 'landed'
 		};
 
-		this.acceleration = 1000;
+		this.acceleration = 500;
 		this.omicrondrag = 0.5;
 		this.rollmax = 15;
 
@@ -33,12 +33,12 @@ export default class Player extends Phaser.GameObjects.Container{
 		this.setActive(true);
 		this.setScale(0.5);
 		scene.physics.world.enable(this, 0);
-		this.body.setMass(1);
+		this.body.setMass(500);
 		this.body.setBounceY(0.5);
-		this.body.setGravity(0,0);
+		//this.body.setGravity(1,1);
 		this.body.setAllowDrag(true);
 		this.body.setDrag(70, 70);
-		this.body.setFriction(1, 0);
+		//this.body.setFriction(1, 0);
 		this.body.setCollideWorldBounds(true);
 		//this.body.allowGravity = false;
 		
@@ -54,7 +54,6 @@ export default class Player extends Phaser.GameObjects.Container{
 			}else if(this.flightmode === this.FLIGHT_MODES.omicron){
 				this.body.setAccelerationY(-(this.acceleration * this.omicrondrag));
 			}
-			
 		}
 	}
 
@@ -119,7 +118,7 @@ export default class Player extends Phaser.GameObjects.Container{
 
 	ExtendGear(){
 		//this.body.allowGravity = false;
-		this.body.setVelocityY(0);
+		//this.body.setVelocityY(0);
 		this.gear.visible = true;
 		this.body.height = 55;
 	}
