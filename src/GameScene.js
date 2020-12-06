@@ -25,8 +25,8 @@ export class GameScene extends Phaser.Scene {
 	preload() {
 		//this.load.image('heart', 'assets/images/heart_full.png');
 		//this.animsManager.preload();
-		this.load.spritesheet('ship', '../../assets/sprites/anim_ship_spin.png', { frameWidth: 192, frameHeight: 63 });
-		this.load.image('landing_gear', '../../assets/sprites/LandingGear.png');
+		this.load.spritesheet('ship', '../assets/sprites/anim_ship_spin.png', { frameWidth: 192, frameHeight: 63 });
+		this.load.image('landing_gear', '../assets/sprites/LandingGear.png');
 	}
 
 	create(settings) {
