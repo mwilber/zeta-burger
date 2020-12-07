@@ -43,7 +43,7 @@ export class GameScene extends Phaser.Scene {
 		this.player = new Player({
 			scene: this,
 			x: 400,
-			y: 300,
+			y: 200,
 			ship: {
 				x: 0,
 				y: 0,
@@ -54,10 +54,14 @@ export class GameScene extends Phaser.Scene {
 			gear: 'gear'
 		});
 		this.player.ToggleFlightMode();
+
+		// Add landing platform
+		let platforms = this.physics.add.staticGroup();
+		platforms.add( new Phaser.GameObjects.Rectangle(this, 400, 400, 200, 25, 0x7bb951), true)
+		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 	}
 
 	update(time, delta) {
-
 		if( this.cursors.up.isDown || this.cursors.down.isDown || this.cursors.left.isDown || this.cursors.right.isDown ){
 			if (this.cursors.up.isDown) this.player.SteerUp();
 			if (this.cursors.down.isDown) this.player.SteerDown();
@@ -80,6 +84,24 @@ export class GameScene extends Phaser.Scene {
 			frameRate: 10,
 			repeat: -1
 		});
+	}
+
+	HitLandingPad(player, platform){
+		if( !player.gear.visible || 
+			player.body.touching.up || 
+			player.body.touching.left || 
+			player.body.touching.right
+		){
+			console.log('this', this);
+			player.Destruct();
+		}else{
+			player.Land();
+		}
+	}
+
+	EndGame(){
+		console.log('DEAD!');
+		this.scene.restart();
 	}
 	
 }

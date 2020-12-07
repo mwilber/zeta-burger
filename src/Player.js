@@ -41,6 +41,13 @@ export default class Player extends Phaser.GameObjects.Container{
 		this.body.setDrag(0, 70);
 		//this.body.setFriction(1, 0);
 		this.body.setCollideWorldBounds(true);
+		this.body.onWorldBounds=true;
+		this.scene.physics.world.on('worldbounds', (body, up, down, left, right) => {
+			// if(down){
+			// gameover();
+			// }
+			this.Destruct();
+		});
 		//this.body.allowGravity = false;
 		//this.body.width = 192;
 		
@@ -160,6 +167,10 @@ export default class Player extends Phaser.GameObjects.Container{
 
 	TakeOff(){
 		this.ChangeFlightMode(this.FLIGHT_MODES.delta);
+	}
+
+	Destruct(){
+		this.scene.EndGame();
 	}
 
 	Subscribe(event, handler, context) {
