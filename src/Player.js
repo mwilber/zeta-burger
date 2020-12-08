@@ -56,7 +56,7 @@ export default class Player extends Phaser.GameObjects.Container{
 
 	SteerUp(){
 		if(this.flightmode === this.FLIGHT_MODES.landed){
-			this.TakeOff();
+			this.RequestTakeoff();
 		}else{
 			if(this.flightmode === this.FLIGHT_MODES.delta){
 				this.body.setAccelerationY(-this.acceleration);
@@ -159,13 +159,17 @@ export default class Player extends Phaser.GameObjects.Container{
 		}
 	}
 
-	Land(){
-		//this.body.allowGravity = true;
+	Land(platform){
 		this.body.setVelocityX(0);
 		this.ChangeFlightMode(this.FLIGHT_MODES.landed);
+		this.landingLocation = platform;
 	}
 
-	TakeOff(){
+	RequestTakeoff(){
+		this.landingLocation.Release(this);
+	}
+
+	Takeoff(){
 		this.ChangeFlightMode(this.FLIGHT_MODES.delta);
 	}
 

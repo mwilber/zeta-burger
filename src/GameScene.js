@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import Player from 'Player';
+import Player from './Player';
 //import { Anims } from './anims';
+import Platform from './Platform';
 
 /**
  * Parent class for all playable scenes
@@ -57,7 +58,14 @@ export class GameScene extends Phaser.Scene {
 
 		// Add landing platform
 		let platforms = this.physics.add.staticGroup();
-		platforms.add( new Phaser.GameObjects.Rectangle(this, 400, 200, 200, 25, 0x7bb951), true)
+		platforms.add( new Platform({
+			scene: this, 
+			x: 400, 
+			y: 200, 
+			width: 200, 
+			height: 25, 
+			fill: 0x7bb951
+		}), true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 	}
 
@@ -94,8 +102,7 @@ export class GameScene extends Phaser.Scene {
 		){
 			player.Destruct();
 		}else{
-			player.Land();
-			platform.setFillStyle(0x990000);
+			platform.Touchdown(player);
 		}
 	}
 
