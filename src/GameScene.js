@@ -6,7 +6,7 @@ import Player from 'Player';
  * Parent class for all playable scenes
  */
 export class GameScene extends Phaser.Scene {
-	constructor() {
+	constructor () {
 		super({
 			key: "GameScene"
 		});
@@ -28,14 +28,14 @@ export class GameScene extends Phaser.Scene {
 	}
 
 
-	preload() {
+	preload () {
 		//this.load.image('heart', 'assets/images/heart_full.png');
 		//this.animsManager.preload();
 		this.load.spritesheet('ship', this.shipSprite.url, { frameWidth: this.shipSprite.width, frameHeight: this.shipSprite.height });
 		this.load.image('landing_gear', 'assets/sprites/LandingGear.png');
 	}
 
-	create(settings) {
+	create (settings) {
 		this.cursors = this.input.keyboard.createCursorKeys();
 
 		this.InitAnims();
@@ -61,7 +61,7 @@ export class GameScene extends Phaser.Scene {
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 	}
 
-	update(time, delta) {
+	update (time, delta) {
 		if( this.cursors.up.isDown || this.cursors.down.isDown || this.cursors.left.isDown || this.cursors.right.isDown ){
 			if (this.cursors.up.isDown) this.player.SteerUp();
 			if (this.cursors.down.isDown) this.player.SteerDown();
@@ -77,7 +77,7 @@ export class GameScene extends Phaser.Scene {
 		}
 	}
 
-	InitAnims(){
+	InitAnims () {
 		this.anims.create({
 			key: 'spin',
 			frames: this.anims.generateFrameNumbers('ship', { start: 0, end: 3 }),
@@ -86,7 +86,7 @@ export class GameScene extends Phaser.Scene {
 		});
 	}
 
-	HitLandingPad(player, platform){
+	HitLandingPad (player, platform) {
 		if( !player.gear.visible || 
 			player.body.touching.up || 
 			player.body.touching.left || 
@@ -95,10 +95,11 @@ export class GameScene extends Phaser.Scene {
 			player.Destruct();
 		}else{
 			player.Land();
+			platform.setFillStyle(0x990000);
 		}
 	}
 
-	EndGame(){
+	EndGame () {
 		console.log('DEAD!');
 		this.scene.restart();
 	}
