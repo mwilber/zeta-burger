@@ -5,8 +5,12 @@ export class OrderManager{
 	}
 
 	PlaceOrder(){
-		let order = {value: 7};
+		let orderId = 'test';
+		let order = {id: orderId, value: 7};
+		// Pass the order object to the source pad (restaurant)
 		this.landingPads[0].SetBundle(order);
+		// Pass the order id to the destination pad
+		this.landingPads[1].SetOrderId(orderId);
 	}
 
 }

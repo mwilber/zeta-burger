@@ -7,7 +7,10 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 		this.defaultFill = fill;
 		this.landedFill = 0x990000;
 		this.holdFill = 0xcccc00;
+		this.orderFill = 0x0000ff;
+		this.processFill = 0xff00ff;
 		this.hold = null;
+		this.orderId = null;
 	}
 
 	SetBundle(bundle){
@@ -23,9 +26,22 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 		return bundle;
 	}
 
+	ProcessBundle(bundle){
+		console.log("🚀 ~ file: Platform.js ~ line 27 ~ Platform ~ ProcessBundle ~ bundle", bundle, this.orderId);
+		this.setFillStyle(this.orderFill);
+	}
+
+	SetOrderId(id){
+		this.orderId = id;
+		this.setFillStyle(this.orderFill);
+	}
+
 	Touchdown(ship){
 		if(ship.flightmode !== ship.FLIGHT_MODES.landed){
 			ship.Land(this);
+			let bundle = null;
+			if(this.orderId == ship.GetBundleId()) bundle = ship.DeliverBundle();
+			if(bundle) this.ProcessBundle(bundle);
 		}
 	}
 

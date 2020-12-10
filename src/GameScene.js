@@ -63,13 +63,22 @@ export class GameScene extends Phaser.Scene {
 		let platforms = this.physics.add.staticGroup();
 		let platform = new Platform({
 			scene: this, 
-			x: 400, 
+			x: 200, 
 			y: 200, 
 			width: 200, 
 			height: 25, 
 			fill: 0x7bb951
 		});
 		platforms.add( platform, true);
+		let platform2 = new Platform({
+			scene: this, 
+			x: 600, 
+			y: 200, 
+			width: 200, 
+			height: 25, 
+			fill: 0x7bb951
+		});
+		platforms.add( platform2, true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 		this.orderManager = new OrderManager(platforms);
 

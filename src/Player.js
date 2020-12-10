@@ -169,7 +169,20 @@ export default class Player extends Phaser.GameObjects.Container{
 	}
 
 	GetBundle(platform){
-		this.hold = platform.GetBundle();
+		let bundle = platform.GetBundle();
+		if(!this.hold && bundle && bundle.id) this.hold = bundle;
+	}
+
+	DeliverBundle(){
+		if(!this.hold) return null;
+		let bundle = {...this.hold};
+		this.hold = null;
+		return bundle;
+	}
+
+	GetBundleId(){
+		if(this.hold) return this.hold.id;
+		return null;
 	}
 
 	RequestTakeoff(){
