@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import Player from './Player';
 //import { Anims } from './anims';
 import Platform from './Platform';
+import { OrderManager } from './OrderManager';
 
 /**
  * Parent class for all playable scenes
@@ -21,6 +22,8 @@ export class GameScene extends Phaser.Scene {
 			width: 192,
 			height: 63
 		}
+
+		this.orderManager = null;
 
 
 		// The Anims class is tightly coupled to this GameScene class and
@@ -58,15 +61,22 @@ export class GameScene extends Phaser.Scene {
 
 		// Add landing platform
 		let platforms = this.physics.add.staticGroup();
-		platforms.add( new Platform({
+		let platform = new Platform({
 			scene: this, 
 			x: 400, 
 			y: 200, 
 			width: 200, 
 			height: 25, 
 			fill: 0x7bb951
-		}), true);
+		});
+		platforms.add( platform, true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
+		this.orderManager = new OrderManager(platforms);
+
+		this.orderManager.PlaceOrder();
+
+		window.ship = this.player;
+		window.platform = platform;
 	}
 
 	update (time, delta) {

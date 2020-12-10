@@ -6,11 +6,27 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 
 		this.defaultFill = fill;
 		this.landedFill = 0x990000;
+		this.holdFill = 0xcccc00;
+		this.hold = null;
+	}
+
+	SetBundle(bundle){
+		this.hold = bundle;
+		this.setFillStyle(this.holdFill);
+	}
+
+	GetBundle(){
+		if(!this.hold) return null;
+		let bundle = {...this.hold};
+		this.hold = null;
+		this.setFillStyle(this.landedFill);
+		return bundle;
 	}
 
 	Touchdown(ship){
-		this.setFillStyle(this.landedFill);
-		ship.Land(this);
+		if(ship.flightmode !== ship.FLIGHT_MODES.landed){
+			ship.Land(this);
+		}
 	}
 
 	Release(ship){

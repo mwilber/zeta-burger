@@ -1,17 +1,18 @@
 export class OrderManager{
 	constructor(landingPads){
 
-		this.currentorder = 0;
-		// Discount the restaurant (pad 0).
-		this.landingPadCount = landingPads.length;
-
+		this.landingPads = landingPads.children.getArray();
 	}
 
-	ChooseOrderPad(){
-		this.currentorder = Math.floor(Math.random()*(this.landingPadCount))+1;
+	PlaceOrder(){
+		let order = {value: 7};
+		this.landingPads[0].SetBundle(order);
 	}
-	
-	ClearOrderPad(){
-		this.currentorder = 0;
+
+}
+
+class Order{
+	constructor({value}){
+		this.value = value;
 	}
 }

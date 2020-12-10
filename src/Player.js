@@ -18,6 +18,8 @@ export default class Player extends Phaser.GameObjects.Container{
 		this.flightmode = this.FLIGHT_MODES.omicron;
 		this.flightmodehandlers = [];
 
+		this.hold = null;
+
 		this.ship = new ShipSprite({
 			...ship,
 			game: scene
@@ -163,6 +165,11 @@ export default class Player extends Phaser.GameObjects.Container{
 		this.body.setVelocityX(0);
 		this.ChangeFlightMode(this.FLIGHT_MODES.landed);
 		this.landingLocation = platform;
+		this.GetBundle(this.landingLocation);
+	}
+
+	GetBundle(platform){
+		this.hold = platform.GetBundle();
 	}
 
 	RequestTakeoff(){
