@@ -28,7 +28,7 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 
 	ProcessBundle(bundle){
 		console.log("🚀 ~ file: Platform.js ~ line 27 ~ Platform ~ ProcessBundle ~ bundle", bundle, this.orderId);
-		this.setFillStyle(this.orderFill);
+		this.setFillStyle(this.processFill);
 	}
 
 	SetOrderId(id){
