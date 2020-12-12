@@ -71,12 +71,15 @@ export class GameScene extends Phaser.Scene {
 		this.orderManager = new OrderManager(platforms);
 		this.cashManager = new CashManager();
 
-		this.orderManager.PlaceOrder({callback: (bundle) =>{
-			this.cashManager.Deposit(bundle.value);
-		}});
+		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)});
 
 		// TODO: remove this
 		window.ship = this.player;
+	}
+
+	HandleOrderCallback(bundle){
+		this.cashManager.Deposit(bundle.value);
+		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)})
 	}
 
 	CreatePlatform(x, y){
