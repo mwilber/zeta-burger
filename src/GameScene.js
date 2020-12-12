@@ -3,6 +3,7 @@ import Player from './Player';
 //import { Anims } from './anims';
 import Platform from './Platform';
 import { OrderManager } from './OrderManager';
+import { CashManager } from './CashManager';
 
 /**
  * Parent class for all playable scenes
@@ -24,6 +25,7 @@ export class GameScene extends Phaser.Scene {
 		}
 
 		this.orderManager = null;
+		this.cashManager = null;
 
 
 		// The Anims class is tightly coupled to this GameScene class and
@@ -81,8 +83,11 @@ export class GameScene extends Phaser.Scene {
 		platforms.add( platform2, true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 		this.orderManager = new OrderManager(platforms);
+		this.cashManager = new CashManager();
 
-		this.orderManager.PlaceOrder();
+		this.orderManager.PlaceOrder({callback: (bundle) =>{
+			this.cashManager.Deposit(bundle.value);
+		}});
 
 		window.ship = this.player;
 		window.platform = platform;
