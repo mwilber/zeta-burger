@@ -1,6 +1,7 @@
 export class CashManager{
 	constructor(){
 		this.bank = 0;
+		// TODO: remove this
 		window.cash = this;
 	}
 

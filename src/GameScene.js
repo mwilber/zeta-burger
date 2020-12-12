@@ -63,24 +63,10 @@ export class GameScene extends Phaser.Scene {
 
 		// Add landing platform
 		let platforms = this.physics.add.staticGroup();
-		let platform = new Platform({
-			scene: this, 
-			x: 200, 
-			y: 200, 
-			width: 200, 
-			height: 25, 
-			fill: 0x7bb951
-		});
-		platforms.add( platform, true);
-		let platform2 = new Platform({
-			scene: this, 
-			x: 600, 
-			y: 200, 
-			width: 200, 
-			height: 25, 
-			fill: 0x7bb951
-		});
-		platforms.add( platform2, true);
+		platforms.add(this.CreatePlatform(200, 200), true);
+		platforms.add(this.CreatePlatform(600, 200), true);
+		platforms.add(this.CreatePlatform(200, 400), true);
+		platforms.add(this.CreatePlatform(600, 400), true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
 		this.orderManager = new OrderManager(platforms);
 		this.cashManager = new CashManager();
@@ -89,8 +75,19 @@ export class GameScene extends Phaser.Scene {
 			this.cashManager.Deposit(bundle.value);
 		}});
 
+		// TODO: remove this
 		window.ship = this.player;
-		window.platform = platform;
+	}
+
+	CreatePlatform(x, y){
+		return new Platform({
+			scene: this, 
+			x: x, 
+			y: y, 
+			width: 200, 
+			height: 25, 
+			fill: 0x7bb951
+		});
 	}
 
 	update (time, delta) {
