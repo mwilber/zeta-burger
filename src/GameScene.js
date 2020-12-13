@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
 		this.cashManager = new CashManager();
 
 		this.hud = new Hud(this.scene);
+		this.player.Subscribe('flightmodechange', this.hud.SetFlightModeText, this.hud);
 
 		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)});
 

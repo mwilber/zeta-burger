@@ -11,8 +11,8 @@ export default class Hud {
 		this.borderAlpha = 1;
 		this.windowAlpha = 0.95;
 		this.windowColor = 0x000000;
-		this.windowHeight = 150;
-		this.padding = 32;
+		this.windowHeight = 75;
+		this.padding = 12;
 		this.dialogSpeed = 3;
 		this.scrollFactor = 0; //scrollFactor of 0 fixes to the camera
 
@@ -42,6 +42,10 @@ export default class Hud {
 
 	SetMoneyText(value) {
 		this.graphics.money.setText(value);
+	}
+
+	SetFlightModeText(value) {
+		this.graphics.flightMode.setText(value);
 	}
 
 	// Calculates where to place the dialog window based on the game size
@@ -77,14 +81,14 @@ export default class Hud {
 	// Creates text holder within the dialog window
 	_drawText() {
 		let dimensions = this._calculateWindowDimensions();
-		let columnWidth = (dimensions.width * 0.5);
+		let columnWidth = ((dimensions.width - (this.padding * 2)) * 0.5);
 		let x = dimensions.x + this.padding;
 		let y = dimensions.y + (this.padding * 0.5);
-		let lineHeight = 16;
-		let fontSize = 14;
+		let lineHeight = 22;
+		let fontSize = 12;
 		let style = {
 			wordWrap: { width: columnWidth - this.padding },
-			fontFamily: 'pressstart',
+			//fontFamily: 'pressstart',
 			fontSize: fontSize+'px',
 			lineSpacing: '12'
 		};
