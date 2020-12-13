@@ -4,6 +4,7 @@ import Player from './Player';
 import Platform from './Platform';
 import { OrderManager } from './OrderManager';
 import { CashManager } from './CashManager';
+import Hud from './Hud';
 
 /**
  * Parent class for all playable scenes
@@ -71,6 +72,8 @@ export class GameScene extends Phaser.Scene {
 		this.orderManager = new OrderManager(platforms);
 		this.cashManager = new CashManager();
 
+		this.hud = new Hud(this.scene);
+
 		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)});
 
 		// TODO: remove this
@@ -79,6 +82,7 @@ export class GameScene extends Phaser.Scene {
 
 	HandleOrderCallback(bundle){
 		this.cashManager.Deposit(bundle.value);
+		this.hud.SetMoneyText(this.cashManager.bank);
 		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)})
 	}
 
