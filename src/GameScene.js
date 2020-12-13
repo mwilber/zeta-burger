@@ -60,7 +60,6 @@ export class GameScene extends Phaser.Scene {
 			},
 			gear: 'gear'
 		});
-		this.player.ToggleFlightMode();
 
 		// Add landing platform
 		let platforms = this.physics.add.staticGroup();
@@ -72,9 +71,12 @@ export class GameScene extends Phaser.Scene {
 		this.orderManager = new OrderManager(platforms);
 		this.cashManager = new CashManager();
 
-		this.hud = new Hud(this.scene);
+		this.hud = new Hud({scene: this});
 		this.player.Subscribe('flightmodechange', this.hud.SetFlightModeText, this.hud);
+		// Toggle the flight mode here so the status gets passed to the hud
+		this.player.ToggleFlightMode();
 
+		this.hud.SetMoneyText(0);
 		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)});
 
 		// TODO: remove this
