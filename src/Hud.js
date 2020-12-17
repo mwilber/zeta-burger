@@ -48,13 +48,18 @@ export default class Hud {
 		this.graphics.flightMode.setText(value);
 	}
 
+	SetStatusText(value) {
+		console.log("SetStatusText", value)
+		this.graphics.orderStatus.setText(value);
+	}
+
 	// Calculates where to place the dialog window based on the game size
 	_calculateWindowDimensions() {
 		var gameHeight = this.scene.sys.game.config.height;
 		var gameWidth = this.scene.sys.game.config.width;
-		var x = (gameWidth * 0.66);
+		var x = (gameWidth * 0.5);
 		var y = this.padding;
-		var width = (gameWidth * 0.33) - this.padding;
+		var width = (gameWidth * 0.5) - this.padding;
 		var height = this.windowHeight;
 		return {
 			x,

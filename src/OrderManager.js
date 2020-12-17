@@ -1,10 +1,11 @@
 export class OrderManager{
-	constructor(landingPads){
+	constructor({scene, platforms}){
 
-		this.landingPads = landingPads.children.getArray();
+		this.landingPads = platforms.children.getArray();
 		// TODO: set this based on a property value in the platform
 		this.restaurantIdx = 0;
 		this.orderIdx = 0;
+		this.scene = scene;
 	}
 
 	PlaceOrder(params){
@@ -14,11 +15,13 @@ export class OrderManager{
 
 		this.orderIdx++;
 		let orderId = 'order_'+this.orderIdx;
-		let order = {id: orderId, value: 7, cb: params.callback};
+		let order = {id: orderId, value: 7, destination: this.nextCustomer, cb: params.callback};
 		// Pass the order object to the source pad (restaurant)
 		this.landingPads[0].SetBundle(order);
 		// Pass the order id to the destination pad
 		this.landingPads[this.nextCustomer].SetOrderId(orderId);
+
+		this.scene.setHudStatus('New order ready!');
 	}
 
 	GetNextCustomer(){

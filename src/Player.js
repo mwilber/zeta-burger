@@ -170,7 +170,11 @@ export default class Player extends Phaser.GameObjects.Container{
 
 	GetBundle(platform){
 		let bundle = platform.GetBundle();
-		if(!this.hold && bundle && bundle.id) this.hold = bundle;
+		if(!this.hold && bundle && bundle.id){ 
+			this.hold = bundle;
+			if(this.hold && this.hold.destination) 
+				this.scene.setHudStatus("Deliver to pad " + this.hold.destination);
+		}
 	}
 
 	DeliverBundle(){

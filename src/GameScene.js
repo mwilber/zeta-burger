@@ -60,6 +60,9 @@ export class GameScene extends Phaser.Scene {
 			},
 			gear: 'gear'
 		});
+		
+		this.hud = new Hud({scene: this});
+		this.setHudStatus = this.hud.SetStatusText.bind(this.hud);
 
 		// Add landing platform
 		let platforms = this.physics.add.staticGroup();
@@ -68,11 +71,11 @@ export class GameScene extends Phaser.Scene {
 		platforms.add(this.CreatePlatform(200, 400), true);
 		platforms.add(this.CreatePlatform(600, 400), true);
 		this.physics.add.collider(this.player, platforms, this.HitLandingPad);
-		this.orderManager = new OrderManager(platforms);
-		this.cashManager = new CashManager();
 
-		this.hud = new Hud({scene: this});
-		this.player.Subscribe('flightmodechange', this.hud.SetFlightModeText, this.hud);
+		this.cashManager = new CashManager();
+		this.orderManager = new OrderManager({scene: this, platforms});
+
+		this.player.Subscribe('flightmodechange', this.hud.SetFlightModeText.bind(this.hud), this.hud);
 		// Toggle the flight mode here so the status gets passed to the hud
 		this.player.ToggleFlightMode();
 
@@ -84,9 +87,12 @@ export class GameScene extends Phaser.Scene {
 	}
 
 	HandleOrderCallback(bundle){
-		this.cashManager.Deposit(bundle.value);
-		this.hud.SetMoneyText(this.cashManager.bank);
-		this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)})
+		// Artificial delay before next order
+		window.setTimeout(() => {
+			this.cashManager.Deposit(bundle.value);
+			this.hud.SetMoneyText(this.cashManager.bank);
+			this.orderManager.PlaceOrder({callback: this.HandleOrderCallback.bind(this)});
+		}, 3000);
 	}
 
 	CreatePlatform(x, y){
