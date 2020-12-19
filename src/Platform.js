@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 
 export default class Platform extends Phaser.GameObjects.Rectangle{
-	constructor({ scene, x, y, width, height, fill, stroke }){
+	constructor({ scene, id, x, y, width, height, fill, stroke }){
 		super(scene, x, y, width, height, fill, stroke);
 
+		this.id = id;
+		this.fontSize = 16;
 		this.defaultFill = fill;
 		this.landedFill = 0x990000;
 		this.holdFill = 0xcccc00;
@@ -11,6 +13,8 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 		this.processFill = 0xff00ff;
 		this.hold = null;
 		this.orderId = null;
+
+		this.scene.make.text({ x:(x-(width*0.5)), y:(y-(this.fontSize*0.5)), text:this.id, style:{ align: 'center', fontSize: (this.fontSize+'px'), fixedWidth: width } }).setDepth(100);
 	}
 
 	SetBundle(bundle){
@@ -27,7 +31,6 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 	}
 
 	ProcessBundle(bundle){
-		console.log("🚀 ~ file: Platform.js ~ line 27 ~ Platform ~ ProcessBundle ~ bundle", bundle, this.orderId);
 		this.setFillStyle(this.processFill);
 		this.scene.setHudStatus('Thanks!');
 		if(bundle.cb) bundle.cb(bundle);

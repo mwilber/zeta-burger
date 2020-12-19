@@ -15,7 +15,7 @@ export class OrderManager{
 
 		this.orderIdx++;
 		let orderId = 'order_'+this.orderIdx;
-		let order = {id: orderId, value: 7, destination: this.nextCustomer, cb: params.callback};
+		let order = {id: orderId, value: 7, destination: this.landingPads[this.nextCustomer].id, cb: params.callback};
 		// Pass the order object to the source pad (restaurant)
 		this.landingPads[0].SetBundle(order);
 		// Pass the order id to the destination pad
