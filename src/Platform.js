@@ -8,7 +8,7 @@ export default class Platform extends Phaser.GameObjects.Rectangle{
 		this.fontSize = 16;
 		this.defaultFill = fill;
 		this.landedFill = 0x990000;
-		this.holdFill = 0xcccc00;
+		this.holdFill = 0x999900;
 		this.orderFill = 0x0000ff;
 		this.processFill = 0xff00ff;
 		this.hold = null;

@@ -104,7 +104,7 @@ export class GameScene extends Phaser.Scene {
 			y: y, 
 			width: 200, 
 			height: 25, 
-			fill: 0x7bb951
+			fill: 0x528033
 		});
 	}
 
