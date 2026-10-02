@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10141b">
+  <meta name="description" content="Hot burgers. Cold space. Fly your saucer across an alien world and deliver before your tip runs out.">
+  <title>Zeta Burger — Intergalactic delivery service</title>
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a class="brand" href="/" aria-label="Zeta Burger home"><img src="/assets/icon.svg" alt="" width="43" height="43"><span>ZETA<span class="brand-accent">BURGER</span><small>INTERGALACTIC DELIVERY SERVICE</small></span></a>
+      <div class="header-right"><span class="live-dot"></span><span class="sector">SECTOR 07 <span> / </span> OPEN FOR DELIVERY</span><button class="icon-button" id="sound" aria-label="Enable sound" title="Enable sound">♫<span class="sound-slash">/</span></button><button class="icon-button" id="help" aria-label="How to play" title="How to play">?</button></div>
+    </header>
+    <main>
+      <div class="title-row"><div><p class="eyebrow">THE NIGHT SHIFT</p><h1>Hot burgers. <span>Cold space.</span></h1></div><div class="shift"><span class="tiny-star">✦</span><span>ZETA PRIME<br><small>LOW GRAVITY. HIGH STAKES.</small></span></div></div>
+      <section class="arcade" aria-label="Zeta Burger arcade game">
+        <div class="dashboard">
+          <div class="stat"><span class="stat-label">YOUR BANK</span><strong id="bank">$0.00</strong></div>
+          <div class="stat tip-stat"><span class="stat-label">DELIVERY TIP <span class="countdown-dot"></span></span><strong id="tip">—</strong></div>
+          <div class="stat delivery-stat"><span class="stat-label">DELIVERIES</span><strong><span id="deliveries">00</span><span class="stat-unit"> / ∞</span></strong></div>
+          <div class="stat lives-stat"><span class="stat-label">SAUCERS LEFT</span><strong id="lives" aria-label="3 lives">◒ ◒ ◒</strong></div>
+          <div class="gear-stat"><span class="stat-label">LANDING GEAR</span><button id="gear-status" class="gear-badge" aria-label="Toggle landing gear">↓ EXTENDED <kbd>G</kbd></button></div>
+        </div>
+        <div class="world-wrap" id="world-wrap">
+          <canvas id="game" width="1280" height="760" tabindex="0" aria-label="Side-view alien delivery game. Use arrow keys or WASD to thrust, G or Space to toggle landing gear, and P to pause."></canvas>
+          <div class="world-label"><span class="live-dot"></span> ZETA PRIME <span class="world-coordinates">23° N · 07° E</span></div>
+          <button class="pause-button" id="pause" aria-label="Pause game" title="Pause (P)">Ⅱ</button>
+          <div class="overlay" id="overlay">
+            <div class="overlay-card" id="intro-card"><div class="card-tag">YOUR SAUCER IS READY</div><h2>Special delivery.<br><em>Extra terrestrial.</em></h2><p>Pick up at Zeta Burger. Fly to the numbered pad.<br>Land softly. Keep the tip.</p><button class="primary-button" id="start">START YOUR SHIFT <span>→</span></button><div class="intro-controls"><span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd> THRUST</span><span><kbd>G</kbd> GEAR</span></div><small class="intro-note">Gear down = vertical thrust only. Momentum keeps going.</small></div>
+          </div>
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          <div class="landing-readout" id="landing-readout"><span id="velocity">↓ 0</span><span>SOFT LANDING &lt; 85</span></div>
+        </div>
+        <div class="mission-bar"><div class="mission-icon" id="mission-icon">↗</div><div class="mission-copy"><span class="stat-label" id="mission-label">NEXT STOP</span><strong id="mission">Restaurant <span>· Pick up a fresh order at pad 0</span></strong></div><span class="mission-pad" id="mission-pad">PAD 0</span></div>
+      </section>
+      <div class="touch-controls" aria-label="Touch flight controls"><div class="touch-direction"><button data-control="left" aria-label="Thrust left">←</button><button data-control="up" aria-label="Thrust upward">↑<small>THRUST</small></button><button data-control="right" aria-label="Thrust right">→</button></div><button id="touch-gear" class="touch-gear" aria-label="Toggle landing gear">⇵<small>GEAR</small></button></div>
+      <footer class="flight-manual"><div class="control-guide"><span class="footer-label">FLIGHT MANUAL</span><span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>D</kbd> <b>Thrust</b></span><span><kbd>G</kbd> / <kbd>SPACE</kbd> <b>Landing gear</b></span><span><kbd>P</kbd> <b>Pause</b></span></div><span class="footer-note">Easy on the landing. The fries are fragile.</span></footer>
+      <div class="bottom-line"><span>HANDCRAFTED ON ZETA PRIME <span>✦</span></span><span id="best">BEST SHIFT $0.00</span></div>
+    </main>
+  </div>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close instructions">×</button><p class="eyebrow">FLIGHT MANUAL</p><h2>Welcome to the night shift.</h2><p>Fly from your home dock to <b>pad 0</b> at Zeta Burger. Land and wait for the order to load, then deliver to the highlighted numbered pad. Repeat to grow your bank.</p><ul><li><b>Arrow keys / W A D:</b> thrust up, left, and right. Release to coast.</li><li><b>G / Space:</b> extend or retract gear. Sideways thrust only works with gear retracted. Gear does not stop your momentum.</li><li><b>Land gently:</b> both feet must fit on the pad, vertical speed under 85 and sideways speed under 35. Only your landing gear can touch a pad.</li><li><b>Watch the tip:</b> starts at $5–$10, drops $0.15 each second, and can go negative. The full value goes into your bank on delivery.</li><li><b>Three saucers:</b> terrain, buildings, pad sides, and world edges destroy your ship. An order survives a crash, but its tip keeps dropping.</li><li><b>P / Escape:</b> pause. On touch screens, hold the arrow buttons and tap GEAR. Turn your phone sideways for a bigger view.</li></ul><button class="primary-button" id="help-done">GOT IT <span>→</span></button></dialog>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
