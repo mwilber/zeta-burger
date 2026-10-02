@@ -28,7 +28,7 @@ export class Game {
   constructor(random: () => number = Math.random) { this.random = random; }
   spawn(): Ship {
     const home = PADS[0];
-    return { x: home.x + home.width / 2, y: home.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: -1 };
+    return { x: home.x + home.width / 2, y: home.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: home.id };
   }
   start() {
     this.ship = this.spawn(); this.lives = 3; this.bank = 0; this.delivered = 0;
@@ -88,7 +88,7 @@ export class Game {
           this.crash('Hard landing. Descend below 85; sideways drift below 35.'); return;
         }
         s.y = pad.y - PHYSICS.footY; s.vx = 0; s.vy = 0; s.landed = pad.id; this.dwell = 0;
-        this.emit('land', `${pad.name} · Docked at ${pad.id < 0 ? 'home' : `pad ${pad.id}`}`);
+        this.emit('land', `${pad.name} · Docked at pad ${pad.id}`);
         return;
       }
     }

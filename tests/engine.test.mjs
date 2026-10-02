@@ -84,7 +84,7 @@ test('pause freezes physics and the tip countdown', () => {
 });
 test('crashes keep the order timer running, respawn at home, and end after three lives', () => {
   const game = airborne(); game.order = { target: 1, initialTip: 7, elapsed: 0 };
-  game.crash('test'); fly(game, 1.6); assert.equal(game.phase, 'playing'); assert.equal(game.ship.landed, -1);
+  game.crash('test'); fly(game, 1.6); assert.equal(game.phase, 'playing'); assert.equal(game.ship.landed, PADS[0].id);
   assert.equal(game.order.target, 1); assert.ok(game.tip < 7); game.crash('test'); fly(game, 1.6);
   game.crash('test'); assert.equal(game.lives, 0); assert.equal(game.phase, 'gameover');
   const tip = game.tip; fly(game, 3); assert.equal(game.tip, tip);

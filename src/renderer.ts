@@ -182,7 +182,7 @@ export class Renderer {
     for (let i = 0; i < 6; i++) this.rect(x + 7 + i * (w - 18) / 5, y + 6, 4, 2, active ? '#bdf77d' : color + 'a0');
     this.rect(x - 2, y - 6, 4, 6, '#435363'); this.rect(x + w - 2, y - 6, 4, 6, '#435363');
     this.ellipse(x, y - 6, 2, 2, active ? '#bdf77d' : color); this.ellipse(x + w, y - 6, 2, 2, active ? '#bdf77d' : color);
-    const label = pad.id === -1 ? 'H' : String(pad.id);
+    const label = String(pad.id);
     const cx = x + w / 2, ly = y + 32;
     this.rect(cx - 12, ly - 14, 24, 23, '#25343fe6', 5);
     c.strokeStyle = active ? '#bdf77d' : color + '90'; c.lineWidth = 1; c.strokeRect(cx - 11.5, ly - 13.5, 23, 22);

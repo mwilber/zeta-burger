@@ -31,7 +31,7 @@ Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs 
 - **♫:** enable or mute synthesized arcade sound. Sound begins muted.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-Start at the **H** home dock. Lift off with gear extended, retract it once clear of the dock, and fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load an order. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current tip, and return to the restaurant for another order.
+Start at the home dock, **pad 6**. Lift off with gear extended, retract it once clear of the dock, and fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load an order. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current tip, and return to the restaurant for another order.
 
 A new order starts with a **$5–$10** tip that decreases **$0.15 per second**. Tips can become negative and are applied to your bank as signed values. There is no timeout that cancels an order. Three saucers are available per shift. A crash costs one life and respawns you at home after 1.5 seconds; your order stays aboard and its tip keeps falling during respawn. Best bank is saved locally when browser storage is available.
 
