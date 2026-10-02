@@ -18,12 +18,12 @@ function seek(game, x, y, landId = null) {
   }
   throw Error(`Navigation timeout to ${x},${y}; ${JSON.stringify(game.ship)}`);
 }
-for (let target=1; target<=5; target++) test(`Fly home → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
-  const game = new Game(() => (target - .5)/5); game.start();
-  // Keep gear down until safely airborne so retraction never drops the hull onto home.
+for (let target=1; target<=5; target++) test(`Fly gas station → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
+  const game = new Game(() => (target - .5)/5); game.start('casual');
+  // Lift-off automatically retracts gear, without changing the launch trajectory.
   for (let i=0; i<60; i++) game.step(dt,{up:true,left:false,right:false});
   seek(game,137,455); seek(game,428,450); seek(game,428,538,0);
-  for(let i=0;i<120;i++) game.step(dt,{up:false,left:false,right:false});
+  for(let i=0;i<3600 && !game.order;i++) game.step(dt,{up:false,left:false,right:false});
   if(game.order.target !== target) throw Error('Unexpected destination');
   for(let i=0;i<60;i++) game.step(dt,{up:true,left:false,right:false});
   seek(game,428,125);

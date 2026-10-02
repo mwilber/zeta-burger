@@ -1054,3 +1054,98 @@ dialog .primary-button {
     font-size:7px;
   }
 }
+
+.shift-settings {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  padding:12px 25px;
+  background:#151c25;
+  border-bottom:1px solid var(--border);
+  font:9px monospace;
+  letter-spacing:.8px;
+  color:#a9b7c5;
+}
+
+.shift-settings label { display:flex; align-items:center; gap:8px; }
+.shift-settings select {
+  font:11px monospace;
+  color:#e1edda;
+  background:#26322b;
+  border:1px solid #526245;
+  border-radius:5px;
+  padding:6px;
+}
+.shift-settings select:disabled { opacity:.65; }
+.fuel-readout { display:flex; align-items:center; gap:10px; }
+.fuel-readout strong { color:#98daed; }
+.fuel-readout.low-fuel strong { color:#ff8499; }
+.fuel-readout meter { width:80px; height:14px; accent-color:#98daed; }
+.fuel-readout > span { color:#7e93a8; font-size:8px; }
+.dispatch { background:#151c25; padding:12px 25px; border-top:1px solid var(--border); }
+.dispatch-heading { display:flex; justify-content:space-between; gap:12px; color:#a1acba; font:10px monospace; }
+.dispatch-heading .stat-label { margin:0; }
+.order-queue { display:flex; gap:8px; overflow-x:auto; padding-top:10px; min-height:70px; }
+.order-card {
+  flex:0 0 112px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  padding:8px;
+  border:1px solid #3a4754;
+  border-radius:6px;
+  background:#202936;
+  font:9px monospace;
+  color:#bcc6ce;
+}
+.order-card strong { color:var(--lime); font-size:14px; }
+.order-card.negative strong { color:#ff8499; }
+.order-card.onboard { border-color:#9bcd68; }
+.order-card small { color:#8d9dae; font-size:8px; }
+.package-icon { font-size:19px; line-height:20px; color:#dbb382; }
+.queue-empty { font:10px monospace; line-height:1.6; color:#8594a6; align-self:center; }
+
+@media(max-width:700px) {
+  .shift-settings { padding:10px 12px; gap:8px; font-size:8px; }
+  .shift-settings select { font-size:10px; padding:4px; }
+  .fuel-readout { flex-basis:100%; }
+  .fuel-readout meter { flex:1; }
+  .dispatch { padding:10px 12px; }
+  .dispatch-heading { font-size:8px; }
+  .order-card { flex-basis:98px; }
+}
+@media(max-height:600px) and (orientation:landscape) {
+  .shift-settings > #level-name { display:none; }
+  .shift-settings { flex-wrap:nowrap; padding:5px 10px; gap:6px; font-size:8px; }
+  .shift-settings label { gap:4px; }
+  .shift-settings select { font-size:9px; padding:3px; }
+  .fuel-readout { flex-basis:auto; gap:5px; }
+  .fuel-readout meter { width:50px; }
+  .fuel-readout > span { display:none; }
+  .dashboard { min-height:52px; padding:8px 10px; }
+  .stat { padding-left:8px; }
+  .stat-label { font-size:6.5px; letter-spacing:.3px; }
+  .stat strong { font-size:16px; white-space:nowrap; }
+  .lives-stat strong { font-size:14px; letter-spacing:2px; }
+  .mission-bar { min-height:43px; padding:6px 10px; }
+  .mission-icon { width:27px; height:27px; font-size:18px; }
+  .world-label { font-size:7px; left:12px; top:12px; }
+  .world-coordinates { display:none; }
+  .dispatch { padding:6px 12px; }
+  .dispatch-heading { font-size:8px; }
+  .order-queue { min-height:26px; padding-top:5px; }
+  .order-card { flex-direction:row; flex-wrap:wrap; justify-content:center; flex-basis:125px; padding:4px; gap:4px; }
+  .order-card .package-icon,.order-card small { display:none; }
+  .order-card strong { font-size:11px; }
+  .arcade { width:min(calc(100% - 172px),calc((100dvh - 200px) * 1.68421)); }
+  .overlay-card { padding:10px 14px; }
+  .overlay-card h2 { font-size:20px; margin-bottom:8px; }
+  .overlay-card p { font-size:9px; line-height:1.5; margin-bottom:10px; }
+  .overlay-card .card-tag { font-size:7px; margin-bottom:8px; }
+  .overlay-card .primary-button { padding:9px 13px; font-size:9px; min-width:200px; }
+  .overlay-card .intro-controls { display:none; }
+  .overlay-card .intro-note { font-size:6px; margin-top:8px; }
+}

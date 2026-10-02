@@ -24,16 +24,28 @@ Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs 
 ## Play
 
 - **Arrow keys or W/A/D:** thrust up, left, and right. There is no rotation or pitch control.
-- **G or Space:** extend/retract landing gear. Extended gear disables sideways thrust. All existing momentum continues; use opposite thrust to brake before extending gear.
+- **G or Space:** extend/retract landing gear. The first upward thrust after landing automatically retracts it. Extended gear disables sideways thrust. All existing momentum continues; use opposite thrust to brake before extending gear.
 - **P or Escape:** pause/resume. Switching tabs or losing focus automatically pauses the game.
 - **Enter:** start a shift or replay after game over.
 - **Touch:** hold the on-screen arrows; tap GEAR. Multiple simultaneous touches are supported. Landscape offers a larger flight field with controls beside it.
 - **♫:** enable or mute synthesized arcade sound. Sound begins muted.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-Start at the home dock, **pad 6**. Lift off with gear extended, retract it once clear of the dock, and fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load an order. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current tip, and return to the restaurant for another order.
+Start at the **gas station on pad 6**. Choose a skill setting before starting, then lift off (gear retracts automatically) and fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load the oldest waiting order. You carry one order at a time. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current signed tip, and return to the restaurant for another order.
 
-A new order starts with a **$5–$10** tip that decreases **$0.15 per second**. Tips can become negative and are applied to your bank as signed values. There is no timeout that cancels an order. Three saucers are available per shift. A crash costs one life and respawns you at home after 1.5 seconds; your order stays aboard and its tip keeps falling during respawn. Best bank is saved locally when browser storage is available.
+Each level begins with a fixed schedule of orders. They become available at random intervals, even while another order is aboard. Every order starts its own **$5–$10** tip countdown on arrival; waiting and onboard orders lose tip value independently. Current tips hover above the package icons in flight and at the restaurant; the dispatch strip shows every active order. Negative tips subtract from your bank on delivery.
+
+| Skill | Total orders | Arrival interval | Tip decrease |
+| --- | --- | --- | --- |
+| Casual | 4 | 12–22 seconds | $0.06/second |
+| Normal | 6 | 8–16 seconds | $0.08/second |
+| Expert | 8 | 5–10 seconds | $0.12/second |
+
+The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. Only Zeta Prime is available for now.
+
+Fuel starts at **100%**. Upward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
+
+Three saucers are available per shift. A crash costs one life and respawns you at the gas station with a full tank after 1.5 seconds; your onboard order survives, and all tip clocks and arrivals continue during respawn. Losing all three saucers also ends the shift. Pause freezes arrivals, tips, fuel, and flight. Best bank is saved locally when browser storage is available.
 
 Landings require both feet to be completely inside the pad, a downward speed at or below **85 world units/second**, and sideways speed at or below **35**. The speed readout turns pink when unsafe. Hull contact, gear contact against pad sides/undersides, buildings, islands, and the world boundary are fatal. The stars, distant planets, and atmospheric mountains are background scenery.
 
@@ -42,6 +54,7 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | File | Purpose |
 | --- | --- |
 | `src/engine.ts` | Browser-independent physics, landing, lives, orders, signed tips, and game state |
+| `src/levels.ts` | Level definitions, station roles, destinations, and skill settings |
 | `src/world.ts` | Numbered pads, station coordinates, terrain silhouettes, and convex polygon collision |
 | `src/renderer.ts` | Original Canvas art, stars, saucer, beacons, buildings, particles, and asset loading |
 | `src/main.ts` | Fixed-step render loop, keyboard/multitouch input, HUD, pause, help, and local best bank |
@@ -49,10 +62,10 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | `public/index.html`, `public/style.css` | Responsive game shell and accessible controls |
 | `public/assets/manifest.json` | Optional custom image overrides |
 | `tests/engine.test.mjs` | Flight, collision, landing, delivery, scoring, pause, and life-cycle checks |
-| `tests/routes.test.mjs` | Actual control-driven flights from home to every destination and back, without teleporting |
+| `tests/routes.test.mjs` | Actual control-driven flights from the gas station to every destination and back, without teleporting |
 | `scripts/dev.mjs` | Development server and TypeScript watch process using Node built-ins |
 
-The simulation runs at **120 Hz** independent of rendering rate. Long frame gaps are discarded to avoid catching up across obstacles. The physics has gravity and independent thrusters, with no artificial horizontal drag. Gear changes never reset velocity. Touch inputs use pointer capture and clear on release/cancellation; keyboard and touch inputs can coexist.
+The simulation runs at **120 Hz** independent of rendering rate. Long frame gaps are discarded to avoid catching up across obstacles. The physics has gravity and independent thrusters, with no artificial horizontal drag. Gear changes never reset velocity. Holding left or right with gear retracted tips the saucer toward 25 degrees in that direction; releasing the control immediately starts its return upright, even while coasting. Banking responds three times faster than the original velocity-based tilt; the hull and gear collision shapes remain upright. Expanding energy rings replace rocket exhaust. Touch inputs use pointer capture and clear on release/cancellation; keyboard and touch inputs can coexist.
 
 ## Add designer assets
 
@@ -64,7 +77,7 @@ The game ships with original procedural artwork; image replacements are optional
   "saucer": "/assets/saucer.svg",
   "buildings": {
     "restaurant": "/assets/restaurant.svg",
-    "home": "/assets/home.svg",
+    "gas": "/assets/gas-station.svg",
     "mushroom": "/assets/spore-house.svg",
     "observatory": "/assets/observatory.svg",
     "motel": "/assets/motel.svg",
@@ -74,6 +87,6 @@ The game ships with original procedural artwork; image replacements are optional
 }
 ```
 
-Omitted or failed images retain the built-in artwork. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, exhaust, and order indicators remain dynamic Canvas elements. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. All island silhouettes use the same vertices for drawing and collision.
+Omitted or failed images retain the built-in artwork. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic Canvas elements. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. All island silhouettes use the same vertices for drawing and collision.
 
-To add locations or change route spacing, edit `PADS` in `src/world.ts` and the destination-selection logic in `src/engine.ts`. Route tests provide executable examples of paths through this level.
+To add levels, extend `LEVELS` in `src/levels.ts` with pads, collision solids, restaurant/gas-station IDs, and eligible destinations. `Game.start(skill, level)` selects the level; flight, services, and rendering use its geometry and station roles. Levels share the 1280 × 760 flight field. Skill order counts, random arrival ranges, and tip rates live in `SKILLS`; fuel tuning lives in `FUEL`. To change Zeta Prime locations or route spacing, edit `PADS` in `src/world.ts`. Route tests provide executable examples of paths through this level.

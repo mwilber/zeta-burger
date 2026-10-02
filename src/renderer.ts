@@ -1,4 +1,4 @@
-import { PADS, WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
 import type { Point, Pad } from './world.js';
 import { PHYSICS, shipBody } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
@@ -57,12 +57,9 @@ export class Renderer {
       this.particles.push({ x: event.x, y: event.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, age: 0, life: .5 + Math.random(), color: crash ? ['#ffd297', '#ff918f', '#dabaff'][i % 3] : '#bdf77d', size: 2 + Math.random() * 3 });
     }
   }
-  update(dt: number, game: Game, controls: Controls) {
+  update(dt: number) {
     for (const p of this.particles) { p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 25 * dt; }
     this.particles = this.particles.filter(p => p.age < p.life);
-    if (game.phase !== 'playing' || this.reducedMotion) return;
-    const s = game.ship;
-    if (controls.up && Math.random() < .75) this.particles.push({ x: s.x + (Math.random() - .5) * 12, y: s.y + 12, vx: s.vx * .1 + (Math.random() - .5) * 20, vy: 45 + Math.random() * 30, age: 0, life: .3, color: '#bdf77d', size: 2 });
   }
   background(time: number) {
     const c = this.ctx;
@@ -158,6 +155,15 @@ export class Renderer {
       this.rect(x + 8, y + 28, w - 16, 13, '#b6d2c8', 3); this.line(x + 25, y + 29, x + 25, y + 40, '#496e7c', 2);
       this.rect(x + 18, y + 48, 17, h - 48, '#283c4c'); this.rect(x + 22, y + 52, 9, 6, '#a0cda9');
       this.line(x + 36, y + 9, x + 36, y, '#bad1d3', 2); this.ellipse(x + 36, y + 2, 3, 2, '#bdf77d');
+    } else if (kind === 'gas') {
+      this.rect(x, y + 10, w, h - 10, '#426471', 3);
+      this.rect(x + 3, y + 14, w - 6, 14, '#182f40', 2);
+      this.text('FUEL', x + w / 2, y + 24, '#98daed', 8, 'center', 'bold');
+      this.rect(x + 6, y + 33, 10, 10, '#bdf77d', 2);
+      this.line(x + w - 3, y + 31, x + w - 3, y + 46, '#98daed', 3);
+      this.line(x + w - 3, y + 46, x + w - 9, y + 46, '#98daed', 3);
+      this.rect(x + 3, y + 5, w - 6, 6, '#98daed', 2);
+      this.ellipse(x + w / 2, y + 2, 3, 2, '#bdf77d');
     } else {
       this.rect(x, y + 10, w, h - 10, '#516c7b', 3); this.rect(x + 4, y + 15, w - 8, 15, '#98c6c5', 2);
       this.rect(x + 3, y + 34, w - 6, 5, '#263c4d'); this.rect(x + 11, y, 6, 12, '#839caa');
@@ -193,15 +199,29 @@ export class Renderer {
     const c = this.ctx, s = game.ship;
     if (game.phase === 'crashed' || game.phase === 'gameover') return;
     if (s.landed !== null) this.ellipse(s.x, s.y + 24, 27, 3, '#151d2955');
-    if (controls.up && game.phase === 'playing') {
-      const length = 15 + (this.reducedMotion ? 3 : Math.sin(time * 40) * 4);
-      this.polygon([{ x: s.x - 9, y: s.y + 9 }, { x: s.x, y: s.y + length + 9 }, { x: s.x + 9, y: s.y + 9 }], '#9edbd269');
-      this.polygon([{ x: s.x - 5, y: s.y + 9 }, { x: s.x, y: s.y + length + 5 }, { x: s.x + 5, y: s.y + 9 }], '#c7f59d');
+    if (controls.up && game.fuel > 0 && game.phase === 'playing') {
+      const glow = c.createRadialGradient(s.x, s.y + 20, 1, s.x, s.y + 20, 43);
+      glow.addColorStop(0, '#98daed40'); glow.addColorStop(1, '#98daed00');
+      this.ellipse(s.x, s.y + 22, 38, 28, glow);
+      // Expanding rings form an antigravity wave beneath the saucer.
+      for (let i = 0; i < 4; i++) {
+        const progress = this.reducedMotion ? (i + .5) / 4 : (time * 2 + i / 4) % 1;
+        c.globalAlpha = (1 - progress) * .8;
+        c.strokeStyle = i % 2 ? '#bdf77d' : '#98daed'; c.lineWidth = 2 - progress;
+        c.beginPath(); c.ellipse(s.x, s.y + 12 + progress * 36, 12 + progress * 25, 3 + progress * 5, 0, 0, Math.PI * 2); c.stroke();
+      }
+      c.globalAlpha = 1;
     }
-    if (!s.gear && game.phase === 'playing') {
+    if (!s.gear && game.fuel > 0 && game.phase === 'playing') {
       const direction = Number(controls.right) - Number(controls.left);
-      if (direction) this.polygon([{ x: s.x - direction * 22, y: s.y - 3 }, { x: s.x - direction * (37 + Math.sin(time * 35) * 3), y: s.y + 1 }, { x: s.x - direction * 22, y: s.y + 5 }], '#bdf77d99');
+      if (direction) for (let i = 0; i < 3; i++) {
+        const progress = this.reducedMotion ? (i + .5) / 3 : (time * 3 + i / 3) % 1;
+        c.globalAlpha = (1 - progress) * .7; c.strokeStyle = '#98daed'; c.lineWidth = 1.5;
+        c.beginPath(); c.ellipse(s.x - direction * (25 + progress * 18), s.y + 1, 2 + progress * 3, 5 + progress * 5, 0, 0, Math.PI * 2); c.stroke();
+      }
+      c.globalAlpha = 1;
     }
+    c.save(); c.translate(s.x, s.y); c.rotate(game.tilt); c.translate(-s.x, -s.y);
     if (s.gear) {
       for (const side of [-1, 1]) {
         this.line(s.x + side * 12, s.y + 7, s.x + side * PHYSICS.footX, s.y + PHYSICS.footY - 2, '#c7d6d0', 2.5);
@@ -218,18 +238,32 @@ export class Renderer {
       this.line(s.x - 19, s.y + 1, s.x + 19, s.y + 1, '#465f76', 1.5);
       for (let i = 0; i < 5; i++) this.ellipse(s.x - 14 + i * 7, s.y + 3, 1.5, 1.2, i === 2 ? '#ffd0a0' : '#bdf77d');
     }
+    c.restore();
     if (game.order) {
       this.rect(s.x + 16, s.y - 18, 9, 10, '#dbb382', 1); this.rect(s.x + 18, s.y - 21, 5, 3, '#d5ba94', 1); this.line(s.x + 18, s.y - 13, s.x + 23, s.y - 13, '#5f6048', 1);
-      this.text(`→ ${game.order.target}`, s.x, s.y - 30, '#c8f8a0', 10, 'center', 'bold');
+      this.text(`${game.tip < 0 ? '−' : ''}$${Math.abs(game.tip).toFixed(2)}`, s.x + 21, s.y - 30, game.tip < 0 ? '#ff8499' : '#c8f8a0', 12, 'center', 'bold');
+      this.text(`→ PAD ${game.order.target}`, s.x, s.y - 46, '#c8f8a0', 9);
     }
-    if (s.landed !== null && game.dwell < PHYSICS.dwell && (s.landed === 0 || s.landed === game.order?.target)) {
-      this.rect(s.x - 18, s.y - 35, 36, 3, '#2d414e', 1); this.rect(s.x - 18, s.y - 35, 36 * Math.min(1, game.dwell / PHYSICS.dwell), 3, '#bdf77d', 1);
+    if (s.landed !== null && game.dwell < PHYSICS.dwell && (s.landed === game.level.restaurant || s.landed === game.order?.target)) {
+      this.rect(s.x - 18, s.y - 56, 36, 3, '#2d414e', 1); this.rect(s.x - 18, s.y - 56, 36 * Math.min(1, game.dwell / PHYSICS.dwell), 3, '#bdf77d', 1);
+    }
+    if (s.landed === game.level.gasStation) {
+      this.text(game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL', s.x, s.y - 66, '#98daed', 10, 'center', 'bold');
     }
   }
   draw(game: Game, controls: Controls, dt: number, visualTime: number) {
     const c = this.ctx;
-    this.update(dt, game, controls); this.background(visualTime);
-    for (const pad of PADS) { this.island(pad, visualTime); this.building(pad, visualTime); this.pad(pad, pad.id === game.destination.id, visualTime); }
+    this.update(dt); this.background(visualTime);
+    for (const pad of game.level.pads) { this.island(pad, visualTime); this.building(pad, visualTime); this.pad(pad, pad.id === game.destination.id || (game.fuel <= 25 && pad.id === game.level.gasStation), visualTime); }
+    const waiting = game.waitingOrders[0];
+    if (waiting) {
+      const restaurant = game.level.pads.find(pad => pad.id === game.level.restaurant)!;
+      const x = restaurant.building.x + restaurant.building.width / 2, y = restaurant.building.y - 28;
+      this.rect(x - 7, y - 12, 14, 14, '#dbb382', 2); this.line(x, y - 12, x, y + 2, '#8e754f', 2);
+      const tip = game.tipFor(waiting);
+      this.text(`${tip < 0 ? '−' : ''}$${Math.abs(tip).toFixed(2)}`, x, y - 22, tip < 0 ? '#ff8499' : '#bdf77d', 12, 'center', 'bold');
+      this.text(`${game.waitingOrders.length} READY`, x, y + 15, '#e9d2af', 9);
+    }
     this.saucer(game, controls, visualTime);
     for (const p of this.particles) { c.globalAlpha = Math.max(0, 1 - p.age / p.life); this.rect(p.x, p.y, p.size, p.size, p.color, 1); }
     c.globalAlpha = 1;

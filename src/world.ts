@@ -6,7 +6,7 @@ function station(id: number, name: string, x: number, y: number, width: number, 
   return { id, name, x, y, width, color, island: [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }], building: { x: bx, y: y - bh, width: bw, height: bh + 10, kind } };
 }
 export const PADS: Pad[] = [
-  station(6, 'Home dock', 82, 640, 110, '#98daed', 34, 218, 206, 28, 48, 'home'),
+  station(6, 'Gas station', 82, 640, 110, '#98daed', 34, 218, 206, 28, 48, 'gas'),
   station(0, 'Zeta Burger', 370, 560, 116, '#bdf77d', 258, 254, 280, 76, 95, 'restaurant'),
   station(1, 'Spore Heights', 116, 340, 102, '#da9fec', 42, 204, 60, 43, 73, 'mushroom'),
   station(2, 'Orbit Observatory', 563, 253, 104, '#98daed', 527, 217, 683, 44, 65, 'observatory'),

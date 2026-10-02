@@ -1,5 +1,7 @@
-import { Game, PHYSICS } from './engine.js';
+import { Game, PHYSICS, FUEL } from './engine.js';
 import type { Controls, Phase } from './engine.js';
+import { SKILLS } from './levels.js';
+import type { Skill } from './levels.js';
 import { Renderer } from './renderer.js';
 import { Sound } from './audio.js';
 const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -12,6 +14,11 @@ const dialog = get<HTMLDialogElement>('help-dialog');
 const keys = new Set<string>();
 const pointers = new Map<number, keyof Controls>();
 const touchButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-control]'));
+const skillSelect = get<HTMLSelectElement>('skill');
+const orderQueue = get('order-queue');
+const orderSummary = get('order-summary');
+const fuelValue = get('fuel');
+const fuelMeter = get<HTMLMeterElement>('fuel-meter');
 const hud = { bank: get('bank'), tip: get('tip'), deliveries: get('deliveries'), lives: get('lives'), gear: get('gear-status'), mission: get('mission'), label: get('mission-label'), pad: get('mission-pad'), velocity: get('velocity'), best: get('best'), pause: get<HTMLButtonElement>('pause') };
 let best = 0;
 try { best = Math.max(0, Number(localStorage.getItem('zeta-burger-best')) || 0); } catch { /* Private browsing can disable storage. */ }
@@ -31,8 +38,8 @@ function controls(): Controls {
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up') };
 }
 function start() {
-  game.start(); pausedFrom = null; resetInputs(); overlay.hidden = true;
-  canvas.focus({ preventScroll: true }); toast('Welcome, pilot. Thrust up, retract gear, then fly to pad 0.');
+  game.start(skillSelect.value as Skill); pausedFrom = null; resetInputs(); overlay.hidden = true;
+  canvas.focus({ preventScroll: true }); toast(`${game.totalOrders} orders this shift. Lift off to auto-retract gear, then head to pad ${game.level.restaurant}.`);
 }
 function pause() {
   if (game.phase === 'playing' || game.phase === 'crashed') {
@@ -95,6 +102,18 @@ for (const button of touchButtons) {
   button.addEventListener('contextmenu', event => event.preventDefault());
 }
 function updateHud() {
+  skillSelect.disabled = game.phase !== 'ready' && game.phase !== 'gameover';
+  text(get('order-total'), String(game.phase === 'ready' ? SKILLS[skillSelect.value as Skill].orders : game.totalOrders));
+  text(get('level-name'), `LEVEL 1 · ${game.level.name.toUpperCase()}`);
+  text(fuelValue, `${Math.floor(game.fuel)}%`); fuelMeter.value = game.fuel;
+  fuelValue.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
+  text(orderSummary, game.phase === 'ready' ? `${SKILLS[skillSelect.value as Skill].orders} orders this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);
+  const activeOrders = game.orders.filter(order => order.status === 'waiting' || order.status === 'onboard');
+  const queueMarkup = activeOrders.map(order => {
+    const tip = game.tipFor(order);
+    return `<div class="order-card ${tip < 0 ? 'negative' : ''} ${order.status === 'onboard' ? 'onboard' : ''}"><strong>${money(tip)}</strong><span class="package-icon" aria-hidden="true">▣</span><span>#${order.id} → PAD ${order.target}</span><small>${order.status === 'onboard' ? 'ON BOARD' : 'WAITING'}</small></div>`;
+  }).join('') || `<span class="queue-empty">${game.phase === 'ready' ? 'Orders arrive throughout the shift. Every tip has its own timer.' : game.scheduledCount ? 'Dispatch is preparing the next order…' : 'No orders waiting.'}</span>`;
+  if (orderQueue.innerHTML !== queueMarkup) orderQueue.innerHTML = queueMarkup;
   text(hud.bank, money(game.bank)); text(hud.tip, game.order ? money(game.tip) : '—');
   hud.tip.parentElement!.classList.toggle('negative', !!game.order && game.tip < 0);
   text(hud.deliveries, String(game.delivered).padStart(2, '0'));
@@ -103,7 +122,7 @@ function updateHud() {
   if (hud.gear.innerHTML !== gearMarkup) hud.gear.innerHTML = gearMarkup;
   hud.gear.classList.toggle('retracted', !game.ship.gear); hud.gear.setAttribute('aria-pressed', String(game.ship.gear));
   for (const button of touchButtons) if (button.dataset.control !== 'up') button.disabled = game.ship.gear;
-  const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver your order to pad ${game.order.target}</span>` : 'Restaurant <span>· Pick up a fresh order at pad 0</span>';
+  const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver order #${game.order.id} to pad ${game.order.target}</span>` : `${game.destination.name} <span>· ${game.waitingOrders.length ? `${game.waitingOrders.length} ${game.waitingOrders.length === 1 ? "order" : "orders"} ready at pad ${game.level.restaurant}` : `Await dispatch at pad ${game.level.restaurant}`}</span>`;
   if (hud.mission.innerHTML !== missionMarkup) hud.mission.innerHTML = missionMarkup;
   text(hud.label, game.order ? 'ORDER ON BOARD' : 'NEXT STOP'); text(hud.pad, `PAD ${game.destination.id}`);
   text(hud.velocity, `${game.ship.vy < 0 ? '↑' : '↓'} ${Math.round(Math.abs(game.ship.vy))}  ·  ↔ ${Math.round(Math.abs(game.ship.vx))}`);
@@ -118,10 +137,11 @@ function updateHud() {
   if (game.phase !== previousPhase) {
     previousPhase = game.phase;
     overlay.hidden = game.phase !== 'ready' && game.phase !== 'paused' && game.phase !== 'gameover';
-    if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift and tip timer are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';
+    if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';
     if (game.phase === 'gameover') {
       resetInputs();
-      overlay.innerHTML = `<div class="overlay-card"><div class="card-tag">NIGHT SHIFT COMPLETE</div><h2>That’s a wrap, pilot.</h2><p>${game.delivered} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p><button class="primary-button" data-action="restart">FLY ANOTHER SHIFT <span>→</span></button><small class="intro-note">Tip: cancel your sideways drift before lowering your gear.</small></div>`;
+      const reason = game.endReason === 'delivered' ? 'Every order delivered.' : game.endReason === 'tips' ? 'Every remaining tip fell below zero.' : 'Your last saucer was lost.';
+      overlay.innerHTML = `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'LEVEL COMPLETE' : 'SHIFT ENDED'}</div><h2>That’s a wrap, pilot.</h2><p>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p><button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your skill setting above for the next shift.</small></div>`;
     }
   }
 }
