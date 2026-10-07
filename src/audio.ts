@@ -1,7 +1,7 @@
-import { LANDING_BOUNCE } from './engine.js';
+import { LANDING_BOUNCE, verticalThrustDirection } from './engine.js';
 import type { Game, GameEvent, Controls } from './engine.js';
 type SoundGroup = 'jingle' | 'effects' | 'landing';
-type ThrustChannel = 'up' | 'side';
+type ThrustChannel = 'vertical' | 'side';
 interface ThrustVoice { carrier: OscillatorNode; wobble: OscillatorNode; gain: GainNode }
 const START_JINGLE = [
   { frequency: 523.25, delay: 0, duration: .18 },
@@ -48,7 +48,7 @@ export class Sound {
   }
   stopAll() {
     this.stopJingle(); this.stopGroup('effects'); this.stopGroup('landing');
-    this.stopThrust('up', true); this.stopThrust('side', true); this.landingCueActive = false;
+    this.stopThrust('vertical', true); this.stopThrust('side', true); this.landingCueActive = false;
   }
   private track(source: AudioScheduledSourceNode, nodes: AudioNode[], group: SoundGroup) {
     this.sources[group].add(source);
@@ -112,7 +112,8 @@ export class Sound {
   update(game: Game, controls: Controls) {
     const running = this.enabled && this.context !== null && game.phase === 'playing';
     const powered = running && game.fuel > 0;
-    if (powered && controls.up) this.startThrust('up'); else this.stopThrust('up');
+    const vertical = verticalThrustDirection(controls);
+    if (powered && vertical !== 0 && (vertical > 0 || game.ship.landed === null)) this.startThrust('vertical'); else this.stopThrust('vertical');
     if (powered && !game.ship.gear && controls.left !== controls.right) this.startThrust('side'); else this.stopThrust('side');
     if (running && game.ship.landed !== null && game.landingBounceTime > 0) {
       if (!this.landingCueActive) this.landingStutter(LANDING_BOUNCE.duration - game.landingBounceTime);
@@ -123,7 +124,7 @@ export class Sound {
   }
   private crash() {
     if (!this.enabled || !this.context) return;
-    this.stopThrust('up'); this.stopThrust('side'); this.stopGroup('landing'); this.landingCueActive = false;
+    this.stopThrust('vertical'); this.stopThrust('side'); this.stopGroup('landing'); this.landingCueActive = false;
     const context = this.context, now = context.currentTime;
     // Filtered noise makes the impact burst, with a falling rumble beneath it.
     const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * .8), context.sampleRate);

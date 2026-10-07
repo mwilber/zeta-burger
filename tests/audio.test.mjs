@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Sound } from '../dist/src/audio.js';
 import { Game, LANDING_BOUNCE, PHYSICS } from '../dist/src/engine.js';
-const idle = { up: false, left: false, right: false };
+const idle = { up: false, down: false, left: false, right: false };
 
 function audio() {
   const nodes = [];
@@ -117,6 +117,22 @@ test('gear lock, opposite side inputs, no fuel, countdown, and pause silence unu
   game.phase = 'playing'; game.fuel = 0;
   sound.update(game, { ...idle, up: true, right: true });
   assert.equal(nodes.length, 2, 'empty tank has no thrust audio');
+});
+test('downward thrust layers with sideways audio and balanced vertical inputs silence only that layer', () => {
+  const { sound, nodes } = audio(), game = playing();
+  sound.update(game, { ...idle, down: true, right: true });
+  assert.equal(nodes.length, 4);
+  assert.equal(nodes[0].pitch, nodes[2].pitch, 'same saucer tone for vertical and sideways thrust');
+  sound.update(game, { ...idle, up: true, right: true });
+  assert.equal(nodes.length, 4, 'switching vertical direction reuses the sustained voice');
+  sound.update(game, { ...idle, up: true, down: true, right: true });
+  assert.ok(nodes.slice(0, 2).every(node => node.stops.length === 1));
+  assert.ok(nodes.slice(2).every(node => node.stops.length === 0));
+  game.ship.gear = true; sound.update(game, { ...idle, down: true, right: true });
+  assert.equal(nodes.length, 6, 'down thrust is audible with gear extended');
+  assert.ok(nodes.slice(2, 4).every(node => node.stops.length === 1));
+  game.ship = game.spawnAtStation(); sound.update(game, { ...idle, down: true });
+  assert.ok(nodes.slice(4).every(node => node.stops.length === 1), 'down thrust is silent while docked');
 });
 
 test('happy win and sad losses are selected from structured end reasons, with descending loss notes', () => {

@@ -34,7 +34,7 @@ function toast(message: string) {
 function resetInputs() { keys.clear(); pointers.clear(); touchButtons.forEach(button => button.classList.remove('held')); }
 function controls(): Controls {
   const held = new Set(pointers.values());
-  return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up') };
+  return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up'), down: keys.has('ArrowDown') || keys.has('KeyS') || held.has('down') };
 }
 function start() {
   game.start(skillSelect.value as Skill); resetInputs(); overlay.hidden = true;
@@ -78,7 +78,7 @@ overlay.addEventListener('click', event => {
   if (button?.id === 'start' || button?.dataset.action === 'restart') start();
   else if (button?.dataset.action === 'resume') pause();
 });
-const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyA', 'KeyD', 'KeyW', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
+const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
 window.addEventListener('keydown', event => {
   if (dialog.open || !handled.has(event.code)) return;
   if (event.code === 'Enter') {
@@ -127,7 +127,7 @@ function updateHud() {
   const gearMarkup = `${game.ship.gear ? '↓ EXTENDED' : '↑ RETRACTED'} <kbd>G</kbd>`;
   if (hud.gear.innerHTML !== gearMarkup) hud.gear.innerHTML = gearMarkup;
   hud.gear.classList.toggle('retracted', !game.ship.gear); hud.gear.setAttribute('aria-pressed', String(game.ship.gear));
-  for (const button of touchButtons) button.disabled = game.phase !== 'playing' || (button.dataset.control !== 'up' && game.ship.gear);
+  for (const button of touchButtons) button.disabled = game.phase !== 'playing' || ((button.dataset.control === 'left' || button.dataset.control === 'right') && game.ship.gear);
   const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver order #${game.order.id} to pad ${game.order.target}</span>` : `${game.destination.name} <span>· ${game.waitingOrders.length ? `${game.waitingOrders.length} ${game.waitingOrders.length === 1 ? "order" : "orders"} ready at pad ${game.level.restaurant}` : `Await dispatch at pad ${game.level.restaurant}`}</span>`;
   if (hud.mission.innerHTML !== missionMarkup) hud.mission.innerHTML = missionMarkup;
   text(hud.label, game.order ? 'ORDER ON BOARD' : 'NEXT STOP'); text(hud.pad, `PAD ${game.destination.id}`);

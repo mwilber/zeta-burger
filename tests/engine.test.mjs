@@ -5,7 +5,7 @@ import { Renderer } from '../dist/src/renderer.js';
 import { PADS, WORLD_WIDTH } from '../dist/src/world.js';
 import { LEVELS, SKILLS } from '../dist/src/levels.js';
 const dt = 1 / 120;
-const idle = { left: false, right: false, up: false };
+const idle = { left: false, right: false, up: false, down: false };
 const fly = (game, seconds, controls = idle) => { for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, controls); };
 function startPlaying(game, ...args) { game.start(...args); fly(game, 3); }
 function airborne() { const game = new Game(() => .5); startPlaying(game); game.ship = { x: 410, y: 360, vx: 0, vy: 0, gear: false, landed: null }; return game; }
@@ -25,7 +25,7 @@ test('starting a shift holds all gameplay for exactly three seconds before accep
   const snapshot = JSON.stringify({ ship: game.ship, orders: game.orders, time: game.time, fuel: game.fuel, lives: game.lives });
   for (let i = 0; i < 359; i++) {
     game.toggleGear(); game.crash('ignored during countdown');
-    game.step(dt, { left: false, right: true, up: true });
+    game.step(dt, { left: false, right: true, up: true, down: false });
     assert.equal(game.phase, 'countdown');
     assert.equal(JSON.stringify({ ship: game.ship, orders: game.orders, time: game.time, fuel: game.fuel, lives: game.lives }), snapshot);
   }
@@ -71,6 +71,57 @@ test('retracted gear allows independent up and side thrust and no horizontal dra
   const game = airborne(); fly(game, .25, { ...idle, right: true, up: true });
   assert.ok(Math.abs(game.ship.vx - PHYSICS.sideThrust * .25) < .001); assert.ok(game.ship.vy < 0);
   const vx = game.ship.vx; fly(game, .25); assert.equal(game.ship.vx, vx);
+});
+test('downward thrust accelerates descent with either gear setting and can brake upward momentum', () => {
+  for (const gear of [false, true]) {
+    const game = airborne(); game.ship.gear = gear; game.ship.vy = -100; game.ship.vx = 12;
+    fly(game, .25, { ...idle, down: true });
+    assert.ok(Math.abs(game.ship.vy - (-100 + (PHYSICS.gravity + PHYSICS.downThrust) * .25)) < 1e-9);
+    assert.equal(game.ship.vx, 12); assert.equal(game.ship.gear, gear); assert.equal(game.phase, 'playing');
+    assert.ok(Math.abs(game.fuel - (FUEL.capacity - FUEL.downRate * .25)) < 1e-9);
+  }
+});
+test('down and sideways thrust combine, while opposite vertical inputs cancel without vertical fuel use', () => {
+  const game = airborne(); fly(game, .25, { ...idle, down: true, right: true });
+  assert.ok(Math.abs(game.ship.vy - (PHYSICS.gravity + PHYSICS.downThrust) * .25) < 1e-9);
+  assert.ok(Math.abs(game.ship.vx - PHYSICS.sideThrust * .25) < 1e-9);
+  assert.ok(Math.abs(game.fuel - (FUEL.capacity - (FUEL.downRate + FUEL.sideRate) * .25)) < 1e-9);
+  const balanced = airborne(); fly(balanced, .25, { ...idle, up: true, down: true, right: true });
+  assert.ok(Math.abs(balanced.ship.vy - PHYSICS.gravity * .25) < 1e-9);
+  assert.ok(Math.abs(balanced.fuel - (FUEL.capacity - FUEL.sideRate * .25)) < 1e-9);
+});
+test('downward thrust respects empty and partial tanks, pause, and docked pads', () => {
+  const empty = airborne(); empty.fuel = 0; empty.step(dt, { ...idle, down: true });
+  assert.equal(empty.ship.vy, PHYSICS.gravity * dt); assert.equal(empty.fuel, 0);
+  const partial = airborne(); partial.fuel = FUEL.downRate * dt / 2;
+  partial.step(dt, { ...idle, down: true });
+  assert.ok(Math.abs(partial.ship.vy - (PHYSICS.gravity + PHYSICS.downThrust / 2) * dt) < 1e-9);
+  assert.equal(partial.fuel, 0);
+  const paused = airborne(); paused.pause(); const snapshot = { ...paused.ship };
+  fly(paused, 1, { ...idle, down: true }); assert.deepEqual(paused.ship, snapshot); assert.equal(paused.fuel, FUEL.capacity);
+  const docked = airborne(); approach(docked, 0); docked.step(dt, idle); docked.fuel = 40;
+  const ship = { ...docked.ship }; fly(docked, .25, { ...idle, down: true });
+  assert.deepEqual(docked.ship, ship); assert.equal(docked.fuel, 40); assert.equal(docked.lives, 3);
+});
+test('downward thrust draws energy waves above the ship and balanced vertical controls draw none', () => {
+  const game = airborne(), renderer = Object.create(Renderer.prototype);
+  const waves = [], glows = [];
+  renderer.ctx = {
+    save() {}, restore() {}, rotate() {}, translate() {}, drawImage() {}, beginPath() {}, stroke() {},
+    createRadialGradient() { return { addColorStop() {} }; },
+    ellipse(x, y) { waves.push(y); }
+  };
+  renderer.images = new Map([['saucer', {}]]);
+  renderer.ellipse = (x, y) => { glows.push(y); };
+  renderer.saucer(game, { ...idle, down: true }, 1);
+  assert.equal(waves.length, 4); assert.ok(waves.every(y => y < game.ship.y));
+  assert.ok(glows.every(y => y < game.ship.y));
+  waves.length = 0; glows.length = 0;
+  renderer.saucer(game, { ...idle, up: true }, 1);
+  assert.ok(waves.every(y => y > game.ship.y));
+  waves.length = 0; glows.length = 0;
+  renderer.saucer(game, { ...idle, up: true, down: true }, 1);
+  assert.equal(waves.length, 0); assert.equal(glows.length, 0);
 });
 test('each pad accepts a safe gear-only touchdown', () => {
   for (const pad of PADS) {

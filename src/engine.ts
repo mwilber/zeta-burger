@@ -2,12 +2,13 @@ import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle } from './world.js';
 import type { Point, Pad } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
-export const PHYSICS = { gravity: 100, upThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
+export const PHYSICS = { gravity: 100, upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
 export const CRASH_DURATION = 1.5;
 export const START_DELAY = 3;
-export const FUEL = { capacity: 100, upRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
-export interface Controls { left: boolean; right: boolean; up: boolean }
+export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
+export interface Controls { left: boolean; right: boolean; up: boolean; down: boolean }
+export function verticalThrustDirection(controls: Controls): number { return (controls.up ? 1 : 0) - (controls.down ? 1 : 0); }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
@@ -143,7 +144,8 @@ export class Game {
       return;
     }
     const s = this.ship;
-    const up = controls.up && this.fuel > 0;
+    const vertical = this.fuel > 0 ? verticalThrustDirection(controls) : 0;
+    const up = vertical > 0, down = vertical < 0;
     if (s.landed !== null) {
       if (!up) {
         this.landingBounceTime = Math.max(0, this.landingBounceTime - dt);
@@ -162,13 +164,13 @@ export class Game {
     }
     const previous = { ...s };
     const direction = !s.gear && this.fuel > 0 ? Number(controls.right) - Number(controls.left) : 0;
-    const cost = ((up ? FUEL.upRate : 0) + Math.abs(direction) * FUEL.sideRate) * dt;
+    const cost = ((up ? FUEL.upRate : down ? FUEL.downRate : 0) + Math.abs(direction) * FUEL.sideRate) * dt;
     const power = cost > 0 ? Math.min(1, this.fuel / cost) : 0;
     this.fuel = Math.max(0, this.fuel - cost);
     if (this.fuel <= FUEL.low && !this.lowFuelWarned) {
       this.lowFuelWarned = true; this.emit('fuel', `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
     }
-    s.vy += (PHYSICS.gravity - (up ? PHYSICS.upThrust * power : 0)) * dt;
+    s.vy += (PHYSICS.gravity - (up ? PHYSICS.upThrust * power : 0) + (down ? PHYSICS.downThrust * power : 0)) * dt;
     s.vx += direction * PHYSICS.sideThrust * power * dt;
     // Collision geometry stays upright, regardless of the visible tilt.
     this.updateTilt(dt, s.gear ? 0 : Number(controls.right) - Number(controls.left));

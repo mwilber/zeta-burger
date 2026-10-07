@@ -23,7 +23,7 @@ Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs 
 
 ## Play
 
-- **Arrow keys or W/A/D:** thrust up, left, and right. There is no rotation or pitch control.
+- **Arrow keys or W/A/S/D:** thrust up, down, left, and right. **Down Arrow or S** accelerates descent; Up and Down held together cancel vertical thrust and consume no vertical fuel. Downward thrust works in the air with either gear setting; while docked, it leaves the saucer on the pad. There is no rotation or pitch control.
 - **G or Space:** extend/retract landing gear. The first upward thrust after landing automatically retracts it. Extended gear disables sideways thrust. All existing momentum continues; use opposite thrust to brake before extending gear.
 - **P or Escape:** pause/resume. Switching tabs or losing focus automatically pauses the game.
 - **Enter:** start a shift or replay after game over.
@@ -31,7 +31,7 @@ Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs 
 - **♫:** enable or mute synthesized arcade sound. Sound begins enabled and is unlocked by Start or the sound button.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-The soundscape includes a happy victory jingle for delivering all orders and a sad jingle for running out of saucers or tips. Upward and sideways thrust each play an independent warbling saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes use a noisy impact and falling rumble, and a rising chime announces each order ready for pickup. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
+The soundscape includes a happy victory jingle for delivering all orders and a sad jingle for running out of saucers or tips. Vertical (up or down) and sideways thrust each play an independent warbling saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes use a noisy impact and falling rumble, and a rising chime announces each order ready for pickup. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
 
 Start floating at the **top center of the play field**, with no initial drift and gear retracted. Choose a skill setting before starting. Starting or replaying a shift closes the dialog and plays a **short musical jingle during a three-second pause** before flight, fuel use, arrivals, and tip clocks begin. Pause, Help, and switching away freeze the start delay and stop the jingle; resuming continues the remaining melody. The sound button mutes the jingle along with the other effects. Then fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load the oldest waiting order. You carry one order at a time. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current signed tip, and return to the restaurant for another order.
 
@@ -45,7 +45,7 @@ Each level begins with a fixed schedule of orders. The first order always arrive
 
 The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. Only Zeta Prime is available for now.
 
-Fuel starts at **100%**. Upward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
+Fuel starts at **100%**. Upward or downward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
 
 Three saucers are available per shift. A crash costs one life and respawns you at the gas station with a full tank after 1.5 seconds; your onboard order survives, and all tip clocks and arrivals continue during respawn. Losing all three saucers ends the shift after the final crash animation plays for 1.5 seconds; shift resources freeze at the final impact, and the end-game dialog appears when the explosion finishes. Pause freezes arrivals, tips, fuel, and flight. Best bank is saved locally when browser storage is available.
 

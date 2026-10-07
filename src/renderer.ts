@@ -1,6 +1,6 @@
 import { WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
 import type { Point, Pad } from './world.js';
-import { PHYSICS, CRASH_DURATION, shipBody } from './engine.js';
+import { PHYSICS, CRASH_DURATION, shipBody, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: string; size: number }
 interface ArtManifest { background?: string; saucer?: string; buildings?: Record<string, string> }
@@ -199,16 +199,18 @@ export class Renderer {
     const c = this.ctx, s = game.ship;
     if (game.phase === 'crashed' || game.phase === 'gameover') return;
     if (s.landed !== null) this.ellipse(s.x, s.y + 24, 27, 3, '#151d2955');
-    if (controls.up && game.fuel > 0 && game.phase === 'playing') {
-      const glow = c.createRadialGradient(s.x, s.y + 20, 1, s.x, s.y + 20, 43);
+    const vertical = verticalThrustDirection(controls);
+    if (vertical !== 0 && game.fuel > 0 && game.phase === 'playing' && (vertical > 0 || s.landed === null)) {
+      const side = vertical > 0 ? 1 : -1;
+      const glow = c.createRadialGradient(s.x, s.y + side * 20, 1, s.x, s.y + side * 20, 43);
       glow.addColorStop(0, '#98daed40'); glow.addColorStop(1, '#98daed00');
-      this.ellipse(s.x, s.y + 22, 38, 28, glow);
-      // Expanding rings form an antigravity wave beneath the saucer.
+      this.ellipse(s.x, s.y + side * 22, 38, 28, glow);
+      // Vertical thrust sends energy waves opposite the thrust direction.
       for (let i = 0; i < 4; i++) {
         const progress = this.reducedMotion ? (i + .5) / 4 : (time * 2 + i / 4) % 1;
         c.globalAlpha = (1 - progress) * .8;
         c.strokeStyle = i % 2 ? '#bdf77d' : '#98daed'; c.lineWidth = 2 - progress;
-        c.beginPath(); c.ellipse(s.x, s.y + 12 + progress * 36, 12 + progress * 25, 3 + progress * 5, 0, 0, Math.PI * 2); c.stroke();
+        c.beginPath(); c.ellipse(s.x, s.y + side * (12 + progress * 36), 12 + progress * 25, 3 + progress * 5, 0, 0, Math.PI * 2); c.stroke();
       }
       c.globalAlpha = 1;
     }
