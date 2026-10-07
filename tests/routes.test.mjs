@@ -20,6 +20,7 @@ function seek(game, x, y, landId = null) {
 }
 for (let target=1; target<=5; target++) test(`Fly top center → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
   const game = new Game(() => (target - .5)/5); game.start('casual');
+  for (let i = 0; i < 360; i++) game.step(dt, { up: false, left: false, right: false });
   // Move clear of the observatory before descending toward the restaurant.
   seek(game,640,125); seek(game,428,125); seek(game,428,450); seek(game,428,538,0);
   for(let i=0;i<3600 && !game.order;i++) game.step(dt,{up:false,left:false,right:false});

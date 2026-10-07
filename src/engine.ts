@@ -5,12 +5,13 @@ import type { Level, Skill } from './levels.js';
 export const PHYSICS = { gravity: 100, upThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
 export const CRASH_DURATION = 1.5;
+export const START_DELAY = 3;
 export const FUEL = { capacity: 100, upRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
 export interface Controls { left: boolean; right: boolean; up: boolean }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type GameEvent = { type: 'crash' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number };
-export type Phase = 'ready' | 'playing' | 'paused' | 'crashed' | 'gameover';
+export type Phase = 'ready' | 'countdown' | 'playing' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
 }
@@ -34,6 +35,8 @@ export class Game {
   events: GameEvent[] = [];
   dwell = 0;
   crashTime = 0;
+  countdownTime = 0;
+  private pausedPhase: Phase = 'playing';
   time = 0;
   servicedPad: number | null = null;
   random: () => number;
@@ -59,7 +62,7 @@ export class Game {
       const initialTip = Math.round((5 + this.random() * 5) * 100) / 100;
       this.orders.push({ id, target, initialTip, elapsed: 0, availableAt, status: 'scheduled' });
     }
-    this.servicedPad = null; this.phase = 'playing';
+    this.servicedPad = null; this.countdownTime = START_DELAY; this.pausedPhase = 'playing'; this.phase = 'countdown';
   }
   get order(): Order | null { return this.orders.find(order => order.status === 'onboard') ?? null; }
   get waitingOrders(): Order[] { return this.orders.filter(order => order.status === 'waiting'); }
@@ -90,7 +93,11 @@ export class Game {
     if (!this.ship.gear) { this.ship.landed = null; this.servicedPad = null; this.dwell = 0; this.landingBounceTime = 0; }
     this.emit('gear', this.ship.gear ? 'Gear extended. Side thrusters locked. Keep an eye on your drift.' : 'Gear retracted. Side thrusters ready.');
   }
-  pause() { if (this.phase === 'playing') this.phase = 'paused'; else if (this.phase === 'paused') this.phase = 'playing'; }
+  pause() {
+    if (this.phase === 'playing' || this.phase === 'countdown' || this.phase === 'crashed') {
+      this.pausedPhase = this.phase; this.phase = 'paused';
+    } else if (this.phase === 'paused') this.phase = this.pausedPhase;
+  }
   crash(message: string) {
     if (this.phase !== 'playing') return;
     this.lives--; this.ship.landed = null; this.crashTime = 0; this.dwell = 0; this.servicedPad = null; this.landingBounceTime = 0;
@@ -105,6 +112,11 @@ export class Game {
   }
   step(dt: number, controls: Controls) {
     if (this.phase === 'ready' || this.phase === 'paused' || this.phase === 'gameover') return;
+    if (this.phase === 'countdown') {
+      this.countdownTime = Math.max(0, this.countdownTime - dt);
+      if (this.countdownTime < 1e-9) { this.countdownTime = 0; this.phase = 'playing'; }
+      return;
+    }
     // The final explosion plays before game over; the completed shift stays frozen.
     if (this.phase === 'crashed' && this.lives === 0) {
       this.crashTime += dt;

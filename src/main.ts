@@ -1,4 +1,4 @@
-import { Game, PHYSICS, FUEL } from './engine.js';
+import { Game, PHYSICS, FUEL, START_DELAY } from './engine.js';
 import type { Controls, Phase } from './engine.js';
 import { SKILLS } from './levels.js';
 import type { Skill } from './levels.js';
@@ -23,7 +23,6 @@ const hud = { bank: get('bank'), tip: get('tip'), deliveries: get('deliveries'),
 let best = 0;
 try { best = Math.max(0, Number(localStorage.getItem('zeta-burger-best')) || 0); } catch { /* Private browsing can disable storage. */ }
 let toastTimer = 0;
-let pausedFrom: Phase | null = null;
 let helpPaused = false;
 let previousPhase: Phase = 'ready';
 const money = (amount: number) => `${amount < 0 ? '−' : ''}$${Math.abs(amount).toFixed(2)}`;
@@ -38,17 +37,23 @@ function controls(): Controls {
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up') };
 }
 function start() {
-  game.start(skillSelect.value as Skill); pausedFrom = null; resetInputs(); overlay.hidden = true;
-  canvas.focus({ preventScroll: true }); toast(`${game.totalOrders} orders this shift. The first arrives at pad ${game.level.restaurant} in 5 seconds.`);
+  game.start(skillSelect.value as Skill); resetInputs(); overlay.hidden = true;
+  accumulator = 0; last = performance.now(); renderer.particles = [];
+  toast('Your shift is about to begin…'); playStartJingle();
+  canvas.focus({ preventScroll: true }); updateHud();
+}
+function playStartJingle() {
+  try { sound.startJingle(START_DELAY - game.countdownTime); }
+  catch { /* The start delay still works when audio is unavailable. */ }
 }
 function pause() {
-  if (game.phase === 'playing' || game.phase === 'crashed') {
-    pausedFrom = game.phase; game.phase = 'paused'; resetInputs();
-  } else if (game.phase === 'paused') { game.phase = pausedFrom ?? 'playing'; pausedFrom = null; resetInputs(); }
+  game.pause(); resetInputs();
+  if (game.phase === 'paused') sound.stopJingle();
+  else if (game.phase === 'countdown') playStartJingle();
 }
 function toggleGear() { game.toggleGear(); }
 function openHelp() {
-  helpPaused = game.phase === 'playing' || game.phase === 'crashed';
+  helpPaused = game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed';
   if (helpPaused) pause();
   resetInputs(); dialog.showModal();
 }
@@ -62,6 +67,7 @@ get('sound').addEventListener('click', () => {
     button.innerHTML = enabled ? '♫' : '♫<span class="sound-slash">/</span>';
     button.setAttribute('aria-label', enabled ? 'Mute sound' : 'Enable sound');
     button.setAttribute('aria-pressed', String(enabled)); button.title = enabled ? 'Mute sound' : 'Enable sound';
+    if (enabled && game.phase === 'countdown') playStartJingle();
   } catch { toast('Audio is unavailable in this browser.'); sound.enabled = false; }
 });
 hud.gear.addEventListener('click', toggleGear);
@@ -83,11 +89,11 @@ window.addEventListener('keydown', event => {
   if (event.repeat) return;
   if (event.code === 'KeyG' || event.code === 'Space') toggleGear();
   else if (event.code === 'KeyP' || event.code === 'Escape') pause();
-  else keys.add(event.code);
+  else if (game.phase === 'playing') keys.add(event.code);
 });
 window.addEventListener('keyup', event => keys.delete(event.code));
-window.addEventListener('blur', () => { resetInputs(); if (game.phase === 'playing' || game.phase === 'crashed') pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInputs(); if (game.phase === 'playing' || game.phase === 'crashed') pause(); } });
+window.addEventListener('blur', () => { resetInputs(); if (game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed') pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInputs(); if (game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed') pause(); } });
 for (const button of touchButtons) {
   const control = button.dataset.control as keyof Controls;
   button.addEventListener('pointerdown', event => {
@@ -121,7 +127,7 @@ function updateHud() {
   const gearMarkup = `${game.ship.gear ? '↓ EXTENDED' : '↑ RETRACTED'} <kbd>G</kbd>`;
   if (hud.gear.innerHTML !== gearMarkup) hud.gear.innerHTML = gearMarkup;
   hud.gear.classList.toggle('retracted', !game.ship.gear); hud.gear.setAttribute('aria-pressed', String(game.ship.gear));
-  for (const button of touchButtons) if (button.dataset.control !== 'up') button.disabled = game.ship.gear;
+  for (const button of touchButtons) button.disabled = game.phase !== 'playing' || (button.dataset.control !== 'up' && game.ship.gear);
   const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver order #${game.order.id} to pad ${game.order.target}</span>` : `${game.destination.name} <span>· ${game.waitingOrders.length ? `${game.waitingOrders.length} ${game.waitingOrders.length === 1 ? "order" : "orders"} ready at pad ${game.level.restaurant}` : `Await dispatch at pad ${game.level.restaurant}`}</span>`;
   if (hud.mission.innerHTML !== missionMarkup) hud.mission.innerHTML = missionMarkup;
   text(hud.label, game.order ? 'ORDER ON BOARD' : 'NEXT STOP'); text(hud.pad, `PAD ${game.destination.id}`);
@@ -135,6 +141,10 @@ function updateHud() {
   hud.pause.setAttribute('aria-label', game.phase === 'paused' ? 'Resume game' : 'Pause game');
   text(hud.pause, game.phase === 'paused' ? '▷' : 'Ⅱ');
   if (game.phase !== previousPhase) {
+    if (game.phase === 'playing' && previousPhase === 'countdown') {
+      sound.stopJingle();
+      toast(`${game.totalOrders} orders this shift. The first arrives at pad ${game.level.restaurant} in 5 seconds.`);
+    }
     previousPhase = game.phase;
     overlay.hidden = game.phase !== 'ready' && game.phase !== 'paused' && game.phase !== 'gameover';
     if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';

@@ -28,10 +28,10 @@ Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs 
 - **P or Escape:** pause/resume. Switching tabs or losing focus automatically pauses the game.
 - **Enter:** start a shift or replay after game over.
 - **Touch:** hold the on-screen arrows; tap GEAR. Multiple simultaneous touches are supported. Landscape offers a larger flight field with controls beside it.
-- **♫:** enable or mute synthesized arcade sound. Sound begins muted.
+- **♫:** enable or mute synthesized arcade sound. Sound begins enabled and is unlocked by Start or the sound button.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-Start floating at the **top center of the play field**, with no initial drift and gear retracted. Choose a skill setting before starting, then fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load the oldest waiting order. You carry one order at a time. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current signed tip, and return to the restaurant for another order.
+Start floating at the **top center of the play field**, with no initial drift and gear retracted. Choose a skill setting before starting. Starting or replaying a shift closes the dialog and plays a **short musical jingle during a three-second pause** before flight, fuel use, arrivals, and tip clocks begin. Pause, Help, and switching away freeze the start delay and stop the jingle; resuming continues the remaining melody. The sound button mutes the jingle along with the other effects. Then fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load the oldest waiting order. You carry one order at a time. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current signed tip, and return to the restaurant for another order.
 
 Each level begins with a fixed schedule of orders. The first order always arrives **five seconds after the level starts**, with its tip countdown beginning on arrival. Later orders arrive at random intervals measured from the previous arrival, even while another order is aboard. Every order starts its own **$5–$10** tip countdown on arrival; waiting and onboard orders lose tip value independently. Current tips hover above the package icons in flight and at the restaurant; the dispatch strip shows every active order. Negative tips subtract from your bank on delivery.
 
