@@ -19,7 +19,7 @@ export class Renderer {
   }
   async loadArt() {
     try {
-      const response = await fetch('/assets/manifest.json');
+      const response = await fetch('./assets/manifest.json');
       if (!response.ok) return;
       const art = await response.json() as ArtManifest;
       const entries = Object.entries({ background: art.background, saucer: art.saucer, ...art.buildings });

@@ -21,7 +21,7 @@ npm test            # Build and run physics, scoring, and complete flight-route 
 npm run build       # Compile a static site into dist/
 ```
 
-Serve `dist/` with any static HTTP host. The game uses root-relative asset URLs and should be hosted at the domain root. No server APIs, remote fonts, or runtime dependencies are needed. TypeScript is the only development dependency, approved for compilation and type checking.
+Serve `dist/` with any static HTTP host, at the domain root or in a subdirectory such as `/games/zeta-burger/`. The game uses relative asset URLs. No server APIs, remote fonts, or runtime dependencies are needed. TypeScript is the only development dependency, approved for compilation and type checking.
 
 ## Play
 
@@ -77,20 +77,20 @@ The game ships with original procedural artwork; image replacements are optional
 
 ```json
 {
-  "background": "/assets/alien-sky.webp",
-  "saucer": "/assets/saucer.svg",
+  "background": "./assets/alien-sky.webp",
+  "saucer": "./assets/saucer.svg",
   "buildings": {
-    "restaurant": "/assets/restaurant.svg",
-    "gas": "/assets/gas-station.svg",
-    "mushroom": "/assets/spore-house.svg",
-    "observatory": "/assets/observatory.svg",
-    "motel": "/assets/motel.svg",
-    "crystal": "/assets/crystals.svg",
-    "outpost": "/assets/outpost.svg"
+    "restaurant": "./assets/restaurant.svg",
+    "gas": "./assets/gas-station.svg",
+    "mushroom": "./assets/spore-house.svg",
+    "observatory": "./assets/observatory.svg",
+    "motel": "./assets/motel.svg",
+    "crystal": "./assets/crystals.svg",
+    "outpost": "./assets/outpost.svg"
   }
 }
 ```
 
-Omitted or failed images retain the built-in artwork. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic Canvas elements. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. All island silhouettes use the same vertices for drawing and collision.
+Image paths in the manifest resolve relative to the game page. Omitted or failed images retain the built-in artwork. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic Canvas elements. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. All island silhouettes use the same vertices for drawing and collision.
 
 To add levels, extend `LEVELS` in `src/levels.ts` with pads, collision solids, a starting position, restaurant/gas-station IDs, and eligible destinations. `Game.start(skill, level)` selects the level; flight, services, and rendering use its geometry and station roles. Levels share the 1280 × 760 flight field. Skill order counts, random arrival ranges, and tip rates live in `SKILLS`; fuel tuning lives in `FUEL`. To change Zeta Prime locations or route spacing, edit `PADS` in `src/world.ts`. Route tests provide executable examples of paths through this level.

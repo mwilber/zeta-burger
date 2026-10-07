@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#10141b">
   <meta name="description" content="Hot burgers. Cold space. Fly your saucer across an alien world and deliver before your tip runs out.">
   <title>Zeta Burger — Intergalactic delivery service</title>
-  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <a class="brand" href="/" aria-label="Zeta Burger home"><img src="/assets/icon.svg" alt="" width="43" height="43"><span>ZETA<span class="brand-accent">BURGER</span><small>INTERGALACTIC DELIVERY SERVICE</small></span></a>
+      <a class="brand" href="./" aria-label="Zeta Burger home"><img src="./assets/icon.svg" alt="" width="43" height="43"><span>ZETA<span class="brand-accent">BURGER</span><small>INTERGALACTIC DELIVERY SERVICE</small></span></a>
       <div class="header-right"><span class="live-dot"></span><span class="sector">SECTOR 07 <span> / </span> OPEN FOR DELIVERY</span><button class="icon-button" id="sound" aria-label="Mute sound" title="Mute sound" aria-pressed="true">♫</button><button class="icon-button" id="help" aria-label="How to play" title="How to play">?</button></div>
     </header>
     <main>
@@ -45,6 +45,6 @@
     </main>
   </div>
   <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close instructions">×</button><p class="eyebrow">FLIGHT MANUAL</p><h2>Welcome to the night shift.</h2><p>Start floating at the <b>top center of the play field</b>, with gear retracted. Choose Casual (4 orders), Normal (6), or Expert (8) before starting. Your first order arrives five seconds after the level starts at <b>pad 0</b>; its tip timer begins on arrival. Later orders arrive at random intervals, even while you are delivering. Land there for 0.8 seconds to load the oldest waiting order. Carry one package at a time and deliver it to the highlighted pad.</p><ul><li><b>Arrow keys / W A S D:</b> thrust up, down, left, and right. Down Arrow or S accelerates your descent. Holding Up and Down together cancels vertical thrust. Release to coast.</li><li><b>G / Space:</b> extend or retract gear. Sideways thrust only works with gear retracted. Gear does not stop your momentum. The first upward thrust after landing automatically retracts it.</li><li><b>Land gently:</b> both feet must fit on the pad, vertical speed at or below 93.5 and sideways speed at or below 38.5. A close call within 25% of either crash speed makes the saucer bounce four times in 0.8 seconds. Only your landing gear can touch a pad.</li><li><b>Watch the tip:</b> every order starts at $5–$10 when it arrives. Waiting and onboard tips fall independently: $0.06/sec on Casual, $0.08/sec on Normal, $0.12/sec on Expert. Negative tips subtract from your bank.</li><li><b>Fuel:</b> upward, downward, and sideways thrust burn fuel; coasting is free. Land at pad 6 to refill at 25% per second for free. With an empty tank, you can only coast and lower your gear.</li><li><b>Level ends:</b> deliver all orders, or the shift ends once every order has arrived and every remaining tip is below zero.</li><li><b>Three saucers:</b> terrain, buildings, pad sides, and world edges destroy your ship. An order survives a crash, but its tip keeps dropping.</li><li><b>P / Escape:</b> pause. On touch screens, hold the arrow buttons and tap GEAR. Turn your phone sideways for a bigger view.</li></ul><button class="primary-button" id="help-done">GOT IT <span>→</span></button></dialog>
-  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
