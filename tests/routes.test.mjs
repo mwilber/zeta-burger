@@ -18,11 +18,10 @@ function seek(game, x, y, landId = null) {
   }
   throw Error(`Navigation timeout to ${x},${y}; ${JSON.stringify(game.ship)}`);
 }
-for (let target=1; target<=5; target++) test(`Fly gas station → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
+for (let target=1; target<=5; target++) test(`Fly top center → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
   const game = new Game(() => (target - .5)/5); game.start('casual');
-  // Lift-off automatically retracts gear, without changing the launch trajectory.
-  for (let i=0; i<60; i++) game.step(dt,{up:true,left:false,right:false});
-  seek(game,137,455); seek(game,428,450); seek(game,428,538,0);
+  // Move clear of the observatory before descending toward the restaurant.
+  seek(game,640,125); seek(game,428,125); seek(game,428,450); seek(game,428,538,0);
   for(let i=0;i<3600 && !game.order;i++) game.step(dt,{up:false,left:false,right:false});
   if(game.order.target !== target) throw Error('Unexpected destination');
   for(let i=0;i<60;i++) game.step(dt,{up:true,left:false,right:false});

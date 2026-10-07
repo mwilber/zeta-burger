@@ -39,7 +39,7 @@ function controls(): Controls {
 }
 function start() {
   game.start(skillSelect.value as Skill); pausedFrom = null; resetInputs(); overlay.hidden = true;
-  canvas.focus({ preventScroll: true }); toast(`${game.totalOrders} orders this shift. Lift off to auto-retract gear, then head to pad ${game.level.restaurant}.`);
+  canvas.focus({ preventScroll: true }); toast(`${game.totalOrders} orders this shift. The first arrives at pad ${game.level.restaurant} in 5 seconds.`);
 }
 function pause() {
   if (game.phase === 'playing' || game.phase === 'crashed') {

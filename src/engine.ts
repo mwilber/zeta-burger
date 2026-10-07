@@ -2,7 +2,8 @@ import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle } from './world.js';
 import type { Point, Pad } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
-export const PHYSICS = { gravity: 115, upThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 85, safeHorizontal: 35, dwell: .8 };
+export const PHYSICS = { gravity: 100, upThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
+export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
 export const FUEL = { capacity: 100, upRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
 export interface Controls { left: boolean; right: boolean; up: boolean }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
@@ -27,6 +28,7 @@ export class Game {
   endReason: 'delivered' | 'tips' | 'lives' | null = null;
   fuel = FUEL.capacity;
   tilt = 0;
+  landingBounceTime = 0;
   lowFuelWarned = false;
   events: GameEvent[] = [];
   dwell = 0;
@@ -36,6 +38,9 @@ export class Game {
   random: () => number;
   constructor(random: () => number = Math.random, level: Level = LEVELS[0]) { this.random = random; this.level = level; this.ship = this.spawn(); }
   spawn(): Ship {
+    return { ...this.level.start, vx: 0, vy: 0, gear: false, landed: null };
+  }
+  spawnAtStation(): Ship {
     const station = this.level.pads.find(p => p.id === this.level.gasStation)!;
     return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: station.id };
   }
@@ -43,11 +48,12 @@ export class Game {
     this.skill = skill; this.level = level;
     this.ship = this.spawn(); this.lives = 3; this.bank = 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
-    this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.endReason = null;
+    this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;
     const setting = SKILLS[skill];
-    let availableAt = 0;
+    // The first order always arrives five seconds into the shift.
+    let availableAt = 5;
     for (let id = 1; id <= setting.orders; id++) {
-      availableAt += setting.arrivalMin + this.random() * (setting.arrivalMax - setting.arrivalMin);
+      if (id > 1) availableAt += setting.arrivalMin + this.random() * (setting.arrivalMax - setting.arrivalMin);
       const target = level.destinations[Math.min(level.destinations.length - 1, Math.floor(this.random() * level.destinations.length))];
       const initialTip = Math.round((5 + this.random() * 5) * 100) / 100;
       this.orders.push({ id, target, initialTip, elapsed: 0, availableAt, status: 'scheduled' });
@@ -58,6 +64,13 @@ export class Game {
   get waitingOrders(): Order[] { return this.orders.filter(order => order.status === 'waiting'); }
   get scheduledCount(): number { return this.orders.filter(order => order.status === 'scheduled').length; }
   get totalOrders(): number { return this.orders.length || SKILLS[this.skill].orders; }
+  get landingBounceOffset(): number {
+    if (this.ship.landed === null || this.landingBounceTime <= 0) return 0;
+    // Four shrinking hops are visual only; docking and collision geometry stay on the pad.
+    const progress = (1 - this.landingBounceTime / LANDING_BOUNCE.duration) * LANDING_BOUNCE.count;
+    const hop = Math.floor(progress);
+    return -Math.sin((progress - hop) * Math.PI) * LANDING_BOUNCE.height * (1 - hop / LANDING_BOUNCE.count);
+  }
   tipFor(order: Order): number { return order.initialTip - order.elapsed * SKILLS[this.skill].tipRate; }
   get tip(): number { return this.order ? this.tipFor(this.order) : 0; }
   get destination(): Pad { return this.level.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
@@ -73,13 +86,13 @@ export class Game {
   toggleGear() {
     if (this.phase !== 'playing') return;
     this.ship.gear = !this.ship.gear;
-    if (!this.ship.gear) { this.ship.landed = null; this.servicedPad = null; this.dwell = 0; }
+    if (!this.ship.gear) { this.ship.landed = null; this.servicedPad = null; this.dwell = 0; this.landingBounceTime = 0; }
     this.emit('gear', this.ship.gear ? 'Gear extended. Side thrusters locked. Keep an eye on your drift.' : 'Gear retracted. Side thrusters ready.');
   }
   pause() { if (this.phase === 'playing') this.phase = 'paused'; else if (this.phase === 'paused') this.phase = 'playing'; }
   crash(message: string) {
     if (this.phase !== 'playing') return;
-    this.lives--; this.ship.landed = null; this.crashTime = 0; this.dwell = 0; this.servicedPad = null;
+    this.lives--; this.ship.landed = null; this.crashTime = 0; this.dwell = 0; this.servicedPad = null; this.landingBounceTime = 0;
     this.emit('crash', message);
     this.phase = 'crashed';
     if (this.lives === 0) this.finish('lives');
@@ -107,13 +120,15 @@ export class Game {
     if (this.endReason !== null) return;
     if (this.phase === 'crashed') {
       this.crashTime += dt;
-      if (this.crashTime >= 1.5) { this.ship = this.spawn(); this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
+      if (this.crashTime >= 1.5) { this.ship = this.spawnAtStation(); this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
       return;
     }
     const s = this.ship;
     const up = controls.up && this.fuel > 0;
     if (s.landed !== null) {
       if (!up) {
+        this.landingBounceTime = Math.max(0, this.landingBounceTime - dt);
+        if (this.landingBounceTime < 1e-9) this.landingBounceTime = 0;
         this.updateTilt(dt, 0);
         this.dwell += dt;
         if (s.landed === this.level.gasStation) {
@@ -122,7 +137,7 @@ export class Game {
         }
         this.service(); return;
       }
-      s.landed = null; this.servicedPad = null; this.dwell = 0;
+      s.landed = null; this.servicedPad = null; this.dwell = 0; this.landingBounceTime = 0;
       s.gear = false;
       this.emit('gear', 'Lift-off! Landing gear automatically retracted.');
     }
@@ -153,10 +168,12 @@ export class Game {
       const feetInside = s.x - PHYSICS.footX - 3 >= pad.x && s.x + PHYSICS.footX + 3 <= pad.x + pad.width;
       if (crossed && feetInside) {
         if (s.vy > PHYSICS.safeVertical || Math.abs(s.vx) > PHYSICS.safeHorizontal) {
-          this.crash('Hard landing. Descend below 85; sideways drift below 35.'); return;
+          this.crash(`Hard landing. Descend at or below ${PHYSICS.safeVertical}; sideways drift at or below ${PHYSICS.safeHorizontal}.`); return;
         }
+        const nearCrash = s.vy >= PHYSICS.safeVertical * LANDING_BOUNCE.nearCrashRatio || Math.abs(s.vx) >= PHYSICS.safeHorizontal * LANDING_BOUNCE.nearCrashRatio;
+        this.landingBounceTime = nearCrash ? LANDING_BOUNCE.duration : 0;
         s.y = pad.y - PHYSICS.footY; s.vx = 0; s.vy = 0; s.landed = pad.id; this.dwell = 0;
-        this.emit('land', `${pad.name} · Docked at pad ${pad.id}`);
+        this.emit('land', `${pad.name} · ${nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`);
         return;
       }
     }

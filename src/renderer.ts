@@ -221,7 +221,7 @@ export class Renderer {
       }
       c.globalAlpha = 1;
     }
-    c.save(); c.translate(s.x, s.y); c.rotate(game.tilt); c.translate(-s.x, -s.y);
+    c.save(); c.translate(s.x, s.y + game.landingBounceOffset); c.rotate(game.tilt); c.translate(-s.x, -s.y);
     if (s.gear) {
       for (const side of [-1, 1]) {
         this.line(s.x + side * 12, s.y + 7, s.x + side * PHYSICS.footX, s.y + PHYSICS.footY - 2, '#c7d6d0', 2.5);
