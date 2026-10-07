@@ -2,6 +2,8 @@
 
 Hot burgers. Cold space. A side-view arcade game about flying a saucer on an alien world's night shift. Inspired by the flight and landing mechanics of Space Taxi, with original art and a burger delivery loop.
 
+![Zeta Burger at the start of a shift, with the saucer suspended above Zeta Prime.](docs/screenshots/game-start.png)
+
 ## Run locally
 
 Requires Node.js 20 or newer and npm.
