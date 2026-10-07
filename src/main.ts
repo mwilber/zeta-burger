@@ -48,7 +48,7 @@ function playStartJingle() {
 }
 function pause() {
   game.pause(); resetInputs();
-  if (game.phase === 'paused') sound.stopJingle();
+  if (game.phase === 'paused') sound.stopAll();
   else if (game.phase === 'countdown') playStartJingle();
 }
 function toggleGear() { game.toggleGear(); }
@@ -166,6 +166,7 @@ function frame(now: number) {
   while (accumulator >= fixedStep) { game.step(fixedStep, input); accumulator -= fixedStep; }
   if (frozen) accumulator = 0;
   for (const event of game.events.splice(0)) { if (event.type !== 'gameover') toast(event.message); renderer.burst(event); sound.play(event); }
+  sound.update(game, input);
   renderer.draw(game, input, frozen ? 0 : elapsed, visualTime); updateHud();
   requestAnimationFrame(frame);
 }

@@ -10,7 +10,8 @@ export const FUEL = { capacity: 100, upRate: 1.8, sideRate: .9, refillRate: 25, 
 export interface Controls { left: boolean; right: boolean; up: boolean }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
-export type GameEvent = { type: 'crash' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number };
+export type EndReason = 'delivered' | 'tips' | 'lives';
+export type GameEvent = { type: 'crash' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -27,7 +28,7 @@ export class Game {
   orders: Order[] = [];
   skill: Skill = 'normal';
   level: Level;
-  endReason: 'delivered' | 'tips' | 'lives' | null = null;
+  endReason: EndReason | null = null;
   fuel = FUEL.capacity;
   tilt = 0;
   landingBounceTime = 0;
@@ -80,13 +81,13 @@ export class Game {
   get destination(): Pad { return this.level.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
   finish(reason: NonNullable<Game['endReason']>) {
     this.endReason = reason; this.phase = 'gameover';
-    this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'Every remaining tip is below zero.' : 'No saucers remaining.');
+    this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'Every remaining tip is below zero.' : 'No saucers remaining.', { endReason: reason });
   }
   checkEnd() {
     if (this.orders.length && this.delivered === this.orders.length) this.finish('delivered');
     else if (this.orders.length && this.scheduledCount === 0 && this.orders.filter(order => order.status !== 'delivered').every(order => this.tipFor(order) < 0)) this.finish('tips');
   }
-  emit(type: GameEvent['type'], message: string) { this.events.push({ type, message, x: this.ship.x, y: this.ship.y }); }
+  emit(type: GameEvent['type'], message: string, details: Pick<GameEvent, 'endReason' | 'hardLanding'> = {}) { this.events.push({ type, message, x: this.ship.x, y: this.ship.y, ...details }); }
   toggleGear() {
     if (this.phase !== 'playing') return;
     this.ship.gear = !this.ship.gear;
@@ -191,7 +192,7 @@ export class Game {
         const nearCrash = s.vy >= PHYSICS.safeVertical * LANDING_BOUNCE.nearCrashRatio || Math.abs(s.vx) >= PHYSICS.safeHorizontal * LANDING_BOUNCE.nearCrashRatio;
         this.landingBounceTime = nearCrash ? LANDING_BOUNCE.duration : 0;
         s.y = pad.y - PHYSICS.footY; s.vx = 0; s.vy = 0; s.landed = pad.id; this.dwell = 0;
-        this.emit('land', `${pad.name} · ${nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`);
+        this.emit('land', `${pad.name} · ${nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`, { hardLanding: nearCrash });
         return;
       }
     }
