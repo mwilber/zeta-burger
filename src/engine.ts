@@ -4,6 +4,7 @@ import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
 export const PHYSICS = { gravity: 100, upThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
+export const CRASH_DURATION = 1.5;
 export const FUEL = { capacity: 100, upRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
 export interface Controls { left: boolean; right: boolean; up: boolean }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
@@ -95,7 +96,6 @@ export class Game {
     this.lives--; this.ship.landed = null; this.crashTime = 0; this.dwell = 0; this.servicedPad = null; this.landingBounceTime = 0;
     this.emit('crash', message);
     this.phase = 'crashed';
-    if (this.lives === 0) this.finish('lives');
   }
   updateTilt(dt: number, direction: number) {
     // Cosmetic input-driven banking, with three times the previous response speed.
@@ -105,6 +105,12 @@ export class Game {
   }
   step(dt: number, controls: Controls) {
     if (this.phase === 'ready' || this.phase === 'paused' || this.phase === 'gameover') return;
+    // The final explosion plays before game over; the completed shift stays frozen.
+    if (this.phase === 'crashed' && this.lives === 0) {
+      this.crashTime += dt;
+      if (this.crashTime + 1e-9 >= CRASH_DURATION) this.finish('lives');
+      return;
+    }
     // Callers use a fixed 120 Hz timestep. Long gaps are discarded by the render loop.
     const previousTime = this.time;
     this.time += dt;
@@ -120,7 +126,7 @@ export class Game {
     if (this.endReason !== null) return;
     if (this.phase === 'crashed') {
       this.crashTime += dt;
-      if (this.crashTime >= 1.5) { this.ship = this.spawnAtStation(); this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
+      if (this.crashTime + 1e-9 >= CRASH_DURATION) { this.ship = this.spawnAtStation(); this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
       return;
     }
     const s = this.ship;

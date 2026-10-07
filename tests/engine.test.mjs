@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, PHYSICS, FUEL } from '../dist/src/engine.js';
+import { Game, PHYSICS, FUEL, LANDING_BOUNCE } from '../dist/src/engine.js';
 import { Renderer } from '../dist/src/renderer.js';
 import { PADS, WORLD_WIDTH } from '../dist/src/world.js';
 import { LEVELS, SKILLS } from '../dist/src/levels.js';
@@ -54,18 +54,17 @@ test('hull contact on a pad with retracted gear destroys the saucer', () => {
   game.step(dt, idle); assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 2);
 });
 test('excessive descent speed and sideways drift cause hard landings', () => {
-  for (const [vx, vy] of [[0, 100], [40, 20], [-40, 20]]) {
+  for (const [vx, vy] of [[0, PHYSICS.safeVertical + 5], [PHYSICS.safeHorizontal + 5, 20], [-PHYSICS.safeHorizontal - 5, 20]]) {
     const game = airborne(); approach(game, 0, true, vx, vy); game.step(dt, idle);
     assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 2);
   }
 });
-test('landing speed limits are 10% higher, inclusive, and still reject harder impacts', () => {
-  assert.ok(Math.abs(PHYSICS.safeVertical - 85 * 1.1) < 1e-9);
-  assert.ok(Math.abs(PHYSICS.safeHorizontal - 35 * 1.1) < 1e-9);
+test('configured landing speed limits are inclusive and still reject harder impacts', () => {
+  const vertical = PHYSICS.safeVertical, horizontal = PHYSICS.safeHorizontal;
   for (const [vx, impactVy, survives] of [
     [0, 90, true], [37, 20, true], [-37, 20, true],
-    [38.5, 93.5, true], [-38.5, 93.5, true],
-    [0, 93.501, false], [38.501, 20, false], [-38.501, 20, false]
+    [horizontal, vertical, true], [-horizontal, vertical, true],
+    [0, vertical + .001, false], [horizontal + .001, 20, false], [-horizontal - .001, 20, false]
   ]) {
     const game = airborne(); approach(game, 0, true, vx, impactVy - PHYSICS.gravity * dt);
     game.step(dt, idle);
@@ -87,7 +86,7 @@ test('only surviving touchdowns in the final 25% of either speed limit bounce', 
     assert.equal(game.events.some(event => event.type === 'land' && event.message.includes('Close call')), bounces);
   }
 });
-test('close-call landing makes exactly four shrinking hops and settles within one second', () => {
+test('close-call landing makes the configured number of shrinking hops and settles within one second', () => {
   const game = airborne(); approach(game, 2, true, 0, 90); game.step(dt, idle);
   const docked = { ...game.ship };
   let peaks = 0, previous = 0, rising = false;
@@ -100,9 +99,9 @@ test('close-call landing makes exactly four shrinking hops and settles within on
     previous = height;
     assert.deepEqual(game.ship, docked, 'visual bounce preserves docking and zero velocity');
     assert.equal(game.lives, 3);
-    if (i >= 95) assert.equal(game.landingBounceOffset, 0, 'settled by 0.8 seconds');
+    if ((i + 1) * dt >= LANDING_BOUNCE.duration) assert.equal(game.landingBounceOffset, 0, 'settled by the configured duration');
   }
-  assert.equal(peaks, 4);
+  assert.equal(peaks, LANDING_BOUNCE.count);
   assert.ok(heights.every((height, i) => i === 0 || height < heights[i - 1]));
   assert.equal(game.landingBounceTime, 0);
   assert.equal(game.events.filter(event => event.type === 'land').length, 1);
@@ -178,9 +177,41 @@ test('crashes keep the order timer running, respawn at the gas station, and end 
   const game = airborne(); setOrder(game, { target: 1, initialTip: 7, elapsed: 0 });
   game.crash('test'); fly(game, 1.6); assert.equal(game.phase, 'playing'); assert.equal(game.ship.landed, PADS[0].id);
   assert.equal(game.order.target, 1); assert.ok(game.tip < 7); game.crash('test'); fly(game, 1.6);
-  game.crash('test'); assert.equal(game.lives, 0); assert.equal(game.phase, 'gameover');
+  game.crash('test'); assert.equal(game.lives, 0); assert.equal(game.phase, 'crashed');
+  fly(game, 1.5); assert.equal(game.phase, 'gameover'); assert.equal(game.endReason, 'lives');
   const tip = game.tip; fly(game, 3); assert.equal(game.tip, tip);
   game.start(); assert.equal(game.lives, 3); assert.equal(game.bank, 0); assert.equal(game.order, null);
+});
+test('final crash finishes its animation before game over, without respawn or further shift changes', () => {
+  const game = airborne(); game.lives = 1; game.fuel = 40;
+  // A tip would expire on the next step, and another order would arrive during the explosion.
+  game.orders = [
+    { id: 1, target: 2, initialTip: 5, elapsed: 5 / SKILLS.normal.tipRate, availableAt: 0, status: 'onboard' },
+    { id: 2, target: 3, initialTip: 5, elapsed: 0, availableAt: .1, status: 'scheduled' }
+  ];
+  game.ship.x = 23; game.step(dt, idle);
+  assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 0); assert.equal(game.endReason, null);
+  const snapshot = JSON.stringify({ ship: game.ship, orders: game.orders, fuel: game.fuel, bank: game.bank, time: game.time });
+  const renderer = Object.create(Renderer.prototype); renderer.particles = [];
+  renderer.burst(game.events.find(event => event.type === 'crash'));
+  assert.ok(renderer.particles.length > 0);
+  for (let i = 0; i < 179; i++) {
+    game.step(dt, { ...idle, up: true }); renderer.update(dt);
+    assert.equal(game.phase, 'crashed', 'dialog stays hidden throughout the explosion');
+    assert.equal(game.endReason, null);
+  }
+  assert.equal(game.events.some(event => event.type === 'gameover'), false);
+  // The app can pause a crash animation; its delay must freeze too.
+  game.phase = 'paused'; const crashTime = game.crashTime; fly(game, 2);
+  assert.equal(game.crashTime, crashTime); game.phase = 'crashed';
+  game.step(dt, idle); renderer.update(dt);
+  assert.equal(renderer.particles.length, 0, 'explosion ends before the dialog appears');
+  assert.equal(game.phase, 'gameover'); assert.equal(game.endReason, 'lives');
+  assert.equal(game.events.filter(event => event.type === 'gameover').length, 1);
+  assert.equal(game.events.some(event => event.type === 'respawn'), false);
+  fly(game, 2);
+  assert.equal(JSON.stringify({ ship: game.ship, orders: game.orders, fuel: game.fuel, bank: game.bank, time: game.time }), snapshot);
+  assert.equal(game.events.filter(event => event.type === 'gameover').length, 1);
 });
 test('tip starts within five to ten dollars and all destinations are selectable', () => {
   for (const random of [0, .2, .4, .6, .8, .999999]) {

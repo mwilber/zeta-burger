@@ -1,6 +1,6 @@
 import { WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
 import type { Point, Pad } from './world.js';
-import { PHYSICS, shipBody } from './engine.js';
+import { PHYSICS, CRASH_DURATION, shipBody } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: string; size: number }
 interface ArtManifest { background?: string; saucer?: string; buildings?: Record<string, string> }
@@ -54,7 +54,7 @@ export class Renderer {
     if (!crash && event.type !== 'delivery' && event.type !== 'pickup') return;
     for (let i = 0; i < (crash ? 65 : 24); i++) {
       const angle = Math.random() * Math.PI * 2, speed = 25 + Math.random() * (crash ? 155 : 65);
-      this.particles.push({ x: event.x, y: event.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, age: 0, life: .5 + Math.random(), color: crash ? ['#ffd297', '#ff918f', '#dabaff'][i % 3] : '#bdf77d', size: 2 + Math.random() * 3 });
+      this.particles.push({ x: event.x, y: event.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, age: 0, life: .5 + Math.random() * (CRASH_DURATION - .5), color: crash ? ['#ffd297', '#ff918f', '#dabaff'][i % 3] : '#bdf77d', size: 2 + Math.random() * 3 });
     }
   }
   update(dt: number) {
@@ -268,7 +268,7 @@ export class Renderer {
     for (const p of this.particles) { c.globalAlpha = Math.max(0, 1 - p.age / p.life); this.rect(p.x, p.y, p.size, p.size, p.color, 1); }
     c.globalAlpha = 1;
     if (game.phase === 'crashed') {
-      this.text('SAUCER LOST', WORLD_WIDTH / 2, 420, '#f4c2ce', 22, 'center', 'bold'); this.text('DISPATCHING A REPLACEMENT…', WORLD_WIDTH / 2, 449, '#c7b6d4', 10);
+      this.text('SAUCER LOST', WORLD_WIDTH / 2, 420, '#f4c2ce', 22, 'center', 'bold'); this.text(game.lives > 0 ? 'DISPATCHING A REPLACEMENT…' : 'NO SAUCERS REMAINING', WORLD_WIDTH / 2, 449, '#c7b6d4', 10);
     }
   }
 }
