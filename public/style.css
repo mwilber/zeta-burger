@@ -943,131 +943,6 @@ dialog .primary-button {
   }
 }
 
-@media(max-height:600px) and (orientation:landscape) {
-  .app {
-    padding:0 14px;
-    max-width:1000px;
-  }
-  .header,.title-row,.flight-manual,.bottom-line {
-    display:none;
-  }
-  main {
-    padding-top:8px;
-  }
-  .arcade {
-    max-width:calc(100% - 172px);
-    margin:auto;
-  }
-  .dashboard {
-    min-height:56px;
-    padding:8px 17px;
-  }
-  .stat strong {
-    font-size:20px;
-  }
-  .stat-label {
-    font-size:7px;
-    margin-bottom:5px;
-  }
-  .world-wrap {
-    max-height:calc(100dvh - 120px);
-  }
-  .mission-bar {
-    min-height:49px;
-    padding:8px 15px;
-  }
-  .touch-controls {
-    position:fixed;
-    bottom:18px;
-    left:8px;
-    right:8px;
-    padding:0;
-    pointer-events:none;
-  }
-  .touch-direction {
-    display:grid;
-    grid-template-columns:56px;
-    grid-template-rows:repeat(4, 52px);
-    gap:8px;
-  }
-  .touch-controls button {
-    width:56px;
-    height:52px;
-    pointer-events:auto;
-  }
-  .touch-direction button[data-control=up] {
-    grid-column:1;
-    grid-row:1;
-  }
-  .touch-direction button[data-control=left] { grid-column:1; grid-row:2; }
-  .touch-direction button[data-control=right] { grid-column:1; grid-row:3; }
-  .touch-direction button[data-control=down] { grid-column:1; grid-row:4; }
-  .touch-gear {
-    align-self:flex-end;
-  }
-  .overlay-card {
-    padding:16px 24px;
-  }
-  .overlay-card h2 {
-    font-size:25px;
-  }
-  .overlay-card p {
-    margin-bottom:12px;
-  }
-  .intro-controls {
-    margin-top:12px;
-  }
-  .card-tag {
-    margin-bottom:12px;
-  }
-}
-
-/* Keep the world proportional and touch controls available on short landscape screens. */
-@media(max-height:600px) and (orientation:landscape) {
-  .arcade {
-    width:min(calc(100% - 172px),calc((100dvh - 120px) * 1.68421));
-    max-width:none;
-  }
-  .world-wrap {
-    max-height:none;
-  }
-  .touch-controls {
-    display:flex;
-  }
-  .gear-stat {
-    display:none;
-  }
-  .stat {
-    min-width:25%;
-    padding-left:12px;
-  }
-  .lives-stat {
-    min-width:25%;
-  }
-  .stat strong {
-    font-size:18px;
-  }
-  .mission-copy strong {
-    font-size:10px;
-  }
-  .mission-copy strong span {
-    font-size:9px;
-  }
-  .mission-pad {
-    font-size:8px;
-    padding:7px;
-  }
-  .overlay-card {
-    padding:14px 20px;
-  }
-  .overlay-card p {
-    font-size:10px;
-  }
-  .intro-note {
-    font-size:7px;
-  }
-}
-
 .shift-settings {
   display:flex;
   align-items:center;
@@ -1130,35 +1005,333 @@ dialog .primary-button {
   .dispatch-heading { font-size:8px; }
   .order-card { flex-basis:98px; }
 }
+
+/* Landscape phones use side rails so the play field gets the full viewport height. */
 @media(max-height:600px) and (orientation:landscape) {
-  .shift-settings > #level-name { display:none; }
-  .shift-settings { flex-wrap:nowrap; padding:5px 10px; gap:6px; font-size:8px; }
-  .shift-settings label { gap:4px; }
-  .shift-settings select { font-size:9px; padding:3px; }
-  .fuel-readout { flex-basis:auto; gap:5px; }
-  .fuel-readout meter { width:50px; }
-  .fuel-readout > span { display:none; }
-  .dashboard { min-height:52px; padding:8px 10px; }
-  .stat { padding-left:8px; }
-  .stat-label { font-size:6.5px; letter-spacing:.3px; }
-  .stat strong { font-size:16px; white-space:nowrap; }
-  .lives-stat strong { font-size:14px; letter-spacing:2px; }
-  .mission-bar { min-height:43px; padding:6px 10px; }
-  .mission-icon { width:27px; height:27px; font-size:18px; }
-  .world-label { font-size:7px; left:12px; top:12px; }
-  .world-coordinates { display:none; }
-  .dispatch { padding:6px 12px; }
-  .dispatch-heading { font-size:8px; }
-  .order-queue { min-height:26px; padding-top:5px; }
-  .order-card { flex-direction:row; flex-wrap:wrap; justify-content:center; flex-basis:125px; padding:4px; gap:4px; }
-  .order-card .package-icon,.order-card small { display:none; }
-  .order-card strong { font-size:11px; }
-  .arcade { width:min(calc(100% - 172px),calc((100dvh - 200px) * 1.68421)); }
-  .overlay-card { padding:10px 14px; }
-  .overlay-card h2 { font-size:20px; margin-bottom:8px; }
-  .overlay-card p { font-size:9px; line-height:1.5; margin-bottom:10px; }
-  .overlay-card .card-tag { font-size:7px; margin-bottom:8px; }
-  .overlay-card .primary-button { padding:9px 13px; font-size:9px; min-width:200px; }
-  .overlay-card .intro-controls { display:none; }
-  .overlay-card .intro-note { font-size:6px; margin-top:8px; }
+  :root {
+    --rail-width:clamp(104px, calc((100vw - 100dvh * 1280 / 760) / 2), 160px);
+    --left-inset:env(safe-area-inset-left, 0px);
+    --right-inset:env(safe-area-inset-right, 0px);
+  }
+  body {
+    overflow:hidden;
+  }
+  .app {
+    max-width:none;
+    height:100vh;
+    height:100dvh;
+    padding:0;
+  }
+  .header {
+    position:fixed;
+    top:env(safe-area-inset-top, 0px);
+    right:var(--right-inset);
+    width:var(--rail-width);
+    height:56px;
+    padding:6px;
+    border:0;
+    justify-content:center;
+    z-index:3;
+  }
+  .brand,.sector,.header-right>.live-dot,
+  .title-row,.flight-manual,.bottom-line {
+    display:none;
+  }
+  .header-right {
+    gap:8px;
+  }
+  .icon-button {
+    width:40px;
+    height:40px;
+  }
+  main {
+    height:100%;
+    padding:0;
+  }
+  .arcade {
+    display:grid;
+    grid-template-columns:calc(var(--rail-width) + var(--left-inset)) minmax(0, 1fr) calc(var(--rail-width) + var(--right-inset));
+    grid-template-rows:auto minmax(0, 1fr);
+    width:100%;
+    height:100%;
+    margin:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .shift-settings {
+    grid-column:1;
+    grid-row:1;
+    flex-direction:column;
+    align-items:stretch;
+    flex-wrap:nowrap;
+    padding:calc(10px + env(safe-area-inset-top, 0px)) 8px 10px calc(8px + var(--left-inset));
+    gap:10px;
+    font-size:8px;
+    letter-spacing:.3px;
+    border-right:1px solid var(--border);
+  }
+  #level-name {
+    font-size:8px;
+    line-height:1.5;
+  }
+  .shift-settings label {
+    flex-direction:column;
+    align-items:flex-start;
+    gap:5px;
+  }
+  .shift-settings select {
+    width:100%;
+    min-height:36px;
+    padding:4px;
+    font-size:9px;
+  }
+  .fuel-readout {
+    flex-basis:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:4px;
+  }
+  .fuel-readout label {
+    flex-direction:row;
+    justify-content:space-between;
+  }
+  .fuel-readout meter {
+    width:100%;
+    flex:none;
+  }
+  .fuel-readout > span {
+    font-size:7px;
+  }
+  .dashboard {
+    grid-column:1;
+    grid-row:2;
+    min-height:0;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:10px;
+    overflow-y:auto;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom, 0px)) calc(8px + var(--left-inset));
+    border-right:1px solid var(--border);
+  }
+  .stat,.stat:first-child,.lives-stat {
+    display:block;
+    min-width:0;
+    padding:0;
+    border:0;
+  }
+  .stat-label {
+    font-size:7px;
+    letter-spacing:.4px;
+    margin-bottom:4px;
+  }
+  .stat strong {
+    font-size:18px;
+    white-space:nowrap;
+  }
+  .stat-unit {
+    font-size:12px;
+  }
+  .lives-stat strong {
+    font-size:17px;
+    letter-spacing:2px;
+  }
+  .gear-stat {
+    display:block;
+    margin:0;
+  }
+  .gear-badge {
+    width:100%;
+    min-height:36px;
+    padding:6px 3px;
+    font-size:8px;
+    letter-spacing:0;
+  }
+  .gear-badge kbd {
+    display:none;
+  }
+  .world-wrap {
+    grid-column:2;
+    grid-row:1 / 3;
+    height:100%;
+    min-width:0;
+    min-height:0;
+    aspect-ratio:auto;
+  }
+  .world-label {
+    left:12px;
+    top:calc(12px + env(safe-area-inset-top, 0px));
+    font-size:7px;
+  }
+  .world-coordinates {
+    display:none;
+  }
+  .pause-button {
+    top:calc(8px + env(safe-area-inset-top, 0px));
+    right:8px;
+    width:44px;
+    height:44px;
+    z-index:3;
+  }
+  .landing-readout {
+    top:calc(36px + env(safe-area-inset-top, 0px));
+    bottom:auto;
+    left:12px;
+    font-size:6px;
+    gap:4px;
+  }
+  .landing-readout span+span {
+    display:none;
+  }
+  #velocity {
+    font-size:11px;
+  }
+  .mission-bar {
+    grid-column:3;
+    grid-row:1;
+    min-height:0;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+    padding:calc(60px + env(safe-area-inset-top, 0px)) calc(8px + var(--right-inset)) 10px 8px;
+    border-top:0;
+    border-left:1px solid var(--border);
+  }
+  .mission-icon {
+    display:none;
+  }
+  .mission-copy strong {
+    font-size:11px;
+    overflow-wrap:anywhere;
+  }
+  .mission-copy strong span {
+    display:block;
+    margin:5px 0 0;
+    font-size:9px;
+    line-height:1.5;
+  }
+  .mission-pad {
+    margin:0;
+    font-size:9px;
+    padding:7px;
+  }
+  .dispatch {
+    grid-column:3;
+    grid-row:2;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    padding:10px calc(8px + var(--right-inset)) calc(10px + env(safe-area-inset-bottom, 0px)) 8px;
+    border-left:1px solid var(--border);
+  }
+  .dispatch-heading {
+    flex-direction:column;
+    gap:5px;
+    font-size:8px;
+    line-height:1.5;
+  }
+  .order-queue {
+    flex-direction:column;
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    padding-top:8px;
+  }
+  .order-card {
+    flex:0 0 auto;
+    padding:6px;
+    font-size:8px;
+  }
+  .order-card .package-icon {
+    display:none;
+  }
+  .order-card strong {
+    font-size:13px;
+  }
+  .queue-empty {
+    font-size:9px;
+  }
+  .touch-controls {
+    display:flex;
+    position:fixed;
+    left:calc(var(--rail-width) + var(--left-inset) + 8px);
+    right:calc(var(--rail-width) + var(--right-inset) + 8px);
+    bottom:calc(8px + env(safe-area-inset-bottom, 0px));
+    padding:0;
+    gap:8px;
+    pointer-events:none;
+    z-index:3;
+  }
+  .touch-direction {
+    grid-template-columns:repeat(3, 48px);
+    grid-template-rows:repeat(2, 48px);
+    gap:6px;
+  }
+  .touch-controls button {
+    width:48px;
+    height:48px;
+    font-size:24px;
+    pointer-events:auto;
+    background:#26322bbd;
+    border-color:#9db88880;
+    box-shadow:0 2px 8px #0004;
+  }
+  .touch-controls button small {
+    font-size:6px;
+  }
+  .touch-gear {
+    align-self:flex-end;
+    background:#302b3cbd!important;
+  }
+  .toast {
+    bottom:120px;
+    padding:8px 10px;
+    font-size:9px;
+    max-width:90%;
+    z-index:1;
+  }
+  .overlay {
+    z-index:4;
+    padding:8px;
+    overflow-y:auto;
+  }
+  .overlay-card {
+    max-width:100%;
+    max-height:100%;
+    overflow-y:auto;
+    padding:14px 18px;
+  }
+  .overlay-card h2 {
+    font-size:24px;
+    margin-bottom:8px;
+  }
+  .overlay-card p {
+    font-size:10px;
+    line-height:1.5;
+    margin-bottom:12px;
+  }
+  .overlay-card .card-tag {
+    font-size:7px;
+    margin-bottom:10px;
+  }
+  .overlay-card .primary-button {
+    min-height:44px;
+    min-width:200px;
+    padding:10px 13px;
+    font-size:9px;
+  }
+  .overlay-card .intro-controls {
+    display:none;
+  }
+  .overlay-card .intro-note {
+    font-size:7px;
+    margin-top:8px;
+  }
+  dialog {
+    max-height:calc(100dvh - 16px);
+    overflow-y:auto;
+    padding:24px;
+  }
 }
