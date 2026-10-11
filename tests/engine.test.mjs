@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game, PHYSICS, FUEL, LANDING_BOUNCE } from '../dist/src/engine.js';
-import { Renderer } from '../dist/src/renderer.js';
+import { svgRendererFixture } from './svg-fixture.mjs';
 import { PADS, WORLD_WIDTH } from '../dist/src/world.js';
 import { LEVELS, SKILLS } from '../dist/src/levels.js';
 const dt = 1 / 120;
@@ -103,25 +103,16 @@ test('downward thrust respects empty and partial tanks, pause, and docked pads',
   const ship = { ...docked.ship }; fly(docked, .25, { ...idle, down: true });
   assert.deepEqual(docked.ship, ship); assert.equal(docked.fuel, 40); assert.equal(docked.lives, 3);
 });
-test('downward thrust draws energy waves above the ship and balanced vertical controls draw none', () => {
-  const game = airborne(), renderer = Object.create(Renderer.prototype);
-  const waves = [], glows = [];
-  renderer.ctx = {
-    save() {}, restore() {}, rotate() {}, translate() {}, drawImage() {}, beginPath() {}, stroke() {},
-    createRadialGradient() { return { addColorStop() {} }; },
-    ellipse(x, y) { waves.push(y); }
-  };
-  renderer.images = new Map([['saucer', {}]]);
-  renderer.ellipse = (x, y) => { glows.push(y); };
+test('downward SVG thrust mirrors waves above the ship and balanced vertical controls hide them', () => {
+  const game = airborne(), renderer = svgRendererFixture();
   renderer.saucer(game, { ...idle, down: true }, 1);
-  assert.equal(waves.length, 4); assert.ok(waves.every(y => y < game.ship.y));
-  assert.ok(glows.every(y => y < game.ship.y));
-  waves.length = 0; glows.length = 0;
+  assert.equal(renderer.vertical.style.display, '');
+  assert.equal(renderer.vertical.getAttribute('transform'), `translate(${game.ship.x} ${game.ship.y}) scale(1 -1)`);
+  assert.ok(renderer.verticalWaves.every(wave => Number(wave.getAttribute('cy')) > 0));
   renderer.saucer(game, { ...idle, up: true }, 1);
-  assert.ok(waves.every(y => y > game.ship.y));
-  waves.length = 0; glows.length = 0;
+  assert.equal(renderer.vertical.getAttribute('transform'), `translate(${game.ship.x} ${game.ship.y}) scale(1 1)`);
   renderer.saucer(game, { ...idle, up: true, down: true }, 1);
-  assert.equal(waves.length, 0); assert.equal(glows.length, 0);
+  assert.equal(renderer.vertical.style.display, 'none');
 });
 test('each pad accepts a safe gear-only touchdown', () => {
   for (const pad of PADS) {
@@ -205,23 +196,15 @@ test('bounce freezes on pause and clears on takeoff, gear retraction, crash, or 
     assert.equal(game.landingBounceOffset, 0, action);
   }
 });
-test('canvas moves both custom hull and gear with the close-call bounce', () => {
+test('SVG moves both custom hull and gear with the close-call bounce', () => {
   const game = airborne(); approach(game, 2, true, 0, 90); game.step(dt, idle); fly(game, .1);
-  const calls = [], customHull = {};
-  const renderer = Object.create(Renderer.prototype);
-  renderer.ctx = {
-    save() {}, restore() {}, rotate() {},
-    translate(x, y) { calls.push(['translate', x, y]); },
-    drawImage(image) { calls.push(['hull', image]); }
-  };
-  renderer.images = new Map([['saucer', customHull]]);
-  renderer.ellipse = () => {};
-  renderer.line = () => { calls.push(['gear']); };
+  const renderer = svgRendererFixture(), hull = renderer.ship.children[1];
   renderer.saucer(game, idle, game.time);
   assert.ok(game.landingBounceOffset < 0);
-  assert.deepEqual(calls[0], ['translate', game.ship.x, game.ship.y + game.landingBounceOffset]);
-  assert.equal(calls.filter(call => call[0] === 'gear').length, 4);
-  assert.deepEqual(calls.at(-1), ['hull', customHull]);
+  assert.equal(renderer.ship.getAttribute('transform'), `translate(${game.ship.x} ${game.ship.y + game.landingBounceOffset}) rotate(${game.tilt * 180 / Math.PI})`);
+  assert.equal(renderer.gear.style.display, '');
+  assert.equal(renderer.gear.parentElement, renderer.ship);
+  assert.equal(hull.parentElement, renderer.ship, 'custom image shares the bouncing and banking parent');
 });
 test('one foot outside a pad cannot become a landing', () => {
   const game = airborne(), pad = PADS.find(p => p.id === 0); approach(game, 0);
@@ -275,7 +258,7 @@ test('final crash finishes its animation before game over, without respawn or fu
   game.ship.x = 23; game.step(dt, idle);
   assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 0); assert.equal(game.endReason, null);
   const snapshot = JSON.stringify({ ship: game.ship, orders: game.orders, fuel: game.fuel, bank: game.bank, time: game.time });
-  const renderer = Object.create(Renderer.prototype); renderer.particles = [];
+  const renderer = svgRendererFixture();
   renderer.burst(game.events.find(event => event.type === 'crash'));
   assert.ok(renderer.particles.length > 0);
   for (let i = 0; i < 179; i++) {

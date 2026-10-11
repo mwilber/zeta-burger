@@ -16,7 +16,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "description": "An intergalactic burger delivery arcade game made with TypeScript and Canvas.",
+  "description": "An intergalactic burger delivery arcade game made with TypeScript and SVG.",
   "devDependencies": {
     "typescript": "^7.0.2"
   }

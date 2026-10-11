@@ -4,10 +4,10 @@ import { SKILLS } from './levels.js';
 import type { Skill } from './levels.js';
 import { Renderer } from './renderer.js';
 import { Sound } from './audio.js';
-const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-const canvas = get<HTMLCanvasElement>('game');
+const get = <T extends Element = HTMLElement>(id: string) => document.querySelector<T>(`#${id}`)!;
+const stage = get<SVGSVGElement>('game');
 const game = new Game();
-const renderer = new Renderer(canvas);
+const renderer = new Renderer(stage);
 const sound = new Sound();
 const overlay = get<HTMLDivElement>('overlay');
 const dialog = get<HTMLDialogElement>('help-dialog');
@@ -40,7 +40,7 @@ function start() {
   game.start(skillSelect.value as Skill); resetInputs(); overlay.hidden = true;
   accumulator = 0; last = performance.now(); renderer.particles = [];
   toast('Your shift is about to begin…'); playStartJingle();
-  canvas.focus({ preventScroll: true }); updateHud();
+  stage.focus({ preventScroll: true }); updateHud();
 }
 function playStartJingle() {
   try { sound.startJingle(START_DELAY - game.countdownTime); }

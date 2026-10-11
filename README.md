@@ -60,10 +60,11 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | `src/engine.ts` | Browser-independent physics, landing, lives, orders, signed tips, and game state |
 | `src/levels.ts` | Level definitions, station roles, destinations, and skill settings |
 | `src/world.ts` | Numbered pads, station coordinates, terrain silhouettes, and convex polygon collision |
-| `src/renderer.ts` | Original Canvas art, stars, saucer, beacons, buildings, particles, and asset loading |
+| `src/renderer.ts` | SVG scene assembly, animation, and optional asset overrides |
 | `src/main.ts` | Fixed-step render loop, keyboard/multitouch input, HUD, pause, help, and local best bank |
 | `src/audio.ts` | Optional sound made with the browser's Web Audio API |
 | `public/index.html`, `public/style.css` | Responsive game shell and accessible controls |
+| `public/assets/*.svg` | Default scenery, saucer, buildings, islands, pads, and effect templates |
 | `public/assets/manifest.json` | Optional custom image overrides |
 | `tests/engine.test.mjs` | Flight, collision, landing, delivery, scoring, pause, and life-cycle checks |
 | `tests/routes.test.mjs` | Actual control-driven flights from the top center to every destination and back, without teleporting |
@@ -73,7 +74,22 @@ The simulation runs at **120 Hz** independent of rendering rate. Long frame gaps
 
 ## Add designer assets
 
-The game ships with original procedural artwork; image replacements are optional. Put PNG, WebP, or SVG assets in `public/assets/` and edit `public/assets/manifest.json`:
+The default artwork lives in editable SVG files in `public/assets/`. The playfield uses SVG rendering; there are no built-in Canvas drawing calls. Edit the SVG files directly to change the defaults, or use the optional manifest to replace the background, saucer hull, and buildings with PNG, WebP, or SVG images.
+
+| Asset | Purpose |
+| --- | --- |
+| `background.svg` | Sky gradients, planets, mountains, and world boundary scenery |
+| `saucer.svg` | Saucer hull and pilot, with a `-24 -17 48 25` viewBox |
+| `restaurant.svg`, `gas.svg`, `mushroom.svg`, `observatory.svg`, `motel.svg`, `crystal.svg`, `outpost.svg` | Buildings, in local coordinates matching their rectangles in `src/world.ts` |
+| `island-0.svg` through `island-6.svg` | Island art, relative to each island's upper-left vertex |
+| `pad-N.svg`, `pad-N-active.svg` | Idle and highlighted pads, relative to each pad's upper-left corner |
+| `effects.svg` | Star, gear, thrust, package, service, particle, and crash-message templates |
+
+[View the original Canvas and new SVG artwork side by side](docs/screenshots/svg-art-comparison.png).
+
+Keep the `data-*` hooks in the assets and the template IDs in `effects.svg`; the renderer uses them for twinkling, vines, beacon movement, energy rings, and changing text. Keep `background.svg`'s `data-sky` group to place stars between the sky and planetary scenery. SVG gradients and clipping IDs are namespaced when cloned, so repeated artwork does not conflict.
+
+To use manifest overrides, put replacement images in `public/assets/` and edit `public/assets/manifest.json`:
 
 ```json
 {
@@ -91,6 +107,6 @@ The game ships with original procedural artwork; image replacements are optional
 }
 ```
 
-Image paths in the manifest resolve relative to the game page. Omitted or failed images retain the built-in artwork. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic Canvas elements. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. All island silhouettes use the same vertices for drawing and collision.
+Image paths in the manifest resolve relative to the game page. Omitted or failed override images retain the default SVG artwork. The default SVG files are required assets and must be deployed with the game. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic SVG elements from `effects.svg`. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. Keep island outlines in `island-N.svg` consistent with the vertices in `src/world.ts` so the visible terrain matches collision. If pad dimensions or labels change, update both pad SVG states as well.
 
-To add levels, extend `LEVELS` in `src/levels.ts` with pads, collision solids, a starting position, restaurant/gas-station IDs, and eligible destinations. `Game.start(skill, level)` selects the level; flight, services, and rendering use its geometry and station roles. Levels share the 1280 × 760 flight field. Skill order counts, random arrival ranges, and tip rates live in `SKILLS`; fuel tuning lives in `FUEL`. To change Zeta Prime locations or route spacing, edit `PADS` in `src/world.ts`. Route tests provide executable examples of paths through this level.
+To add levels, extend `LEVELS` in `src/levels.ts` with pads, collision solids, a starting position, restaurant/gas-station IDs, and eligible destinations. `Game.start(skill, level)` selects the level; flight, services, and rendering use its geometry and station roles. Levels share the 1280 × 760 flight field. Each pad needs matching `island-N.svg`, `pad-N.svg`, and `pad-N-active.svg` assets; add their names to the renderer’s asset list when introducing new pad IDs. Skill order counts, random arrival ranges, and tip rates live in `SKILLS`; fuel tuning lives in `FUEL`. To change Zeta Prime locations or route spacing, edit `PADS` in `src/world.ts`. Route tests provide executable examples of paths through this level.
