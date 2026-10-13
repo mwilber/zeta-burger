@@ -2,7 +2,7 @@
 
 Hot burgers. Cold space. A side-view arcade game about flying a saucer on an alien world's night shift. Inspired by the flight and landing mechanics of Space Taxi, with original art and a burger delivery loop.
 
-![Zeta Burger at the start of a shift, with the saucer suspended above Zeta Prime.](docs/screenshots/game-start.png)
+![Zeta Burger at the start of a shift, with the saucer suspended above Luna.](docs/screenshots/game-start.png)
 
 ## Run locally
 
@@ -45,7 +45,7 @@ Each level begins with a fixed schedule of orders. The first order always arrive
 | Normal | 6 | 8–16 seconds | $0.08/second |
 | Expert | 8 | 5–10 seconds | $0.12/second |
 
-The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. Only Zeta Prime is available for now.
+The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. Only **level 1 · Luna** is available for now. Adding levels to the config enables a level selector and a Next Level button after a successful shift.
 
 Fuel starts at **100%**. Upward or downward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
 
@@ -58,14 +58,15 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | File | Purpose |
 | --- | --- |
 | `src/engine.ts` | Browser-independent physics, landing, lives, orders, signed tips, and game state |
-| `src/levels.ts` | Level definitions, station roles, destinations, and skill settings |
-| `src/world.ts` | Numbered pads, station coordinates, terrain silhouettes, and convex polygon collision |
+| `src/level-config.ts` | Editable level numbers, names, themes, pad locations/counts, and station roles |
+| `src/levels.ts` | Config validation, generated levels, asset filenames, and skill settings |
+| `src/world.ts` | Geometry generated from pad configuration and convex polygon collision |
 | `src/renderer.ts` | SVG scene assembly, animation, and optional asset overrides |
 | `src/main.ts` | Fixed-step render loop, keyboard/multitouch input, HUD, pause, help, and local best bank |
 | `src/audio.ts` | Optional sound made with the browser's Web Audio API |
 | `public/index.html`, `public/style.css` | Responsive game shell and accessible controls |
 | `public/assets/*.svg` | Default scenery, saucer, buildings, islands, pads, and effect templates |
-| `public/assets/manifest.json` | Optional custom image overrides |
+| `public/assets/manifest-1.json` | Optional custom image overrides |
 | `tests/engine.test.mjs` | Flight, collision, landing, delivery, scoring, pause, and life-cycle checks |
 | `tests/routes.test.mjs` | Actual control-driven flights from the top center to every destination and back, without teleporting |
 | `scripts/dev.mjs` | Development server and TypeScript watch process using Node built-ins |
@@ -78,35 +79,57 @@ The default artwork lives in editable SVG files in `public/assets/`. The playfie
 
 | Asset | Purpose |
 | --- | --- |
-| `background.svg` | Sky gradients, planets, mountains, and world boundary scenery |
-| `saucer.svg` | Saucer hull and pilot, with a `-24 -17 48 25` viewBox |
-| `restaurant.svg`, `gas.svg`, `mushroom.svg`, `observatory.svg`, `motel.svg`, `crystal.svg`, `outpost.svg` | Buildings, in local coordinates matching their rectangles in `src/world.ts` |
-| `island-0.svg` through `island-6.svg` | Island art, relative to each island's upper-left vertex |
-| `pad-N.svg`, `pad-N-active.svg` | Idle and highlighted pads, relative to each pad's upper-left corner |
-| `effects.svg` | Star, gear, thrust, package, service, particle, and crash-message templates |
+| `background-1.svg` | Sky gradients, planets, mountains, and world boundary scenery |
+| `saucer-1.svg` | Saucer hull and pilot, fitted to the 48 × 25 hull box at `(-24, -17)` |
+| `restaurant-1.svg`, `gas-1.svg`, `mushroom-1.svg`, `observatory-1.svg`, `motel-1.svg`, `crystal-1.svg`, `outpost-1.svg` | Buildings, in local coordinates matching their rectangles in `src/level-config.ts` |
+| `island-0-1.svg` through `island-6-1.svg` | Island art, relative to each island's upper-left vertex |
+| `pad-N-1.svg`, `pad-N-active-1.svg` | Idle and highlighted pads, relative to each pad's upper-left corner |
+| `effects-1.svg` | Star, gear, thrust, package, service, particle, and crash-message templates |
 
 [View the original Canvas and new SVG artwork side by side](docs/screenshots/svg-art-comparison.png).
 
-Keep the `data-*` hooks in the assets and the template IDs in `effects.svg`; the renderer uses them for twinkling, vines, beacon movement, energy rings, and changing text. Keep `background.svg`'s `data-sky` group to place stars between the sky and planetary scenery. SVG gradients and clipping IDs are namespaced when cloned, so repeated artwork does not conflict.
+SVG artboards are mapped into fixed game rectangles. Both the original negative-origin viewBoxes and Adobe Illustrator exports starting at `0 0` work without manual coordinate edits. For example, `saucer-1.svg` may use either `-24 -17 48 25` or `0 0 48 25`: its artboard still fits the hull box with upper-left corner `(-24, -17)` relative to the ship. Buildings, background, islands, pads, and effect templates receive the same normalization; animation coordinates are converted to the exported artwork's local units. Root presentation attributes and nested layer transforms are preserved.
 
-To use manifest overrides, put replacement images in `public/assets/` and edit `public/assets/manifest.json`:
+In Illustrator, keep the existing artboard and export the full artboard rather than cropping to the artwork bounds. Padding and artwork placement inside the artboard affect alignment; the loader fits the artboard rather than centering the visible paths. The saucer's ship origin corresponds to `(24, 17)` on a `0 0 48 25` artboard. Export dimensions may change, but keep the artboard's aspect ratio to avoid stretching. Animated templates still need the IDs, `data-*` hooks, and editable SVG element types described below.
+
+Keep the `data-*` hooks in the assets and the template IDs in `effects-1.svg`; the renderer uses them for twinkling, vines, beacon movement, energy rings, and changing text. Keep `background-1.svg`'s `data-sky` group to place stars between the sky and planetary scenery. SVG gradients and clipping IDs are namespaced when cloned, so repeated artwork does not conflict.
+
+To use manifest overrides, put replacement images in `public/assets/` and edit `public/assets/manifest-1.json`:
 
 ```json
 {
   "background": "./assets/alien-sky.webp",
-  "saucer": "./assets/saucer.svg",
+  "saucer": "./assets/saucer-1.svg",
   "buildings": {
-    "restaurant": "./assets/restaurant.svg",
+    "restaurant": "./assets/restaurant-1.svg",
     "gas": "./assets/gas-station.svg",
     "mushroom": "./assets/spore-house.svg",
-    "observatory": "./assets/observatory.svg",
-    "motel": "./assets/motel.svg",
+    "observatory": "./assets/observatory-1.svg",
+    "motel": "./assets/motel-1.svg",
     "crystal": "./assets/crystals.svg",
-    "outpost": "./assets/outpost.svg"
+    "outpost": "./assets/outpost-1.svg"
   }
 }
 ```
 
-Image paths in the manifest resolve relative to the game page. Omitted or failed override images retain the default SVG artwork. The default SVG files are required assets and must be deployed with the game. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic SVG elements from `effects.svg`. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/world.ts`. If a designer changes a solid silhouette, update its collision geometry too. Keep island outlines in `island-N.svg` consistent with the vertices in `src/world.ts` so the visible terrain matches collision. If pad dimensions or labels change, update both pad SVG states as well.
+Image paths in the manifest resolve relative to the game page. Omitted or failed override images retain the default SVG artwork. The default SVG files are required assets and must be deployed with the game. The background fits the **1280 × 760** world and renders behind all interactive objects. A transparent saucer image fits the **48 × 25** hull box, with its upper-left corner at `(ship.x − 24, ship.y − 17)`; gear, energy waves, and order indicators remain dynamic SVG elements from `effects-1.svg`. Keep the hull silhouette consistent with `shipBody()` in `src/engine.ts`. Building images fit their rectangles from `src/level-config.ts`. If a designer changes a solid silhouette, update its collision geometry too. Keep island outlines in `island-N-1.svg` consistent with the vertices in `src/level-config.ts` so the visible terrain matches collision. If pad dimensions or labels change, update both pad SVG states as well.
 
-To add levels, extend `LEVELS` in `src/levels.ts` with pads, collision solids, a starting position, restaurant/gas-station IDs, and eligible destinations. `Game.start(skill, level)` selects the level; flight, services, and rendering use its geometry and station roles. Levels share the 1280 × 760 flight field. Each pad needs matching `island-N.svg`, `pad-N.svg`, and `pad-N-active.svg` assets; add their names to the renderer’s asset list when introducing new pad IDs. Skill order counts, random arrival ranges, and tip rates live in `SKILLS`; fuel tuning lives in `FUEL`. To change Zeta Prime locations or route spacing, edit `PADS` in `src/world.ts`. Route tests provide executable examples of paths through this level.
+## Level configuration
+
+Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
+
+A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
+
+```ts
+// Example pad entry (coordinates are world units):
+{
+  id: 0, name: 'Zeta Burger', x: 370, y: 560,
+  width: 116, color: '#bdf77d',
+  island: { x: -112, width: 254 },
+  building: { x: -90, width: 76, height: 95, kind: 'restaurant' }
+}
+```
+
+Every gameplay graphic appends `-<level number>` to its original name, before the extension. For level 2, supply `background-2.svg`, `saucer-2.svg`, `effects-2.svg`, each configured building such as `restaurant-2.svg`, and `island-<pad ID>-2.svg`, `pad-<pad ID>-2.svg`, `pad-<pad ID>-active-2.svg` for each pad. The loader derives required assets from that level's pad list; no renderer edits are needed for more pads, different IDs, or new building kinds. `icon.svg` stays shared for the page's branding. Optional image overrides use `manifest-<level number>.json` with the same format shown above; paths in the manifest are used exactly as written.
+
+To add a level, append its configuration and add its graphics. The level selector appears when multiple levels exist, and completing all deliveries offers the next configured level. Each level starts a fresh shift with the selected skill setting. Replay remains available on wins and losses. All scenery, ships, stations, and effects reload when switching levels; failed required art prevents starting that shift. Reload the browser after config or asset edits when using the dev server, or rebuild before deploying. Skill settings live in `SKILLS` and fuel tuning in `FUEL`.

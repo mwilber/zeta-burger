@@ -1,5 +1,9 @@
 import { WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
 import type { Pad } from './world.js';
+import { LEVELS, levelAssetNames, levelAssetPath } from './levels.js';
+import type { Level } from './levels.js';
+import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
+import type { ArtBox } from './svg-art.js';
 import { PHYSICS, CRASH_DURATION, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 
@@ -19,7 +23,10 @@ const setText = (node: SVGElement, text: string) => { if (node.textContent !== t
 export class Renderer {
   particles: Particle[] = [];
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  readonly ready: Promise<void>;
+  readonly ready: Promise<boolean>;
+  private level?: Level;
+  private loading?: Promise<boolean>;
+  private loadVersion = 0;
   private templates = new Map<string, Element>();
   private images = new Map<string, SVGImageElement[]>();
   private scene = this.group();
@@ -42,20 +49,16 @@ export class Renderer {
   private loaded = false;
   private serial = 0;
 
-  constructor(stage: SVGSVGElement) {
+  constructor(stage: SVGSVGElement, level: Level = LEVELS[0]) {
     attr(stage, { viewBox: `0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}` });
     stage.replaceChildren(this.scene);
-    this.ready = this.loadArt();
+    this.ready = this.setLevel(level);
   }
   private group(): SVGGElement { return document.createElementNS(SVG, 'g'); }
-  private asset(name: string): SVGGElement {
+  private asset(name: string, box: ArtBox = [-80, -90, 160, 180]): SVGGElement {
     const source = this.templates.get(name);
     if (!source) throw new Error(`Missing SVG artwork: ${name}`);
-    const group = this.group();
-    if (source.localName === 'g') for (const attribute of Array.from(source.attributes)) {
-      if (attribute.name !== 'id') group.setAttribute(attribute.name, attribute.value);
-    }
-    group.append(...Array.from(source.childNodes, node => node.cloneNode(true)));
+    const group = cloneArtwork(source, box);
     // Each clone gets its own gradient/clip IDs, including copies of a station.
     const prefix = `art-${this.serial++}-`;
     const ids = new Map<string, string>();
@@ -63,7 +66,8 @@ export class Renderer {
     for (const node of group.querySelectorAll('*')) for (const attribute of Array.from(node.attributes)) {
       let value = attribute.value;
       for (const [id, replacement] of ids) value = value.replaceAll(`url(#${id})`, `url(#${replacement})`);
-      if (value !== attribute.value) node.setAttribute(attribute.name, value);
+      if ((attribute.localName === 'href') && value.startsWith('#') && ids.has(value.slice(1))) value = '#' + ids.get(value.slice(1));
+      if (value !== attribute.value) node.setAttributeNS(attribute.namespaceURI, attribute.name, value);
     }
     return group;
   }
@@ -74,22 +78,44 @@ export class Renderer {
     const instances = this.images.get(key) ?? []; instances.push(image); this.images.set(key, instances);
     return group;
   }
-  private async loadArt() {
-    const names = ['background', 'saucer', 'restaurant', 'gas', 'mushroom', 'observatory', 'motel', 'crystal', 'outpost', 'effects',
-      ...Array.from({ length: 7 }, (_, id) => [`island-${id}`, `pad-${id}`, `pad-${id}-active`]).flat()];
+  setLevel(level: Level): Promise<boolean> {
+    if (this.level === level && this.loading) return this.loading;
+    if (this.level === level && this.loaded) return Promise.resolve(true);
+    this.level = level;
+    this.loaded = false;
+    const version = ++this.loadVersion;
+    this.loading = this.loadArt(level, version).finally(() => {
+      if (version === this.loadVersion) this.loading = undefined;
+    });
+    return this.loading;
+  }
+  private async loadArt(level: Level, version: number): Promise<boolean> {
+    const templates = new Map<string, Element>();
     try {
-      await Promise.all(names.map(async name => {
-        const response = await fetch(`./assets/${name}.svg`);
-        if (!response.ok) throw new Error(`Could not load ${name}.svg`);
+      await Promise.all(levelAssetNames(level).map(async name => {
+        const response = await fetch(levelAssetPath(name, level));
+        if (!response.ok) throw new Error(`Could not load ${levelAssetPath(name, level)}`);
         const document = new DOMParser().parseFromString(await response.text(), 'image/svg+xml');
-        if (document.querySelector('parsererror')) throw new Error(`Invalid SVG: ${name}.svg`);
-        this.templates.set(name, document.documentElement);
+        if (document.querySelector('parsererror')) throw new Error(`Invalid SVG: ${levelAssetPath(name, level)}`);
+        templates.set(name, document.documentElement);
       }));
+      if (version !== this.loadVersion) return false;
+      this.templates = templates;
+      this.scene.replaceChildren(); this.stationLayer.replaceChildren(); this.particleLayer.replaceChildren();
+      this.images.clear(); this.overrides.clear(); this.stars = []; this.stations = []; this.pads = undefined; this.particles = [];
       const effects = this.templates.get('effects')!;
       this.scene.append(effects.querySelector('defs')!.cloneNode(true), effects.querySelector('style')!.cloneNode(true));
-      for (const template of effects.querySelectorAll(':scope > g[id]')) this.templates.set(template.id, template);
-      const background = this.asset('background');
-      this.scene.append(find(background, '[data-sky]'));
+      for (const template of effects.querySelectorAll('g[id]')) this.templates.set(template.id, template);
+      const background = this.asset('background', [0, 0, WORLD_WIDTH, WORLD_HEIGHT]);
+      const sky = this.asset('background', [0, 0, WORLD_WIDTH, WORLD_HEIGHT]);
+      const skyLayer = find<SVGGElement>(sky, '[data-sky]');
+      const retainSky = (node: Element) => {
+        for (const child of Array.from(node.children)) {
+          if (child === skyLayer || child.localName === 'defs' || child.localName === 'style') continue;
+          if (child.contains(skyLayer)) retainSky(child); else child.remove();
+        }
+      };
+      retainSky(sky); find(background, '[data-sky]').remove(); this.scene.append(sky);
       let seed = 4827;
       const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
       // Keep the original star positions and twinkle phases.
@@ -105,22 +131,27 @@ export class Renderer {
       this.verticalWaves = Array.from(this.vertical.querySelectorAll('[data-wave]'));
       this.horizontalWaves = Array.from(this.horizontal.querySelectorAll('[data-wave]'));
       this.ship = this.group(); this.gear = this.asset('gear');
-      this.ship.append(this.gear, this.image('saucer', this.asset('saucer'), -24, -17, 48, 25));
+      this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
       this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.particleLayer, this.crash);
+      this.buildStations(level.pads);
       this.loaded = true;
-      void this.loadOverrides();
+      void this.loadOverrides(level, version);
+      return true;
     } catch (error) {
+      if (version !== this.loadVersion) return false;
       console.error(error);
+      this.scene.replaceChildren();
       const message = document.createElementNS(SVG, 'text');
       attr(message, { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2, fill: 'white', 'text-anchor': 'middle' });
-      message.textContent = 'Artwork could not load. Refresh to try again.'; this.scene.append(message);
+      message.textContent = `${level.name} artwork could not load. Refresh to try again.`; this.scene.append(message);
+      return false;
     }
   }
   private overrides = new Map<string, string>();
-  private async loadOverrides() {
+  private async loadOverrides(level: Level, version: number) {
     try {
-      const response = await fetch('./assets/manifest.json');
+      const response = await fetch(levelAssetPath('manifest', level, 'json'));
       if (!response.ok) return;
       const art = await response.json() as ArtManifest;
       await Promise.all(Object.entries({ background: art.background, saucer: art.saucer, ...art.buildings }).map(async ([key, source]) => {
@@ -128,6 +159,7 @@ export class Renderer {
         const image = new Image();
         image.src = source;
         try { await image.decode(); } catch { return; }
+        if (version !== this.loadVersion) return;
         this.overrides.set(key, source); this.applyOverride(key);
       }));
     } catch { /* Optional manifest: the SVG defaults remain visible. */ }
@@ -147,10 +179,11 @@ export class Renderer {
     this.stationLayer.replaceChildren();
     this.stations = pads.map(pad => {
       const root = this.group(), base = pad.island[0];
-      const island = this.asset(`island-${pad.id}`); move(island, base.x, base.y);
-      const building = this.image(pad.building.kind, this.asset(pad.building.kind), 0, 0, pad.building.width, pad.building.height);
+      const island = this.asset(`island-${pad.id}`, [0, 0, pad.island[1].x - base.x, 83]); move(island, base.x, base.y);
+      const building = this.image(pad.building.kind, this.asset(pad.building.kind, [0, 0, pad.building.width, pad.building.height]), 0, 0, pad.building.width, pad.building.height);
       move(building, pad.building.x, pad.building.y);
-      const idle = this.asset(`pad-${pad.id}`), active = this.asset(`pad-${pad.id}-active`);
+      const box: ArtBox = [-5, -90, pad.width + 10, 160];
+      const idle = this.asset(`pad-${pad.id}`, box), active = this.asset(`pad-${pad.id}-active`, box);
       move(idle, pad.x, pad.y); move(active, pad.x, pad.y); root.append(island, building, idle, active); this.stationLayer.append(root);
       this.applyOverride(pad.building.kind);
       return { pad, root, island, vines: Array.from(island.querySelectorAll<SVGPathElement>('[data-vine]')), idle, active, beacon: find<SVGTextElement>(active, '[data-beacon]') };
@@ -176,7 +209,7 @@ export class Renderer {
     for (const p of this.particles) {
       if (!p.node) { p.node = this.asset('particle'); this.particleLayer.append(p.node); }
       const rect = find<SVGRectElement>(p.node, 'rect');
-      attr(rect, { width: p.size, height: p.size, rx: 1, fill: p.color });
+      attr(rect, { width: artLength(rect, p.size, 'x'), height: artLength(rect, p.size, 'y'), rx: artLength(rect, 1, 'x'), fill: p.color });
       move(p.node, p.x, p.y); attr(p.node, { opacity: Math.max(0, 1 - p.age / p.life) }); living.add(p.node);
     }
     for (const node of Array.from(this.particleLayer.children)) if (!living.has(node as SVGElement)) node.remove();
@@ -187,14 +220,19 @@ export class Renderer {
     text.setAttribute('data-negative', String(amount < 0));
   }
   draw(game: Game, controls: Controls, dt: number, time: number) {
-    if (!this.loaded) return;
+    if (this.level !== game.level || !this.loaded) return;
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
     for (const star of this.stars) attr(star.node, { opacity: .3 + (this.reducedMotion ? .25 : (Math.sin(time * .55 + star.phase) + 1) * .25) });
     for (const station of this.stations) {
       const active = station.pad.id === game.destination.id || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
       visible(station.idle, !active); visible(station.active, active);
-      station.beacon.setAttribute('transform', `translate(0 ${this.reducedMotion ? 0 : Math.sin(time * 3) * 3})`);
-      for (const vine of station.vines) { const { x, y1, y2, vine: index } = vine.dataset; vine.setAttribute('d', `M${x} ${y1}L${Number(x) + Math.sin(time + Number(index)) * 1.5} ${y2}`); }
+      animateTranslation(station.beacon, 0, this.reducedMotion ? 0 : Math.sin(time * 3) * 3);
+      for (const vine of station.vines) {
+        const { x, y1, y2, vine: index } = vine.dataset;
+        const start = artPoint(vine, Number(x), Number(y1));
+        const end = artPoint(vine, Number(x) + Math.sin(time + Number(index)) * 1.5, Number(y2));
+        vine.setAttribute('d', `M${start.x} ${start.y}L${end.x} ${end.y}`);
+      }
     }
     const waiting = game.waitingOrders[0]; visible(this.waiting, !!waiting);
     if (waiting) {
@@ -215,14 +253,16 @@ export class Renderer {
     this.vertical.setAttribute('transform', `translate(${s.x} ${s.y}) scale(1 ${side})`);
     this.verticalWaves.forEach((wave, i) => {
       const progress = this.reducedMotion ? (i + .5) / 4 : (time * 2 + i / 4) % 1;
-      attr(wave, { cy: 12 + progress * 36, rx: 12 + progress * 25, ry: 3 + progress * 5, opacity: (1 - progress) * .8, 'stroke-width': 2 - progress });
+      const center = artPoint(wave, 0, 12 + progress * 36);
+      attr(wave, { cx: center.x, cy: center.y, rx: artLength(wave, 12 + progress * 25, 'x'), ry: artLength(wave, 3 + progress * 5, 'y'), opacity: (1 - progress) * .8, 'stroke-width': artLength(wave, 2 - progress, 'x') });
     });
     const direction = Number(controls.right) - Number(controls.left);
     visible(this.horizontal, showShip && !s.gear && game.fuel > 0 && game.phase === 'playing' && direction !== 0);
     move(this.horizontal, s.x, s.y);
     this.horizontalWaves.forEach((wave, i) => {
       const progress = this.reducedMotion ? (i + .5) / 3 : (time * 3 + i / 3) % 1;
-      attr(wave, { cx: -direction * (25 + progress * 18), cy: 1, rx: 2 + progress * 3, ry: 5 + progress * 5, opacity: (1 - progress) * .7 });
+      const center = artPoint(wave, -direction * (25 + progress * 18), 1);
+      attr(wave, { cx: center.x, cy: center.y, rx: artLength(wave, 2 + progress * 3, 'x'), ry: artLength(wave, 5 + progress * 5, 'y'), opacity: (1 - progress) * .7 });
     });
     this.ship.setAttribute('transform', `translate(${s.x} ${s.y + game.landingBounceOffset}) rotate(${game.tilt * 180 / Math.PI})`);
     visible(this.gear, s.gear); move(this.carried, s.x, s.y); visible(this.carried, showShip && !!game.order);
@@ -230,7 +270,8 @@ export class Renderer {
     move(this.service, s.x, s.y); visible(this.service, showShip);
     const dwell = s.landed !== null && game.dwell < PHYSICS.dwell && (s.landed === game.level.restaurant || s.landed === game.order?.target);
     visible(find(this.service, '[data-dwell]'), dwell);
-    attr(find(this.service, '[data-progress]'), { width: 36 * Math.min(1, game.dwell / PHYSICS.dwell) });
+    const progress = find<SVGRectElement>(this.service, '[data-progress]');
+    attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / PHYSICS.dwell), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]'); visible(refuel, s.landed === game.level.gasStation);
     setText(refuel, game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL');
   }

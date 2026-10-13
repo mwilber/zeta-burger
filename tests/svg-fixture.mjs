@@ -22,7 +22,7 @@ export function svgRendererFixture() {
   renderer.verticalWaves = Array.from({ length: 4 }, node);
   renderer.horizontalWaves = Array.from({ length: 3 }, node);
   renderer.particles = []; renderer.reducedMotion = false;
-  const effects = readFileSync(new URL('../public/assets/effects.svg', import.meta.url), 'utf8');
+  const effects = readFileSync(new URL('../public/assets/effects-1.svg', import.meta.url), 'utf8');
   renderer.templates = new Map([['particle', { getAttribute: name => effects.match(new RegExp(`${name}="([^"]+)"`))?.[1] ?? null }]]);
   return renderer;
 }

@@ -1,4 +1,6 @@
-import { PADS, SOLIDS } from './world.js';
+import { createPad, createSolids } from './world.js';
+import { LEVEL_CONFIG } from './level-config.js';
+import type { LevelConfig } from './level-config.js';
 import type { Pad, Solid, Point } from './world.js';
 
 export const SKILLS = {
@@ -8,8 +10,11 @@ export const SKILLS = {
 } as const;
 export type Skill = keyof typeof SKILLS;
 export interface Level {
+  number: number;
   id: string;
   name: string;
+  theme: string;
+  padCount: number;
   pads: Pad[];
   solids: Solid[];
   start: Point;
@@ -17,8 +22,34 @@ export interface Level {
   gasStation: number;
   destinations: number[];
 }
-// Add future levels here; the engine and renderer use the selected level's geometry.
-export const LEVELS: Level[] = [{
-  id: 'zeta-prime', name: 'Zeta Prime', pads: PADS, solids: SOLIDS, start: { x: 640, y: 80 },
-  restaurant: 0, gasStation: 6, destinations: [1, 2, 3, 4, 5]
-}];
+export function createLevel(config: LevelConfig): Level {
+  const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
+  if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
+  const ids = new Set<number>();
+  for (const pad of config.pads) {
+    if (!Number.isInteger(pad.id) || pad.id < 0 || ids.has(pad.id)) fail('pad IDs must be unique nonnegative integers');
+    ids.add(pad.id);
+    if (![pad.x, pad.y, pad.width, pad.island.x, pad.island.width, pad.building.x, pad.building.width, pad.building.height].every(Number.isFinite)
+      || pad.width < 38 || pad.island.width <= 18 || pad.building.width <= 0 || pad.building.height <= 0) fail(`invalid geometry for pad ${pad.id}`);
+    if (!/^[a-z][a-z0-9-]*$/.test(pad.building.kind)) fail(`invalid building asset name for pad ${pad.id}`);
+  }
+  if (!ids.has(config.restaurant) || !ids.has(config.gasStation) || config.restaurant === config.gasStation) fail('restaurant and gas station must reference distinct existing pads');
+  const destinations = config.pads.filter(pad => pad.id !== config.restaurant && pad.id !== config.gasStation).map(pad => pad.id);
+  if (!destinations.length) fail('at least one delivery pad is required');
+  if (![config.start.x, config.start.y].every(Number.isFinite)) fail('invalid starting position');
+  const pads = config.pads.map(createPad);
+  return { ...config, pads, padCount: pads.length, solids: createSolids(pads), destinations };
+}
+export const LEVELS: Level[] = LEVEL_CONFIG.map(createLevel);
+if (new Set(LEVELS.map(level => level.number)).size !== LEVELS.length || new Set(LEVELS.map(level => level.id)).size !== LEVELS.length) {
+  throw new Error('Level numbers and IDs must be unique');
+}
+/** Append the level number after the full original asset name, before its extension. */
+export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
+  return `./assets/${name}-${level.number}.${extension}`;
+}
+export function levelAssetNames(level: Pick<Level, 'pads'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...level.pads.flatMap(pad => [
+    pad.building.kind, `island-${pad.id}`, `pad-${pad.id}`, `pad-${pad.id}-active`
+  ])])];
+}

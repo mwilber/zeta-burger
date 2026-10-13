@@ -132,7 +132,7 @@ export class Game {
       if (order.status === 'delivered') continue;
       if (order.status === 'scheduled' && this.time >= order.availableAt) {
         order.status = 'waiting';
-        this.emit('arrival', `Order #${order.id} ready at Zeta Burger · Pad ${order.target}`);
+        this.emit('arrival', `Order #${order.id} ready at ${this.level.pads.find(pad => pad.id === this.level.restaurant)!.name} · Pad ${order.target}`);
       }
       if (order.status !== 'scheduled') order.elapsed += this.time - Math.max(previousTime, order.availableAt);
     }
@@ -215,7 +215,7 @@ export class Game {
       const earned = Math.round(this.tip * 100) / 100;
       this.bank = Math.round((this.bank + earned) * 100) / 100;
       this.delivered++; this.order.status = 'delivered';
-      this.emit('delivery', `Delivered! ${earned < 0 ? '−' : '+'}$${Math.abs(earned).toFixed(2)} · Head back to Zeta Burger`);
+      this.emit('delivery', `Delivered! ${earned < 0 ? '−' : '+'}$${Math.abs(earned).toFixed(2)} · Head back to ${this.level.pads.find(pad => pad.id === this.level.restaurant)!.name}`);
       this.checkEnd();
     }
   }

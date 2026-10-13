@@ -1335,3 +1335,5 @@ dialog .primary-button {
     padding:24px;
   }
 }
+
+.shift-settings [hidden] { display: none; }
