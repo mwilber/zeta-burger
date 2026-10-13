@@ -2,10 +2,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { accessSync } from 'node:fs';
 import { LEVEL_CONFIG } from '../dist/src/level-config.js';
-import { LEVELS, createLevel, levelAssetNames, levelAssetPath } from '../dist/src/levels.js';
+import { LEVELS, createLevel, createLevels, nextLevel, levelAssetNames, levelAssetPath } from '../dist/src/levels.js';
 import { Game, START_DELAY, PHYSICS } from '../dist/src/engine.js';
 
 const copyConfig = () => structuredClone(LEVEL_CONFIG[0]);
+
+test('configuration order controls progression regardless of level numbers', () => {
+  const configs = [8, 1, 4].map(number => ({ ...copyConfig(), number, id: `world-${number}` }));
+  const levels = createLevels(configs);
+  assert.deepEqual(levels.map(level => level.number), [8, 1, 4]);
+  assert.equal(nextLevel(levels[0], levels), levels[1]);
+  assert.equal(nextLevel(levels[1], levels), levels[2]);
+  assert.equal(nextLevel(levels[2], levels), undefined);
+  assert.equal(nextLevel({ id: 'unknown' }, levels), undefined);
+
+  const rearranged = createLevels([configs[2], configs[0], configs[1]]);
+  assert.deepEqual(rearranged.map(level => level.number), [4, 8, 1]);
+  assert.equal(nextLevel(rearranged[0], rearranged), rearranged[1]);
+  assert.equal(nextLevel(rearranged[1], rearranged), rearranged[2]);
+  assert.equal(nextLevel(rearranged[2], rearranged), undefined);
+  for (const level of levels) {
+    const moved = rearranged.find(candidate => candidate.id === level.id);
+    assert.equal(levelAssetPath('background', moved), levelAssetPath('background', level));
+  }
+});
 
 test('Luna is level 1 and preserves all seven original stations', () => {
   const level = LEVELS[0];

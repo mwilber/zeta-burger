@@ -1,6 +1,6 @@
 import { Game, PHYSICS, FUEL, START_DELAY } from './engine.js';
 import type { Controls, Phase } from './engine.js';
-import { LEVELS, SKILLS } from './levels.js';
+import { LEVELS, SKILLS, nextLevel } from './levels.js';
 import type { Skill } from './levels.js';
 import { Renderer } from './renderer.js';
 import { Sound } from './audio.js';
@@ -94,7 +94,9 @@ overlay.addEventListener('click', event => {
   const button = (event.target as HTMLElement).closest('button');
   if (button?.id === 'start' || button?.dataset.action === 'restart') void start();
   else if (button?.dataset.action === 'next') {
-    levelSelect.value = LEVELS[LEVELS.indexOf(game.level) + 1].id;
+    const next = nextLevel(game.level);
+    if (!next) return;
+    levelSelect.value = next.id;
     void start();
   }
   else if (button?.dataset.action === 'resume') pause();
@@ -182,7 +184,7 @@ function updateHud() {
     if (game.phase === 'gameover') {
       resetInputs();
       const reason = game.endReason === 'delivered' ? 'Every order delivered.' : game.endReason === 'tips' ? 'Every remaining tip fell below zero.' : 'Your last saucer was lost.';
-      const next = LEVELS[LEVELS.indexOf(game.level) + 1];
+      const next = nextLevel(game.level);
       const nextButton = game.endReason === 'delivered' && next ? `<button class="primary-button" data-action="next">NEXT LEVEL · ${next.name.toUpperCase()} <span>→</span></button>` : '';
       overlay.innerHTML = `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'LEVEL COMPLETE' : 'SHIFT ENDED'}</div><h2>That’s a wrap, pilot.</h2><p>Level ${game.level.number} · ${game.level.name}<br>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p>${nextButton}<button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your level and skill above for the next shift.</small></div>`;
     }

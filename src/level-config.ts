@@ -12,6 +12,7 @@ export interface PadConfig {
   building: { x: number; width: number; height: number; kind: string };
 }
 export interface LevelConfig {
+  // Stable asset suffix and display number; independent of play order.
   number: number;
   id: string;
   name: string;
@@ -25,6 +26,8 @@ export interface LevelConfig {
 // Add/remove entries in `pads` to change the total pad count. All pads other
 // than the restaurant and gas station are delivery destinations automatically.
 // Add a level here and matching assets named <original-name>-<number>.svg.
+// Array order is play order. Rearrange level entries without changing their
+// numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
   number: 1,
   id: 'luna',

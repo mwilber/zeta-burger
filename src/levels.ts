@@ -40,9 +40,19 @@ export function createLevel(config: LevelConfig): Level {
   const pads = config.pads.map(createPad);
   return { ...config, pads, padCount: pads.length, solids: createSolids(pads), destinations };
 }
-export const LEVELS: Level[] = LEVEL_CONFIG.map(createLevel);
-if (new Set(LEVELS.map(level => level.number)).size !== LEVELS.length || new Set(LEVELS.map(level => level.id)).size !== LEVELS.length) {
-  throw new Error('Level numbers and IDs must be unique');
+/** Configuration array order controls selection and progression; numbers stay stable for assets. */
+export function createLevels(configs: LevelConfig[]): Level[] {
+  const levels = configs.map(createLevel);
+  if (!levels.length) throw new Error('At least one level must be configured');
+  if (new Set(levels.map(level => level.number)).size !== levels.length || new Set(levels.map(level => level.id)).size !== levels.length) {
+    throw new Error('Level numbers and IDs must be unique');
+  }
+  return levels;
+}
+export const LEVELS: Level[] = createLevels(LEVEL_CONFIG);
+export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS): Level | undefined {
+  const index = levels.findIndex(level => level.id === current.id);
+  return index < 0 ? undefined : levels[index + 1];
 }
 /** Append the level number after the full original asset name, before its extension. */
 export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {

@@ -116,6 +116,8 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and Next Level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. Rearrange the entries to change progression in later versions. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+
 Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
 A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
