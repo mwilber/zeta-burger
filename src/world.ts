@@ -21,6 +21,27 @@ export function createSolids(pads: Pad[]): Solid[] { return pads.flatMap(pad => 
   { points: rectangle(pad.building.x, pad.building.y, pad.building.width, pad.building.height), kind: 'building' as const, padId: pad.id }
 ]); }
 export const SOLIDS = createSolids(PADS);
+/** Continuous SAT: earliest contact in [0, 1] for two moving convex polygons. */
+export function sweepContact(a: Point[], b: Point[], deltaA: Point, deltaB: Point = { x: 0, y: 0 }): number | null {
+  let entry = 0, exit = 1;
+  for (const polygon of [a, b]) {
+    for (let i = 0; i < polygon.length; i++) {
+      const p = polygon[i], q = polygon[(i + 1) % polygon.length];
+      const ax = -(q.y - p.y), ay = q.x - p.x;
+      if (ax === 0 && ay === 0) continue;
+      const ap = a.map(v => v.x * ax + v.y * ay), bp = b.map(v => v.x * ax + v.y * ay);
+      const amin = Math.min(...ap), amax = Math.max(...ap), bmin = Math.min(...bp), bmax = Math.max(...bp);
+      const velocity = (deltaA.x - deltaB.x) * ax + (deltaA.y - deltaB.y) * ay;
+      if (velocity === 0) { if (amax < bmin || bmax < amin) return null; }
+      else {
+        const t1 = (bmin - amax) / velocity, t2 = (bmax - amin) / velocity;
+        entry = Math.max(entry, Math.min(t1, t2)); exit = Math.min(exit, Math.max(t1, t2));
+        if (entry > exit) return null;
+      }
+    }
+  }
+  return entry;
+}
 // Convex polygon SAT. The visible terrain silhouette is also its collision shape.
 export function intersects(a: Point[], b: Point[]): boolean {
   for (const polygon of [a, b]) {

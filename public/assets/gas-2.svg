@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 58" overflow="visible">
+<path d="M3 10 H25 Q28 10 28 13 V55 Q28 58 25 58 H3 Q0 58 0 55 V13 Q0 10 3 10 Z" fill="#555b65"/>
+<path d="M5 14 H23 Q25 14 25 16 V26 Q25 28 23 28 H5 Q3 28 3 26 V16 Q3 14 5 14 Z" fill="#272a2e"/>
+<text x="14" y="24" fill="#bac9dd" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle">FUEL</text>
+<path d="M8 33 H14 Q16 33 16 35 V41 Q16 43 14 43 H8 Q6 43 6 41 V35 Q6 33 8 33 Z" fill="#cdddf3"/>
+<path d="M25 31 L25 46" fill="none" stroke="#bac9dd" stroke-width="3"/>
+<path d="M25 46 L19 46" fill="none" stroke="#bac9dd" stroke-width="3"/>
+<path d="M5 5 H23 Q25 5 25 7 V9 Q25 11 23 11 H5 Q3 11 3 9 V7 Q3 5 5 5 Z" fill="#bac9dd"/>
+<path d="M17 2 A3 2 0 0 1 11 2 A3 2 0 0 1 17 2" fill="#cdddf3"/>
+</svg>

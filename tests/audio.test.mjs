@@ -200,3 +200,16 @@ test('arrival chimes separately from pickup and muting cancels all layers and qu
   sound.update(game, { ...idle, up: true, left: true });
   assert.equal(nodes.length, count);
 });
+
+test('falling obstacle impacts reuse explosion audio without interrupting the flying ship', () => {
+  const { sound, nodes } = audio(), game = playing();
+  const controls = { ...idle, up: true, right: true };
+  sound.update(game, controls);
+  const thrust = [...nodes];
+  sound.play({ type: 'falling-obstacle-impact', message: '', x: 0, y: 0 });
+  assert.ok(nodes.some(node => node.kind === 'noise' && node.buffer.getChannelData(0).some(sample => sample !== 0)));
+  assert.ok(nodes.at(-1).frequency.changes.some(change => change.kind === 'ramp' && change.value < nodes.at(-1).pitch));
+  assert.ok(thrust.every(node => node.stops.length === 0));
+  const count = nodes.length; sound.update(game, controls);
+  assert.equal(nodes.length, count, 'ship thrust voices continue without restarting');
+});

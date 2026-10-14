@@ -141,9 +141,10 @@ function updateHud() {
   text(get('level-theme'), game.level.theme.toUpperCase());
   text(get('fuel-pad'), `REFILL · PAD ${game.level.gasStation}`);
   const intro = document.querySelector<HTMLElement>('#intro-description');
-  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.`);
+  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}`);
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
   text(get('help-gas'), `pad ${game.level.gasStation}`);
+  get('falling-obstacle-help').hidden = game.level.fallingObstacleLimit === 0;
   text(fuelValue, `${Math.floor(game.fuel)}%`); fuelMeter.value = game.fuel;
   fuelValue.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
   text(orderSummary, game.phase === 'ready' ? `${SKILLS[skillSelect.value as Skill].orders} orders this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);
@@ -200,7 +201,7 @@ function frame(now: number) {
   accumulator += frozen ? 0 : elapsed;
   while (accumulator >= fixedStep) { game.step(fixedStep, input); accumulator -= fixedStep; }
   if (frozen) accumulator = 0;
-  for (const event of game.events.splice(0)) { if (event.type !== 'gameover') toast(event.message); renderer.burst(event); sound.play(event); }
+  for (const event of game.events.splice(0)) { if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact') toast(event.message); renderer.burst(event); sound.play(event); }
   sound.update(game, input);
   renderer.draw(game, input, frozen ? 0 : elapsed, visualTime); updateHud();
   requestAnimationFrame(frame);

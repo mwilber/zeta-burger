@@ -122,9 +122,9 @@ export class Sound {
       this.stopGroup('landing'); this.landingCueActive = false;
     }
   }
-  private crash() {
+  private crash(stopShip = true) {
     if (!this.enabled || !this.context) return;
-    this.stopThrust('vertical'); this.stopThrust('side'); this.stopGroup('landing'); this.landingCueActive = false;
+    if (stopShip) { this.stopThrust('vertical'); this.stopThrust('side'); this.stopGroup('landing'); this.landingCueActive = false; }
     const context = this.context, now = context.currentTime;
     // Filtered noise makes the impact burst, with a falling rumble beneath it.
     const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * .8), context.sampleRate);
@@ -142,6 +142,7 @@ export class Sound {
   play(event: GameEvent) {
     if (event.type === 'gameover') { this.endJingle(event.endReason === 'delivered'); return; }
     if (event.type === 'crash') this.crash();
+    if (event.type === 'falling-obstacle-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
     if (event.type === 'arrival') [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));

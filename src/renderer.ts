@@ -32,6 +32,8 @@ export class Renderer {
   private scene = this.group();
   private stationLayer = this.group();
   private particleLayer = this.group();
+  private fallingObstacleLayer = this.group();
+  private fallingObstacleNodes = new Map<number, SVGGElement>();
   private stations: StationArt[] = [];
   private pads?: Pad[];
   private stars: { node: SVGGElement; phase: number }[] = [];
@@ -102,6 +104,7 @@ export class Renderer {
       if (version !== this.loadVersion) return false;
       this.templates = templates;
       this.scene.replaceChildren(); this.stationLayer.replaceChildren(); this.particleLayer.replaceChildren();
+      this.fallingObstacleLayer.replaceChildren(); this.fallingObstacleNodes.clear();
       this.images.clear(); this.overrides.clear(); this.stars = []; this.stations = []; this.pads = undefined; this.particles = [];
       const effects = this.templates.get('effects')!;
       this.scene.append(effects.querySelector('defs')!.cloneNode(true), effects.querySelector('style')!.cloneNode(true));
@@ -133,7 +136,7 @@ export class Renderer {
       this.ship = this.group(); this.gear = this.asset('gear');
       this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
-      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.particleLayer, this.crash);
+      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.particleLayer, this.crash);
       this.buildStations(level.pads);
       this.loaded = true;
       void this.loadOverrides(level, version);
@@ -190,7 +193,7 @@ export class Renderer {
     });
   }
   burst(event: GameEvent) {
-    const crash = event.type === 'crash';
+    const crash = event.type === 'crash' || event.type === 'falling-obstacle-impact';
     if (!crash && event.type !== 'delivery' && event.type !== 'pickup') return;
     const template = this.templates.get('particle');
     const colors = (template?.getAttribute('data-crash-colors') ?? '').split(',');
@@ -219,6 +222,22 @@ export class Renderer {
     setText(text, `${amount < 0 ? '−' : ''}$${Math.abs(amount).toFixed(2)}`);
     text.setAttribute('data-negative', String(amount < 0));
   }
+  private renderFallingObstacles(game: Game) {
+    const living = new Set(game.fallingObstacles.map(obstacle => obstacle.id));
+    for (const [id, node] of this.fallingObstacleNodes) {
+      if (!living.has(id)) { node.remove(); this.fallingObstacleNodes.delete(id); }
+    }
+    for (const obstacle of game.fallingObstacles) {
+      let node = this.fallingObstacleNodes.get(obstacle.id);
+      if (!node) {
+        node = this.asset('falling-obstacle', [-24, -76, 48, 100]);
+        node.setAttribute('data-falling-obstacle', String(obstacle.id));
+        this.fallingObstacleLayer.append(node); this.fallingObstacleNodes.set(obstacle.id, node);
+      }
+      const angle = -Math.atan2(obstacle.vx, obstacle.vy) * 180 / Math.PI;
+      node.setAttribute('transform', `translate(${obstacle.x} ${obstacle.y}) rotate(${angle}) scale(${obstacle.radius / 16})`);
+    }
+  }
   draw(game: Game, controls: Controls, dt: number, time: number) {
     if (this.level !== game.level || !this.loaded) return;
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
@@ -241,6 +260,7 @@ export class Renderer {
       this.tip(this.waiting, game.tipFor(waiting)); setText(find(this.waiting, '[data-count]'), `${game.waitingOrders.length} READY`);
     }
     this.saucer(game, controls, time);
+    this.renderFallingObstacles(game);
     this.update(dt); this.renderParticles(); visible(this.crash, game.phase === 'crashed');
     setText(find(this.crash, '[data-message]'), game.lives > 0 ? 'DISPATCHING A REPLACEMENT…' : 'NO SAUCERS REMAINING');
   }

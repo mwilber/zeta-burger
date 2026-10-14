@@ -45,7 +45,7 @@ Each level begins with a fixed schedule of orders. The first order always arrive
 | Normal | 6 | 8–16 seconds | $0.08/second |
 | Expert | 8 | 5–10 seconds | $0.12/second |
 
-The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. Only **level 1 · Luna** is available for now. Adding levels to the config enables a level selector and a Next Level button after a successful shift.
+The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. **Level 1 · Luna** and **level 2 · Meteor Shower** are available. Choose a level before starting, or continue to the next configured level after a successful shift.
 
 Fuel starts at **100%**. Upward or downward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
 
@@ -68,6 +68,7 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | `public/assets/*.svg` | Default scenery, saucer, buildings, islands, pads, and effect templates |
 | `public/assets/manifest-1.json` | Optional custom image overrides |
 | `tests/engine.test.mjs` | Flight, collision, landing, delivery, scoring, pause, and life-cycle checks |
+| `tests/falling-obstacles.test.mjs` | Falling obstacle spawning, caps, continuous collisions, explosions, and lifecycle checks |
 | `tests/routes.test.mjs` | Actual control-driven flights from the top center to every destination and back, without teleporting |
 | `scripts/dev.mjs` | Development server and TypeScript watch process using Node built-ins |
 
@@ -84,6 +85,7 @@ The default artwork lives in editable SVG files in `public/assets/`. The playfie
 | `restaurant-1.svg`, `gas-1.svg`, `mushroom-1.svg`, `observatory-1.svg`, `motel-1.svg`, `crystal-1.svg`, `outpost-1.svg` | Buildings, in local coordinates matching their rectangles in `src/level-config.ts` |
 | `island-0-1.svg` through `island-6-1.svg` | Island art, relative to each island's upper-left vertex |
 | `pad-N-1.svg`, `pad-N-active-1.svg` | Idle and highlighted pads, relative to each pad's upper-left corner |
+| `falling-obstacle-2.svg` | Meteor Shower’s falling obstacle body and trail; optional per level |
 | `effects-1.svg` | Star, gear, thrust, package, service, particle, and crash-message templates |
 
 [View the original Canvas and new SVG artwork side by side](docs/screenshots/svg-art-comparison.png).
@@ -118,7 +120,7 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and Next Level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. Rearrange the entries to change progression in later versions. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
-Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
+Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, a numeric `fallingObstacleLimit`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
 A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
 
@@ -135,3 +137,11 @@ A pad's `x` and `y` locate the upper-left corner of its landing surface in the *
 Every gameplay graphic appends `-<level number>` to its original name, before the extension. For level 2, supply `background-2.svg`, `saucer-2.svg`, `effects-2.svg`, each configured building such as `restaurant-2.svg`, and `island-<pad ID>-2.svg`, `pad-<pad ID>-2.svg`, `pad-<pad ID>-active-2.svg` for each pad. The loader derives required assets from that level's pad list; no renderer edits are needed for more pads, different IDs, or new building kinds. `icon.svg` stays shared for the page's branding. Optional image overrides use `manifest-<level number>.json` with the same format shown above; paths in the manifest are used exactly as written.
 
 To add a level, append its configuration and add its graphics. The level selector appears when multiple levels exist, and completing all deliveries offers the next configured level. Each level starts a fresh shift with the selected skill setting. Replay remains available on wins and losses. All scenery, ships, stations, and effects reload when switching levels; failed required art prevents starting that shift. Reload the browser after config or asset edits when using the dev server, or rebuild before deploying. Skill settings live in `SKILLS` and fuel tuning in `FUEL`.
+
+### Falling obstacles
+
+Meteor Shower uses Luna's seven-pad layout with cool grey artwork and introduces falling obstacles, currently skinned as meteors. Set `fallingObstacleLimit` on any level: **0 disables them**, and a positive integer is the maximum active count. Meteor Shower starts at **4**. Obstacles enter from the top on fixed straight paths, with random downward angles (up to 35 degrees either side of vertical), speeds, sizes, and staggered arrivals. They keep falling during replacement delays and freeze during countdown, pause, the final ship explosion, and game over. Restarting or changing levels clears them.
+
+An obstacle explodes at its first contact with a pad, island, building, world side or floor, another falling obstacle, or the player's hull/extended gear. Two colliding obstacles both explode; a ship collision explodes both ship and obstacle and costs one life. Docked ships remain vulnerable. Static scenery is never damaged, moved, or removed. Impacts reuse the ship's particle explosion and sound, without displaying the ship-loss message or interrupting thrust on terrain-only impacts. Continuous collision checks prevent fast obstacles or ships from passing through each other or thin pads between updates.
+
+For every enabled level, supply `public/assets/falling-obstacle-<number>.svg`. Its artboard is mapped to `-24 -76 48 100`, with a solid octagonal body of radius **16** centered at `(0, 0)`; the upper portion is a decorative trail. The renderer scales the body to each obstacle's collision radius and aligns the trail to its flight direction. Edit this SVG to reskin falling obstacles in another theme. Spawning and flight tuning live in `FALLING_OBSTACLES` in `src/engine.ts`.

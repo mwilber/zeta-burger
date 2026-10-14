@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact } from './world.js';
 import type { Point, Pad } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
@@ -7,12 +7,17 @@ export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRa
 export const CRASH_DURATION = 1.5;
 export const START_DELAY = 3;
 export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
+export const FALLING_OBSTACLES = { spawnDelay: 1, intervalMin: .8, intervalMax: 1.6, speedMin: 140, speedMax: 220, angleMax: 35 * Math.PI / 180, radiusMin: 10, radiusMax: 18 };
+export interface FallingObstacle { id: number; x: number; y: number; vx: number; vy: number; radius: number }
+export function fallingObstacleBody(obstacle: FallingObstacle): Point[] {
+  return Array.from({ length: 8 }, (_, i) => ({ x: obstacle.x + Math.cos(i * Math.PI / 4) * obstacle.radius, y: obstacle.y + Math.sin(i * Math.PI / 4) * obstacle.radius }));
+}
 export interface Controls { left: boolean; right: boolean; up: boolean; down: boolean }
 export function verticalThrustDirection(controls: Controls): number { return (controls.up ? 1 : 0) - (controls.down ? 1 : 0); }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'falling-obstacle-impact' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -35,6 +40,9 @@ export class Game {
   landingBounceTime = 0;
   lowFuelWarned = false;
   events: GameEvent[] = [];
+  fallingObstacles: FallingObstacle[] = [];
+  private fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay;
+  private nextFallingObstacleId = 0;
   dwell = 0;
   crashTime = 0;
   countdownTime = 0;
@@ -54,6 +62,7 @@ export class Game {
     this.skill = skill; this.level = level;
     this.ship = this.spawn(); this.lives = 3; this.bank = 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
+    this.fallingObstacles = []; this.fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay; this.nextFallingObstacleId = 0;
     this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;
     const setting = SKILLS[skill];
     // The first order always arrives five seconds into the shift.
@@ -113,6 +122,71 @@ export class Game {
     if (Math.abs(target - this.tilt) < .001) this.tilt = target;
   }
   step(dt: number, controls: Controls) {
+    const previousPhase = this.phase, previousShip = { ...this.ship };
+    this.stepShip(dt, controls);
+    // Flight hazards share gameplay pause/countdown/end rules. During replacement
+    // delay they keep falling, but cannot hit the absent ship or its new spawn.
+    if ((previousPhase === 'playing' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
+      this.stepFallingObstacles(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+    }
+  }
+  private stepFallingObstacles(dt: number, previousShip: Ship, canHitShip: boolean) {
+    if (this.level.fallingObstacleLimit === 0) return;
+    this.fallingObstacleSpawnTime -= dt;
+    if (this.fallingObstacleSpawnTime <= 0) {
+      if (this.fallingObstacles.length < this.level.fallingObstacleLimit) {
+        const radius = FALLING_OBSTACLES.radiusMin + this.random() * (FALLING_OBSTACLES.radiusMax - FALLING_OBSTACLES.radiusMin);
+        const angle = (this.random() * 2 - 1) * FALLING_OBSTACLES.angleMax;
+        const speed = FALLING_OBSTACLES.speedMin + this.random() * (FALLING_OBSTACLES.speedMax - FALLING_OBSTACLES.speedMin);
+        this.fallingObstacles.push({ id: this.nextFallingObstacleId++, x: radius + this.random() * (WORLD_WIDTH - radius * 2), y: -radius, vx: Math.sin(angle) * speed, vy: Math.cos(angle) * speed, radius });
+      }
+      this.fallingObstacleSpawnTime = FALLING_OBSTACLES.intervalMin + this.random() * (FALLING_OBSTACLES.intervalMax - FALLING_OBSTACLES.intervalMin);
+    }
+    const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
+    const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
+    type Contact = { obstacle: FallingObstacle; time: number; other?: FallingObstacle; ship?: boolean };
+    const contacts: Contact[] = [];
+    const bodies = this.fallingObstacles.map(fallingObstacleBody);
+    const deltas = this.fallingObstacles.map(obstacle => ({ x: obstacle.vx * dt, y: obstacle.vy * dt }));
+    this.fallingObstacles.forEach((obstacle, i) => {
+      const delta = deltas[i], body = bodies[i];
+      for (const solid of this.level.solids) {
+        const time = sweepContact(body, solid.points, delta);
+        if (time !== null) contacts.push({ obstacle, time });
+      }
+      if (canHitShip) for (const shape of shipShapes) {
+        const time = sweepContact(body, shape, delta, shipDelta);
+        if (time !== null) contacts.push({ obstacle, time, ship: true });
+      }
+      // The top is an entry point; sides and the world floor are impact surfaces.
+      const edges = [
+        delta.x < 0 && obstacle.x + delta.x <= obstacle.radius ? (obstacle.radius - obstacle.x) / delta.x : null,
+        delta.x > 0 && obstacle.x + delta.x >= WORLD_WIDTH - obstacle.radius ? (WORLD_WIDTH - obstacle.radius - obstacle.x) / delta.x : null,
+        obstacle.y + delta.y >= WORLD_HEIGHT - 12 - obstacle.radius ? (WORLD_HEIGHT - 12 - obstacle.radius - obstacle.y) / delta.y : null
+      ];
+      for (const time of edges) if (time !== null) contacts.push({ obstacle, time: Math.max(0, time) });
+      for (let j = i + 1; j < this.fallingObstacles.length; j++) {
+        const time = sweepContact(body, bodies[j], delta, deltas[j]);
+        if (time !== null) contacts.push({ obstacle, time, other: this.fallingObstacles[j] });
+      }
+    });
+    const destroyed = new Set<FallingObstacle>();
+    const explode = (obstacle: FallingObstacle, time: number) => {
+      destroyed.add(obstacle);
+      this.events.push({ type: 'falling-obstacle-impact', message: '', x: obstacle.x + obstacle.vx * dt * time, y: obstacle.y + obstacle.vy * dt * time });
+    };
+    // Resolve the first surface reached, so a rock cannot hit a ship through terrain.
+    contacts.sort((a, b) => a.time - b.time);
+    for (const contact of contacts) {
+      if (destroyed.has(contact.obstacle) || (contact.other && destroyed.has(contact.other)) || (contact.ship && this.phase !== 'playing')) continue;
+      explode(contact.obstacle, contact.time);
+      if (contact.other) explode(contact.other, contact.time);
+      if (contact.ship) this.crash('Falling obstacle impact. Watch the sky!');
+    }
+    this.fallingObstacles = this.fallingObstacles.filter(obstacle => !destroyed.has(obstacle));
+    for (const obstacle of this.fallingObstacles) { obstacle.x += obstacle.vx * dt; obstacle.y += obstacle.vy * dt; }
+  }
+  private stepShip(dt: number, controls: Controls) {
     if (this.phase === 'ready' || this.phase === 'paused' || this.phase === 'gameover') return;
     if (this.phase === 'countdown') {
       this.countdownTime = Math.max(0, this.countdownTime - dt);
