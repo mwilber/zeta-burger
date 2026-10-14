@@ -58,9 +58,9 @@ export class Game {
     const station = this.level.pads.find(p => p.id === this.level.gasStation)!;
     return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: station.id };
   }
-  start(skill: Skill = this.skill, level: Level = this.level) {
+  start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean } = {}) {
     this.skill = skill; this.level = level;
-    this.ship = this.spawn(); this.lives = 3; this.bank = 0; this.delivered = 0;
+    this.ship = this.spawn(); this.lives = 3; this.bank = options.carryBank ? this.bank : 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
     this.fallingObstacles = []; this.fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay; this.nextFallingObstacleId = 0;
     this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;

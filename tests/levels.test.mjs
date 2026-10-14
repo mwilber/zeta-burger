@@ -102,3 +102,25 @@ test('starting another level replaces spawn, pad roles, destination schedule, an
   assert.equal(game.order.target, 6);
   assert.equal(game.spawnAtStation().landed, 0);
 });
+
+test('continuing levels carries the signed bank balance and adds new tips; fresh starts reset it', () => {
+  const game = new Game(() => .5);
+  const deliver = (elapsed = 0) => {
+    game.step(START_DELAY, { up: false, down: false, left: false, right: false });
+    const order = game.orders[0]; order.status = 'onboard'; order.elapsed = elapsed;
+    const pad = game.destination;
+    game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: pad.id };
+    game.dwell = PHYSICS.dwell; game.service();
+    assert.equal(game.endReason, 'delivered');
+  };
+  game.start('tester', LEVELS[0]); deliver();
+  assert.equal(game.bank, 7.5);
+  game.start('tester', LEVELS[1], { carryBank: true });
+  assert.equal(game.bank, 7.5); assert.equal(game.delivered, 0);
+  deliver(250); // The second delivery's tip is -$12.50.
+  assert.equal(game.bank, -5);
+  game.start('tester', LEVELS[0], { carryBank: true });
+  assert.equal(game.bank, -5, 'negative balances also carry forward');
+  game.start('tester', LEVELS[0]);
+  assert.equal(game.bank, 0, 'a replay starts a new bank');
+});

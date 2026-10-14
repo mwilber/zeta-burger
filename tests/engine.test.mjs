@@ -305,7 +305,7 @@ test('skill fixes the total and random arrivals stay within each interval range'
       assert.equal(order.elapsed, 0); assert.equal(order.status, 'scheduled');
       intervals.push(gap); previous = order.availableAt;
     }
-    assert.ok(new Set(intervals).size > 1);
+    if (intervals.length > 1) assert.ok(new Set(intervals).size > 1);
     game.ship = game.spawnAtStation(); fly(game, 250);
     assert.equal(game.orders.length, setting.orders, 'the shift never creates additional orders');
   }

@@ -19,6 +19,7 @@ const levelSelect = get<HTMLSelectElement>('level');
 for (const level of LEVELS) levelSelect.add(new Option(`${level.number} · ${level.name}`, level.id));
 get('level-picker').hidden = LEVELS.length === 1;
 let starting = false;
+let advanceFailed = false;
 levelSelect.addEventListener('change', () => {
   if (game.phase !== 'ready' || starting) return;
   game.level = LEVELS.find(level => level.id === levelSelect.value)!;
@@ -47,16 +48,21 @@ function controls(): Controls {
   const held = new Set(pointers.values());
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up'), down: keys.has('ArrowDown') || keys.has('KeyS') || held.has('down') };
 }
-async function start() {
+async function start(continuing = false) {
   if (starting) return;
   const level = LEVELS.find(level => level.id === levelSelect.value)!;
+  const skill = continuing ? game.skill : skillSelect.value as Skill;
+  advanceFailed = false;
   starting = true; updateHud();
   const loaded = await renderer.setLevel(level);
   starting = false;
-  if (!loaded) { toast(`Could not load ${level.name} artwork. Refresh to try again.`); updateHud(); return; }
-  game.start(skillSelect.value as Skill, level); resetInputs(); overlay.hidden = true;
+  if (!loaded) { advanceFailed = true; toast(`Could not load ${level.name} artwork. Retry to continue.`); updateHud(); return; }
+  game.start(skill, level, { carryBank: continuing }); resetInputs(); overlay.hidden = true;
   accumulator = 0; last = performance.now(); renderer.particles = [];
-  toast('Your shift is about to begin…'); playStartJingle();
+  toast(continuing ? `${level.name} is about to begin…` : 'Your shift is about to begin…');
+  if (continuing && (document.hidden || dialog.open)) {
+    game.pause(); sound.stopAll(); helpPaused = dialog.open;
+  } else playStartJingle();
   stage.focus({ preventScroll: true }); updateHud();
 }
 function playStartJingle() {
@@ -92,20 +98,14 @@ get('touch-gear').addEventListener('click', toggleGear);
 hud.pause.addEventListener('click', pause);
 overlay.addEventListener('click', event => {
   const button = (event.target as HTMLElement).closest('button');
-  if (button?.id === 'start' || button?.dataset.action === 'restart') void start();
-  else if (button?.dataset.action === 'next') {
-    const next = nextLevel(game.level);
-    if (!next) return;
-    levelSelect.value = next.id;
-    void start();
-  }
+  if (button?.id === 'start' || button?.dataset.action === 'restart') void start(advanceFailed);
   else if (button?.dataset.action === 'resume') pause();
 });
 const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
 window.addEventListener('keydown', event => {
   if (dialog.open || event.target instanceof HTMLSelectElement || !handled.has(event.code)) return;
   if (event.code === 'Enter') {
-    if (game.phase === 'ready' || game.phase === 'gameover') { event.preventDefault(); void start(); }
+    if (game.phase === 'ready' || game.phase === 'gameover') { event.preventDefault(); void start(advanceFailed); }
     return;
   }
   event.preventDefault();
@@ -134,7 +134,8 @@ function updateHud() {
   skillSelect.disabled = starting || (game.phase !== 'ready' && game.phase !== 'gameover');
   levelSelect.disabled = skillSelect.disabled;
   overlay.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = starting; });
-  text(get('order-total'), String(game.phase === 'ready' ? SKILLS[skillSelect.value as Skill].orders : game.totalOrders));
+  const orderCount = game.phase === 'ready' ? SKILLS[skillSelect.value as Skill].orders : game.totalOrders;
+  text(get('order-total'), String(orderCount));
   text(get('level-name'), `LEVEL ${game.level.number} · ${game.level.name.toUpperCase()}`);
   text(get('world-name'), game.level.name.toUpperCase());
   text(get('shift-world'), game.level.name.toUpperCase());
@@ -147,7 +148,7 @@ function updateHud() {
   get('falling-obstacle-help').hidden = game.level.fallingObstacleLimit === 0;
   text(fuelValue, `${Math.floor(game.fuel)}%`); fuelMeter.value = game.fuel;
   fuelValue.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
-  text(orderSummary, game.phase === 'ready' ? `${SKILLS[skillSelect.value as Skill].orders} orders this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);
+  text(orderSummary, game.phase === 'ready' ? `${orderCount} ${orderCount === 1 ? 'order' : 'orders'} this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);
   const activeOrders = game.orders.filter(order => order.status === 'waiting' || order.status === 'onboard');
   const queueMarkup = activeOrders.map(order => {
     const tip = game.tipFor(order);
@@ -175,19 +176,26 @@ function updateHud() {
   hud.pause.setAttribute('aria-label', game.phase === 'paused' ? 'Resume game' : 'Pause game');
   text(hud.pause, game.phase === 'paused' ? '▷' : 'Ⅱ');
   if (game.phase !== previousPhase) {
+    const next = game.phase === 'gameover' && game.endReason === 'delivered' ? nextLevel(game.level) : undefined;
+    if (next && !advanceFailed) {
+      // Keep the completed field visible while its successor loads, with no result dialog.
+      overlay.hidden = true;
+      if (!starting) { levelSelect.value = next.id; void start(true); }
+      return;
+    }
     if (game.phase === 'playing' && previousPhase === 'countdown') {
       sound.stopJingle();
-      toast(`${game.totalOrders} orders this shift. The first arrives at pad ${game.level.restaurant} in 5 seconds.`);
+      toast(`${game.totalOrders} ${game.totalOrders === 1 ? 'order' : 'orders'} this shift. The first arrives at pad ${game.level.restaurant} in 5 seconds.`);
     }
     previousPhase = game.phase;
     overlay.hidden = game.phase !== 'ready' && game.phase !== 'paused' && game.phase !== 'gameover';
     if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';
     if (game.phase === 'gameover') {
       resetInputs();
-      const reason = game.endReason === 'delivered' ? 'Every order delivered.' : game.endReason === 'tips' ? 'Every remaining tip fell below zero.' : 'Your last saucer was lost.';
-      const next = nextLevel(game.level);
-      const nextButton = game.endReason === 'delivered' && next ? `<button class="primary-button" data-action="next">NEXT LEVEL · ${next.name.toUpperCase()} <span>→</span></button>` : '';
-      overlay.innerHTML = `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'LEVEL COMPLETE' : 'SHIFT ENDED'}</div><h2>That’s a wrap, pilot.</h2><p>Level ${game.level.number} · ${game.level.name}<br>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p>${nextButton}<button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your level and skill above for the next shift.</small></div>`;
+      const reason = game.endReason === 'delivered' ? 'Every order delivered. Final level complete!' : game.endReason === 'tips' ? 'Every remaining tip fell below zero.' : 'Your last saucer was lost.';
+      overlay.innerHTML = next && advanceFailed
+        ? `<div class="overlay-card"><div class="card-tag">LEVEL COULD NOT LOAD</div><h2>${next.name} is waiting.</h2><p>Its artwork could not load. Retry to continue your game.</p><button class="primary-button" data-action="restart">RETRY NEXT LEVEL <span>→</span></button></div>`
+        : `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'GAME COMPLETE' : 'SHIFT ENDED'}</div><h2>That’s a wrap, pilot.</h2><p>Level ${game.level.number} · ${game.level.name}<br>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p><button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your level and skill above for the next shift.</small></div>`;
     }
   }
 }
@@ -201,7 +209,11 @@ function frame(now: number) {
   accumulator += frozen ? 0 : elapsed;
   while (accumulator >= fixedStep) { game.step(fixedStep, input); accumulator -= fixedStep; }
   if (frozen) accumulator = 0;
-  for (const event of game.events.splice(0)) { if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact') toast(event.message); renderer.burst(event); sound.play(event); }
+  for (const event of game.events.splice(0)) {
+    if (event.type === 'gameover' && event.endReason === 'delivered' && nextLevel(game.level)) continue;
+    if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact') toast(event.message);
+    renderer.burst(event); sound.play(event);
+  }
   sound.update(game, input);
   renderer.draw(game, input, frozen ? 0 : elapsed, visualTime); updateHud();
   requestAnimationFrame(frame);
