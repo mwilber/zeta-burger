@@ -7,6 +7,7 @@ import { LEVEL_CONFIG } from '../dist/src/level-config.js';
 import { WORLD_WIDTH, WORLD_HEIGHT } from '../dist/src/world.js';
 
 const obsession = LEVELS.find(level => level.id === 'obsession');
+const trickOrTreat = LEVELS.find(level => level.id === 'trick-or-treat');
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 const dt = 1 / 120;
@@ -24,8 +25,16 @@ function fly(game, seconds, holdShip = false) {
   }
 }
 
-test('Obsession starts the LIFO stack, progresses to Meteor Shower, and has every required asset', () => {
-  assert.equal(LEVELS[0], obsession);
+test('Trick Or Treat reskins Obsession, leads the LIFO stack, and every level has its required assets', () => {
+  assert.equal(LEVELS[0], trickOrTreat);
+  assert.equal(trickOrTreat.number, 4); assert.equal(trickOrTreat.name, 'Trick Or Treat');
+  assert.equal(nextLevel(trickOrTreat), obsession);
+  assert.deepEqual(trickOrTreat.solids, obsession.solids);
+  assert.deepEqual(trickOrTreat.start, obsession.start);
+  assert.deepEqual(trickOrTreat.destinations, obsession.destinations);
+  for (const setting of ['restaurant', 'gasStation', 'seekerCount', 'fallingObstacleLimit']) {
+    assert.equal(trickOrTreat[setting], obsession[setting]);
+  }
   assert.equal(obsession.number, 3); assert.equal(obsession.seekerCount, 4);
   assert.equal(obsession.fallingObstacleLimit, 0);
   assert.equal(nextLevel(obsession).id, 'meteor-shower');

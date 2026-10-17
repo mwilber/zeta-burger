@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 43 83" overflow="visible">
+<path d="M13 28 H31 Q34 28 34 31 V80 Q34 83 31 83 H13 Q10 83 10 80 V31 Q10 28 13 28 Z" fill="#9ddf49"/>
+<path d="M16 37 H28 Q30 37 30 39 V47 Q30 49 28 49 H16 Q14 49 14 47 V39 Q14 37 16 37 Z" fill="#fac294"/>
+<path d="M18 55 H28 Q28 55 28 55 V83 Q28 83 28 83 H18 Q18 83 18 83 V55 Q18 55 18 55 Z" fill="#36204d"/>
+<path d="M8 9 H35 Q43 9 43 17 V28 Q43 36 35 36 H8 Q0 36 0 28 V17 Q0 9 8 9 Z" fill="#a6e259"/>
+<path d="M12.5 4 H30.5 Q39 4 39 12.5 V12.5 Q39 21 30.5 21 H12.5 Q4 21 4 12.5 V12.5 Q4 4 12.5 4 Z" fill="#b6e777"/>
+<path d="M14 20 A4 3 0 0 1 6 20 A4 3 0 0 1 14 20" fill="#fac294"/>
+<path d="M31 12 A4 2 0 0 1 23 12 A4 2 0 0 1 31 12" fill="#fac294"/>
+<path d="M37 25 A3 2 0 0 1 31 25 A3 2 0 0 1 37 25" fill="#fac294"/>
+<path d="M5 32 L38 32" fill="none" stroke="#d0f0a7" stroke-width="2"/>
+<!-- Halloween decorations stay inside the existing building collision box. -->
+<g data-halloween="pumpkin-face" fill="#36243d"><path d="M7 22L14 14L18 24Z M35 22L29 14L25 24Z M14 28L19 30L23 27L26 30L31 27L28 33H17Z"/></g><g data-halloween="jack-o-lantern" transform="translate(11 76) scale(0.6)">
+      <path d="M-1-7Q-3-12 1-13L3-12L1-7" fill="#a4cc65"/>
+      <path d="M0-8C-12-12-14 7-6 9Q0 12 6 9C14 7 12-12 0-8Z" fill="#ff922e" stroke="#be5a29" stroke-width=".7"/>
+      <path d="M-3-7Q-8 0-3 9M3-7Q8 0 3 9" fill="none" stroke="#e87526" stroke-width=".7"/>
+      <path d="M-8-1L-3-5L-2 0Z M8-1L3-5L2 0Z M-7 3L-3 5L-1 3L1 5L4 3L7 2L4 7H-4Z" fill="#392039"/>
+      <path d="M-6-1L-3-3L-3-1M6-1L3-3L3-1" fill="none" stroke="#ffe6a2" stroke-width=".7"/>
+    </g><g data-halloween="cobweb" transform="translate(32 36) scale(-0.5416666666666666 0.5416666666666666)" fill="none" stroke="#ece4f6" stroke-opacity=".7" stroke-width=".7">
+      <path d="M0 0H24M0 0V24M0 0L18 18M0 0L23 9M0 0L9 23 M0 8Q4 6 6 6Q7 3 8 0 M0 16Q4 13 11 11Q13 6 16 0 M0 24Q8 19 17 17Q19 8 24 0"/>
+    </g>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 74" overflow="visible">
+<path d="M5 46 H21 Q23 46 23 48 V72 Q23 74 21 74 H5 Q3 74 3 72 V48 Q3 46 5 46 Z" fill="#452862"/>
+<path d="M0 22 L10 2 L16 23 L10 51 Z" fill="#c8ed98"/>
+<path d="M0 22 L10 2 L16 23 L10 51 Z" fill="none" stroke="#dcf4be" stroke-width="1"/>
+<path d="M13 26 L24 11 L26 36 L17 52 Z" fill="#b5e775"/>
+<path d="M13 26 L24 11 L26 36 L17 52 Z" fill="none" stroke="#d3f0ad" stroke-width="1"/>
+<path d="M10 3 L10 48" fill="none" stroke="#fac294" stroke-width="1"/>
+<path d="M17 57 A5 2 0 0 1 7 57 A5 2 0 0 1 17 57" fill="#f9b47b"/>
+<!-- Halloween decorations stay inside the existing building collision box. -->
+<g data-halloween="jack-o-lantern" transform="translate(12 61) scale(1.0)">
+      <path d="M-1-7Q-3-12 1-13L3-12L1-7" fill="#a4cc65"/>
+      <path d="M0-8C-12-12-14 7-6 9Q0 12 6 9C14 7 12-12 0-8Z" fill="#ff922e" stroke="#be5a29" stroke-width=".7"/>
+      <path d="M-3-7Q-8 0-3 9M3-7Q8 0 3 9" fill="none" stroke="#e87526" stroke-width=".7"/>
+      <path d="M-8-1L-3-5L-2 0Z M8-1L3-5L2 0Z M-7 3L-3 5L-1 3L1 5L4 3L7 2L4 7H-4Z" fill="#392039"/>
+      <path d="M-6-1L-3-3L-3-1M6-1L3-3L3-1" fill="none" stroke="#ffe6a2" stroke-width=".7"/>
+    </g><g data-halloween="witch-hat"><path d="M1 18L11 0L17 19Z" fill="#291d38" stroke="#ad8bc7" stroke-width=".6"/><path d="M4 12L15 12L17 17H1Z" fill="#ff9b47"/><ellipse cx="9" cy="19" rx="12" ry="3" fill="#291d38"/><path d="M8 13H12V17H8Z" fill="none" stroke="#ffe2a0" stroke-width=".8"/></g>
+</svg>

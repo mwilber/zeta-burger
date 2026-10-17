@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" overflow="visible">
+  <defs>
+    <linearGradient id="halloween-night" x2="0" y2="1">
+      <stop stop-color="#090d20"/><stop offset=".6" stop-color="#29213d"/><stop offset="1" stop-color="#5e353f"/>
+    </linearGradient>
+    <radialGradient id="moon-glow">
+      <stop stop-color="#ffe5a0" stop-opacity=".18"/><stop offset="1" stop-color="#ffe5a0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moon">
+      <stop stop-color="#fff5cd"/><stop offset=".75" stop-color="#efdab0"/><stop offset="1" stop-color="#d2b589"/>
+    </radialGradient>
+    <linearGradient id="fog" x2="0" y2="1">
+      <stop stop-color="#adbc9e" stop-opacity="0"/><stop offset=".6" stop-color="#adbc9e" stop-opacity=".09"/><stop offset="1" stop-color="#adbc9e" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g data-sky="">
+    <path d="M0 0H1280V760H0Z" fill="url(#halloween-night)"/>
+    <circle cx="1025" cy="154" r="265" fill="url(#moon-glow)"/>
+  </g>
+  <circle cx="1025" cy="154" r="88" fill="url(#moon)"/>
+  <g fill="#9e7f64" opacity=".16">
+    <ellipse cx="997" cy="119" rx="22" ry="17"/><ellipse cx="1063" cy="169" rx="27" ry="31"/>
+    <ellipse cx="1006" cy="197" rx="18" ry="12"/><circle cx="1068" cy="109" r="11"/>
+  </g>
+  <g fill="#171626">
+    <path d="M948 162Q923 138 909 151Q924 152 925 164Q934 159 940 172L948 167L955 172Q964 159 972 164Q974 152 987 151Q973 138 948 162Z"/>
+    <path d="M1085 224Q1069 208 1060 217Q1070 217 1071 225Q1077 222 1080 230L1085 227L1090 230Q1095 222 1100 225Q1101 217 1111 217Q1102 208 1085 224Z"/>
+    <path d="M849 124Q834 110 827 118Q835 118 836 125L843 126L849 129L855 126L862 125Q863 118 871 118Q864 110 849 124Z"/>
+  </g>
+  <path d="M0 606Q140 489 284 586Q420 476 583 579Q771 468 902 568Q1090 486 1280 576V760H0Z" fill="#211e31"/>
+  <!-- Distant haunted houses and bare trees are background scenery. -->
+  <g fill="#191928" stroke="#191928" stroke-linejoin="round">
+    <path d="M479 611V537L514 507L550 537V611 M490 539V506L501 479L512 506V539 M532 539V496L542 471L553 496V539 M479 553H550 M471 537H558" stroke-width="4"/>
+    <path d="M713 628V571L742 543L772 571V628 M763 584V541L773 515L783 541V628" stroke-width="4"/>
+    <path d="M35 698L44 543L34 512 M43 574L16 546L7 519 M43 581L70 548L75 519 M44 551L62 531L58 508 M1230 692L1220 502L1204 474 M1221 536L1245 504L1250 476 M1222 574L1192 541L1185 510 M1218 529L1213 507L1223 483" fill="none" stroke-width="6"/>
+  </g>
+  <g fill="#d99b52" opacity=".6">
+    <path d="M495 558H503V570H495Z M519 558H527V570H519Z M507 586H518V611H507Z M736 579H744V590H736Z M768 550H775V562H768Z"/>
+  </g>
+  <path d="M0 669Q130 597 284 672Q428 607 580 670Q792 593 961 671Q1110 610 1280 653V760H0Z" fill="#151925"/>
+  <path d="M0 622Q240 591 504 638T1280 627V738H0Z" fill="url(#fog)"/>
+  <path d="M0 697Q330 668 660 699T1280 686V748H0Z" fill="url(#fog)"/>
+  <g fill="#272839" stroke="#677063" stroke-opacity=".35" stroke-width="1">
+    <path d="M313 733V710Q324 692 335 710V733Z M357 739L354 717Q364 701 376 715L379 737Z M922 736V712Q935 696 948 712V736Z"/>
+    <path d="M324 709V724M319 714H329M935 710V726M930 715H940" fill="none"/>
+  </g>
+  <path d="M0 748H1280V760H0Z" fill="#11151c"/>
+  <path d="M0 748H1280" stroke="#bc9362" stroke-opacity=".45"/>
+  <path d="M17 54V734 M1263 54V734" stroke="#d7c8aa" stroke-opacity=".1" stroke-dasharray="2 8"/>
+</svg>

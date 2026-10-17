@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 53 77" overflow="visible">
+<path d="M7 12 H46 Q50 12 50 16 V73 Q50 77 46 77 H7 Q3 77 3 73 V16 Q3 12 7 12 Z" fill="#4a2b69"/>
+<path d="M5 7 H48 Q53 7 53 12 V15 Q53 20 48 20 H5 Q0 20 0 15 V12 Q0 7 5 7 Z" fill="#b0e56d"/>
+<path d="M11 28 H42 Q45 28 45 31 V38 Q45 41 42 41 H11 Q8 41 8 38 V31 Q8 28 11 28 Z" fill="#c9ed9b"/>
+<path d="M25 29 L25 40" fill="none" stroke="#472965" stroke-width="2"/>
+<path d="M18 48 H35 Q35 48 35 48 V77 Q35 77 35 77 H18 Q18 77 18 77 V48 Q18 48 18 48 Z" fill="#291b3a"/>
+<path d="M22 52 H31 Q31 52 31 52 V58 Q31 58 31 58 H22 Q22 58 22 58 V52 Q22 52 22 52 Z" fill="#f8b075"/>
+<path d="M36 9 L36 0" fill="none" stroke="#cbee9f" stroke-width="2"/>
+<path d="M39 2 A3 2 0 0 1 33 2 A3 2 0 0 1 39 2" fill="#f9b47b"/>
+<!-- Halloween decorations stay inside the existing building collision box. -->
+<g data-halloween="bunting" transform="translate(2 16) scale(0.8)">
+      <path d="M0 0Q30 12 60 0" fill="none" stroke="#e8d8aa" stroke-width=".7"/>
+      <path d="M2 1L7 13L12 4M25 6L30 18L35 6M48 4L53 13L58 1" fill="#ff9b47"/>
+      <path d="M14 4L19 16L24 6M36 6L41 16L46 4" fill="#b08cde"/>
+    </g><g data-halloween="cobweb" transform="translate(44 29) scale(-0.75 0.75)" fill="none" stroke="#ece4f6" stroke-opacity=".7" stroke-width=".7">
+      <path d="M0 0H24M0 0V24M0 0L18 18M0 0L23 9M0 0L9 23 M0 8Q4 6 6 6Q7 3 8 0 M0 16Q4 13 11 11Q13 6 16 0 M0 24Q8 19 17 17Q19 8 24 0"/>
+    </g><g data-halloween="jack-o-lantern" transform="translate(11 68) scale(0.8)">
+      <path d="M-1-7Q-3-12 1-13L3-12L1-7" fill="#a4cc65"/>
+      <path d="M0-8C-12-12-14 7-6 9Q0 12 6 9C14 7 12-12 0-8Z" fill="#ff922e" stroke="#be5a29" stroke-width=".7"/>
+      <path d="M-3-7Q-8 0-3 9M3-7Q8 0 3 9" fill="none" stroke="#e87526" stroke-width=".7"/>
+      <path d="M-8-1L-3-5L-2 0Z M8-1L3-5L2 0Z M-7 3L-3 5L-1 3L1 5L4 3L7 2L4 7H-4Z" fill="#392039"/>
+      <path d="M-6-1L-3-3L-3-1M6-1L3-3L3-1" fill="none" stroke="#ffe6a2" stroke-width=".7"/>
+    </g><g data-halloween="jack-o-lantern" transform="translate(43 70) scale(0.5)">
+      <path d="M-1-7Q-3-12 1-13L3-12L1-7" fill="#a4cc65"/>
+      <path d="M0-8C-12-12-14 7-6 9Q0 12 6 9C14 7 12-12 0-8Z" fill="#ff922e" stroke="#be5a29" stroke-width=".7"/>
+      <path d="M-3-7Q-8 0-3 9M3-7Q8 0 3 9" fill="none" stroke="#e87526" stroke-width=".7"/>
+      <path d="M-8-1L-3-5L-2 0Z M8-1L3-5L2 0Z M-7 3L-3 5L-1 3L1 5L4 3L7 2L4 7H-4Z" fill="#392039"/>
+      <path d="M-6-1L-3-3L-3-1M6-1L3-3L3-1" fill="none" stroke="#ffe6a2" stroke-width=".7"/>
+    </g>
+</svg>
