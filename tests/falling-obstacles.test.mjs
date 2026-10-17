@@ -22,8 +22,7 @@ function fly(game, seconds) { for (let i = 0; i < Math.round(seconds / dt); i++)
 const impacts = game => game.events.filter(event => event.type === 'falling-obstacle-impact');
 
 test('Meteor Shower precedes Luna during development with matching geometry, cool grey assets, and four falling obstacles', () => {
-  assert.equal(LEVELS[0], shower);
-  assert.equal(LEVELS[1], luna);
+  assert.ok(LEVELS.indexOf(shower) < LEVELS.indexOf(luna));
   assert.equal(shower.number, 2); assert.equal(shower.name, 'Meteor Shower');
   assert.equal(shower.fallingObstacleLimit, 4);
   assert.equal(luna.fallingObstacleLimit, 0);
@@ -32,7 +31,7 @@ test('Meteor Shower precedes Luna during development with matching geometry, coo
   assert.ok(!levelAssetNames(luna).includes('falling-obstacle'));
   for (const name of levelAssetNames(shower)) accessSync(new URL('../public/' + levelAssetPath(name, shower), import.meta.url));
   for (const value of [-1, .5, NaN, Infinity]) {
-    assert.throws(() => createLevel({ ...LEVEL_CONFIG[1], fallingObstacleLimit: value }), /fallingObstacleLimit/);
+    assert.throws(() => createLevel({ ...LEVEL_CONFIG.find(level => level.id === 'meteor-shower'), fallingObstacleLimit: value }), /fallingObstacleLimit/);
   }
 });
 

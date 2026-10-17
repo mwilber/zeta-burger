@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" overflow="visible">
+  <defs>
+    <linearGradient id="night" x2="0" y2="1">
+      <stop stop-color="#09051f"/><stop offset=".55" stop-color="#28104b"/><stop offset="1" stop-color="#5d155c"/>
+    </linearGradient>
+    <radialGradient id="haze">
+      <stop stop-color="#ff408b" stop-opacity=".22"/><stop offset="1" stop-color="#ff408b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sun" x2="0" y2="1">
+      <stop stop-color="#ffe7a0"/><stop offset=".45" stop-color="#ff8e89"/><stop offset="1" stop-color="#ff37bd"/>
+    </linearGradient>
+    <linearGradient id="ground" x2="0" y2="1">
+      <stop stop-color="#24143c"/><stop offset="1" stop-color="#100b29"/>
+    </linearGradient>
+    <clipPath id="sun-disc"><circle cx="1030" cy="157" r="92"/></clipPath>
+  </defs>
+  <g data-sky="">
+    <path d="M0 0H1280V760H0Z" fill="url(#night)"/>
+    <ellipse cx="1030" cy="240" rx="490" ry="410" fill="url(#haze)"/>
+    <ellipse cx="225" cy="600" rx="600" ry="280" fill="url(#haze)" opacity=".5"/>
+  </g>
+  <!-- A sliced setting sun and a low neon horizon, behind the playable islands. -->
+  <circle cx="1030" cy="157" r="107" fill="none" stroke="#ff65d8" stroke-opacity=".09" stroke-width="22"/>
+  <g clip-path="url(#sun-disc)" fill="url(#sun)">
+    <path d="M935 60H1125V152H935Z M935 157H1125V171H935Z M935 177H1125V189H935Z M935 197H1125V207H935Z M935 218H1125V226H935Z M935 239H1125V249H935Z"/>
+  </g>
+  <circle cx="239" cy="137" r="34" fill="#2c174d" stroke="#9358d5" stroke-width=".8"/>
+  <ellipse cx="239" cy="137" rx="69" ry="12" fill="none" stroke="#53f4ff" stroke-opacity=".27" transform="rotate(-22 239 137)"/>
+  <path d="M0 590L98 503L174 557L300 444L424 581L524 491L654 580L790 475L934 583L1080 493L1197 556L1280 489V748H0Z" fill="#211336" stroke="#ac40c4" stroke-opacity=".4" stroke-width="1"/>
+  <path d="M174 557L300 444L332 534L374 526L424 581 M654 580L790 475L824 553L880 535L934 583 M1080 493L1110 558L1155 532" fill="none" stroke="#ff65d8" stroke-opacity=".2"/>
+  <path d="M0 648L143 598L246 655L414 581L569 656L736 610L866 665L1049 587L1187 640L1280 611V748H0Z" fill="#1b1034" stroke="#6954b9" stroke-opacity=".4"/>
+  <path d="M0 677H1280V760H0Z" fill="url(#ground)"/>
+  <g fill="none" stroke="#df4be5" stroke-opacity=".23" stroke-width="1">
+    <path d="M0 678H1280 M0 686H1280 M0 700H1280 M0 722H1280 M0 747H1280"/>
+    <path d="M640 677L-260 760 M640 677L-40 760 M640 677L180 760 M640 677L400 760 M640 677L640 760 M640 677L880 760 M640 677L1100 760 M640 677L1320 760 M640 677L1540 760"/>
+  </g>
+  <path d="M0 748H1280V760H0Z" fill="#10091f"/>
+  <path d="M0 748H1280" stroke="#53f4ff" stroke-opacity=".55"/>
+  <path d="M17 54V734 M1263 54V734" stroke="#bb7cff" stroke-opacity=".1" stroke-dasharray="2 8"/>
+</svg>

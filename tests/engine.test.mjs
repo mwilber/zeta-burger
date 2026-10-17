@@ -4,11 +4,14 @@ import { Game, PHYSICS, FUEL, LANDING_BOUNCE } from '../dist/src/engine.js';
 import { svgRendererFixture } from './svg-fixture.mjs';
 import { PADS, WORLD_WIDTH } from '../dist/src/world.js';
 import { LEVELS, SKILLS } from '../dist/src/levels.js';
+const luna = LEVELS.find(level => level.id === 'luna');
+// These physics/service cases use the original hazard-free level.
+const createGame = (random = Math.random, level = luna) => new Game(random, level);
 const dt = 1 / 120;
 const idle = { left: false, right: false, up: false, down: false };
 const fly = (game, seconds, controls = idle) => { for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, controls); };
 function startPlaying(game, ...args) { game.start(...args); fly(game, 3); }
-function airborne() { const game = new Game(() => .5); startPlaying(game); game.ship = { x: 410, y: 360, vx: 0, vy: 0, gear: false, landed: null }; return game; }
+function airborne() { const game = createGame(() => .5); startPlaying(game); game.ship = { x: 410, y: 360, vx: 0, vy: 0, gear: false, landed: null }; return game; }
 function approach(game, id, gear = true, vx = 0, vy = 20) {
   const pad = PADS.find(p => p.id === id);
   game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .1, vx, vy, gear, landed: null };
@@ -20,7 +23,7 @@ function setOrder(game, details, status = 'onboard') {
 }
 
 test('starting a shift holds all gameplay for exactly three seconds before accepting controls', () => {
-  const game = new Game(() => .5); game.start();
+  const game = createGame(() => .5); game.start();
   assert.equal(game.phase, 'countdown'); assert.equal(game.countdownTime, 3);
   const snapshot = JSON.stringify({ ship: game.ship, orders: game.orders, time: game.time, fuel: game.fuel, lives: game.lives });
   for (let i = 0; i < 359; i++) {
@@ -36,7 +39,7 @@ test('starting a shift holds all gameplay for exactly three seconds before accep
   assert.ok(game.ship.vy < 0); assert.ok(game.fuel < FUEL.capacity); assert.equal(game.time, dt);
 });
 test('pause resumes the remaining countdown and replay starts a fresh three-second delay', () => {
-  const game = new Game(); game.start(); fly(game, 1);
+  const game = createGame(); game.start(); fly(game, 1);
   const remaining = game.countdownTime;
   game.pause(); fly(game, 10);
   assert.equal(game.phase, 'paused'); assert.equal(game.countdownTime, remaining); assert.equal(game.time, 0);
@@ -51,7 +54,7 @@ test('pause resumes the remaining countdown and replay starts a fresh three-seco
 });
 
 test('start airborne at the top center with retracted gear and no initial drift', () => {
-  const game = new Game(); startPlaying(game);
+  const game = createGame(); startPlaying(game);
   assert.equal(game.ship.x, WORLD_WIDTH / 2); assert.equal(game.ship.y, 80);
   assert.equal(game.ship.vx, 0); assert.equal(game.ship.vy, 0);
   assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false);
@@ -281,7 +284,7 @@ test('final crash finishes its animation before game over, without respawn or fu
 });
 test('tip starts within five to ten dollars and all destinations are selectable', () => {
   for (const random of [0, .2, .4, .6, .8, .999999]) {
-    const game = new Game(() => random); startPlaying(game); game.orders[0].availableAt = 0; approach(game, 0); game.step(dt, idle); fly(game, 1);
+    const game = createGame(() => random); startPlaying(game); game.orders[0].availableAt = 0; approach(game, 0); game.step(dt, idle); fly(game, 1);
     assert.ok(game.order.initialTip >= 5 && game.order.initialTip <= 10); assert.ok(game.order.target >= 1 && game.order.target <= 5);
   }
 });
@@ -289,7 +292,7 @@ test('tip starts within five to ten dollars and all destinations are selectable'
 test('skill fixes the total and random arrivals stay within each interval range', () => {
   for (const skill of Object.keys(SKILLS)) {
     let seed = 23;
-    const game = new Game(() => { seed = seed * 16807 % 2147483647; return seed / 2147483647; });
+    const game = createGame(() => { seed = seed * 16807 % 2147483647; return seed / 2147483647; });
     startPlaying(game, skill);
     const setting = SKILLS[skill];
     assert.equal(game.totalOrders, setting.orders);
@@ -311,7 +314,7 @@ test('skill fixes the total and random arrivals stay within each interval range'
   }
 });
 test('orders overlap and waiting tips fall while another order is aboard', () => {
-  const game = new Game(() => .5); startPlaying(game);
+  const game = createGame(() => .5); startPlaying(game);
   setOrder(game, { target: 3, initialTip: 5, elapsed: 80 });
   game.orders[1].availableAt = .2;
   const firstTip = game.tip;
@@ -349,7 +352,7 @@ test('all delivered ends the level immediately and freezes every resource', () =
   assert.equal(JSON.stringify({ orders: game.orders, ship: game.ship, fuel: game.fuel, time: game.time }), snapshot);
 });
 test('tip failure waits for all arrivals, and requires strictly negative tips', () => {
-  const game = new Game(() => .5); startPlaying(game); game.ship = game.spawnAtStation();
+  const game = createGame(() => .5); startPlaying(game); game.ship = game.spawnAtStation();
   setOrder(game, { target: 1, initialTip: 5, elapsed: 100 }, 'waiting');
   game.orders = [game.orders[0], { id: 2, target: 2, initialTip: 5, elapsed: 0, availableAt: 2, status: 'scheduled' }];
   fly(game, 1); assert.equal(game.phase, 'playing');
@@ -359,7 +362,7 @@ test('tip failure waits for all arrivals, and requires strictly negative tips', 
   game.step(dt, idle); assert.equal(game.endReason, 'tips'); assert.equal(game.phase, 'gameover');
 });
 test('delivered orders do not participate in tip failure or keep aging', () => {
-  const game = new Game(); startPlaying(game);
+  const game = createGame(); startPlaying(game);
   game.orders = [
     { id: 1, target: 1, initialTip: 10, elapsed: 1, availableAt: 0, status: 'delivered' },
     { id: 2, target: 2, initialTip: 5, elapsed: 100, availableAt: 0, status: 'waiting' }
@@ -368,13 +371,13 @@ test('delivered orders do not participate in tip failure or keep aging', () => {
   assert.equal(game.endReason, 'tips'); assert.equal(game.orders[0].elapsed, 1);
 });
 test('pause freezes arrivals, tips, fuel, and level time', () => {
-  const game = new Game(); startPlaying(game); Object.assign(game.orders[0], { availableAt: .1, status: 'scheduled', elapsed: 0 });
+  const game = createGame(); startPlaying(game); Object.assign(game.orders[0], { availableAt: .1, status: 'scheduled', elapsed: 0 });
   game.fuel = 40; game.pause(); fly(game, 10, { ...idle, up: true, right: true });
   assert.equal(game.time, 0); assert.equal(game.fuel, 40); assert.equal(game.scheduledCount, game.totalOrders);
   game.pause(); fly(game, .2); assert.equal(game.orders[0].status, 'waiting');
 });
 test('arrivals and independent tip clocks continue during replacement delay', () => {
-  const game = new Game(); startPlaying(game); Object.assign(game.orders[0], { availableAt: .2, status: 'scheduled', elapsed: 0 });
+  const game = createGame(); startPlaying(game); Object.assign(game.orders[0], { availableAt: .2, status: 'scheduled', elapsed: 0 });
   game.crash('test'); fly(game, .5);
   assert.equal(game.phase, 'crashed'); assert.equal(game.orders[0].status, 'waiting');
   assert.ok(Math.abs(game.orders[0].elapsed - .3) < .00001);
@@ -400,7 +403,7 @@ test('a partial tank supplies only the remaining fraction of a thrust step', () 
   assert.ok(Math.abs(game.ship.vy - (PHYSICS.gravity - PHYSICS.upThrust / 2) * dt) < .00001);
 });
 test('gas station refills for free up to capacity; other pads do not refill', () => {
-  const game = new Game(); startPlaying(game); game.ship = game.spawnAtStation(); game.fuel = 0;
+  const game = createGame(); startPlaying(game); game.ship = game.spawnAtStation(); game.fuel = 0;
   fly(game, 2); assert.ok(Math.abs(game.fuel - 50) < .00001); assert.equal(game.bank, 0);
   fly(game, 3); assert.equal(game.fuel, 100);
   approach(game, 1); game.step(dt, idle); game.fuel = 40; fly(game, 1);
@@ -459,8 +462,8 @@ test('locked or balanced side controls return upright and tilt never changes phy
   assert.deepEqual(other.ship, flat.ship, 'tilt does not affect physics');
 });
 test('level configuration selects spawn, restaurant, destinations, and collision geometry', () => {
-  const level = { ...LEVELS[0], id: 'test-level', gasStation: 1, restaurant: 4, destinations: [2], solids: [] };
-  const game = new Game(() => .5, level); startPlaying(game, 'expert');
+  const level = { ...luna, id: 'test-level', gasStation: 1, restaurant: 4, destinations: [2], solids: [] };
+  const game = createGame(() => .5, level); startPlaying(game, 'expert');
   assert.deepEqual({ x: game.ship.x, y: game.ship.y }, level.start); assert.equal(game.ship.landed, null);
   assert.equal(game.spawnAtStation().landed, 1); assert.equal(game.destination.id, 4);
   assert.ok(game.orders.every(order => order.target === 2));
@@ -472,7 +475,7 @@ test('level configuration selects spawn, restaurant, destinations, and collision
 test('first order arrives five seconds after start, with its tip clock beginning on arrival', () => {
   for (const skill of Object.keys(SKILLS)) {
     for (const random of [0, .5, .999999]) {
-      const game = new Game(() => random); startPlaying(game, skill);
+      const game = createGame(() => random); startPlaying(game, skill);
       assert.equal(game.time, 0); assert.equal(game.order, null);
       assert.equal(game.waitingOrders.length, 0);
       const order = game.orders[0];

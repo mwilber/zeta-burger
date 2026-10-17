@@ -22,12 +22,14 @@ export interface Level {
   restaurant: number;
   gasStation: number;
   fallingObstacleLimit: number;
+  seekerCount: number;
   destinations: number[];
 }
 export function createLevel(config: LevelConfig): Level {
   const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
   if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
   if (!Number.isInteger(config.fallingObstacleLimit) || config.fallingObstacleLimit < 0) fail('fallingObstacleLimit must be a nonnegative integer');
+  if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
   const ids = new Set<number>();
   for (const pad of config.pads) {
     if (!Number.isInteger(pad.id) || pad.id < 0 || ids.has(pad.id)) fail('pad IDs must be unique nonnegative integers');
@@ -61,8 +63,8 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
 export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
   return `./assets/${name}-${level.number}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'fallingObstacleLimit'>): string[] {
-  return [...new Set(['background', 'saucer', 'effects', ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...level.pads.flatMap(pad => [
+export function levelAssetNames(level: Pick<Level, 'pads' | 'fallingObstacleLimit' | 'seekerCount'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
     pad.building.kind, `island-${pad.id}`, `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
 }

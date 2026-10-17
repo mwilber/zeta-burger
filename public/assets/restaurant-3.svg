@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 76 105" overflow="visible">
+<path d="M2 29 H74 Q76 29 76 31 V103 Q76 105 74 105 H2 Q0 105 0 103 V31 Q0 29 2 29 Z" fill="#361253"/>
+<path d="M5 35 H71 Q71 35 71 35 V70 Q71 70 71 70 H5 Q5 70 5 70 V35 Q5 35 5 35 Z" fill="#f33fc0"/>
+<path d="M10 40 H66 Q66 40 66 40 V66 Q66 66 66 66 H10 Q10 66 10 66 V40 Q10 40 10 40 Z" fill="#28113c"/>
+<path d="M37 41 L37 65" fill="none" stroke="#36e7f2" stroke-width="2"/>
+<path d="M6 75 H24 Q24 75 24 75 V103 Q24 103 24 103 H6 Q6 103 6 103 V75 Q6 75 6 75 Z" fill="#27113a"/>
+<path d="M9 78 H21 Q21 78 21 78 V96 Q21 96 21 96 H9 Q9 96 9 96 V78 Q9 78 9 78 Z" fill="#36e7f2"/>
+<path d="M33 74 H65 Q65 74 65 74 V91 Q65 91 65 91 H33 Q33 91 33 91 V74 Q33 74 33 74 Z" fill="#29123e"/>
+<path d="M37 77 H61 Q61 77 61 77 V81 Q61 81 61 81 H37 Q37 81 37 81 V77 Q37 77 37 77 Z" fill="#f33cc0"/>
+<path d="M2 25 H74 Q76 25 76 27 V31 Q76 33 74 33 H2 Q0 33 0 31 V27 Q0 25 2 25 Z" fill="#f77dd5"/>
+<path d="M0 31 H8 Q8 31 8 31 V36 Q8 36 8 36 H0 Q0 36 0 36 V31 Q0 31 0 31 Z" fill="#f78ad9"/>
+<path d="M15 31 H23 Q23 31 23 31 V36 Q23 36 23 36 H15 Q15 36 15 36 V31 Q15 31 15 31 Z" fill="#f78ad9"/>
+<path d="M30 31 H38 Q38 31 38 31 V36 Q38 36 38 36 H30 Q30 36 30 36 V31 Q30 31 30 31 Z" fill="#f78ad9"/>
+<path d="M45 31 H53 Q53 31 53 31 V36 Q53 36 53 36 H45 Q45 36 45 36 V31 Q45 31 45 31 Z" fill="#f78ad9"/>
+<path d="M60 31 H68 Q68 31 68 31 V36 Q68 36 68 36 H60 Q60 36 60 36 V31 Q60 31 60 31 Z" fill="#f78ad9"/>
+<path d="M7 5 H69 Q72 5 72 8 V20 Q72 23 69 23 H7 Q4 23 4 20 V8 Q4 5 7 5 Z" fill="#28123c"/>
+<text x="38" y="17" fill="#f890db" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle">ZETA BURGER</text>
+<path d="M54 2 A16 5 0 0 1 22 2 A16 5 0 0 1 54 2" fill="#f66dd0"/>
+<path d="M22 0 H54 Q54 0 54 0 V3 Q54 3 54 3 H22 Q22 3 22 3 V0 Q22 0 22 0 Z" fill="#f236bd"/>
+<text x="51" y="58" fill="#f88cda" font-family="monospace" font-size="7" text-anchor="middle">OPEN</text>
+<path d="M7 -7 A7 7 0 0 1 -7 -7 A7 7 0 0 1 7 -7" fill="#f66bcf" transform="translate(23 63) scale(0.8 0.8)"/>
+<path d="M-2 -2 H2 Q4 -2 4 0 V1 Q4 3 2 3 H-2 Q-4 3 -4 1 V0 Q-4 -2 -2 -2 Z" fill="#f66bcf" transform="translate(23 63) scale(0.8 0.8)"/>
+<path d="M-1.5 -8 A1.5 2.5 0 0 1 -4.5 -8 A1.5 2.5 0 0 1 -1.5 -8" fill="#301548" transform="translate(23 63) scale(0.8 0.8)"/>
+<path d="M4.5 -8 A1.5 2.5 0 0 1 1.5 -8 A1.5 2.5 0 0 1 4.5 -8" fill="#301548" transform="translate(23 63) scale(0.8 0.8)"/>
+</svg>

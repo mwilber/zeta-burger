@@ -46,7 +46,7 @@ Each level begins with a fixed schedule of orders. The first order always arrive
 | Expert | 8 | 5–10 seconds | $0.12/second |
 | Tester | 1 | First order at 5 seconds; no later arrivals | $0.08/second |
 
-The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. **Level 1 · Luna** and **level 2 · Meteor Shower** are available. Choose a level before starting, and completing all deliveries automatically starts the next configured level without a result dialog. The result screen appears after the final configured level or a failed shift.
+The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip is below zero**. A single negative tip does not end the shift while other tips remain viable or orders are still incoming. The result screen identifies the end reason and shows delivered/total progress. **Level 3 · Obsession**, **level 2 · Meteor Shower**, and **level 1 · Luna** are available in that development play order. Choose a level before starting, and completing all deliveries automatically starts the next configured level without a result dialog. The result screen appears after the final configured level or a failed shift.
 
 Fuel starts at **100%**. Upward or downward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
 
@@ -70,6 +70,7 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | `public/assets/manifest-1.json` | Optional custom image overrides |
 | `tests/engine.test.mjs` | Flight, collision, landing, delivery, scoring, pause, and life-cycle checks |
 | `tests/falling-obstacles.test.mjs` | Falling obstacle spawning, caps, continuous collisions, explosions, and lifecycle checks |
+| `tests/seekers.test.mjs` | Seeker pursuit, random drift, landed immunity, collisions, and lifecycle checks |
 | `tests/routes.test.mjs` | Actual control-driven flights from the top center to every destination and back, without teleporting |
 | `scripts/dev.mjs` | Development server and TypeScript watch process using Node built-ins |
 
@@ -119,9 +120,9 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
-The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
-Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, a numeric `fallingObstacleLimit`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
+Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
 A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
 
@@ -146,3 +147,13 @@ Meteor Shower uses Luna's seven-pad layout with cool grey artwork and introduces
 An obstacle explodes at its first contact with a pad, island, building, world side or floor, another falling obstacle, or the player's hull/extended gear. Two colliding obstacles both explode; a ship collision explodes both ship and obstacle and costs one life. Docked ships remain vulnerable. Static scenery is never damaged, moved, or removed. Impacts reuse the ship's particle explosion and sound, without displaying the ship-loss message or interrupting thrust on terrain-only impacts. Continuous collision checks prevent fast obstacles or ships from passing through each other or thin pads between updates.
 
 For every enabled level, supply `public/assets/falling-obstacle-<number>.svg`. Its artboard is mapped to `-24 -76 48 100`, with a solid octagonal body of radius **16** centered at `(0, 0)`; the upper portion is a decorative trail. The renderer scales the body to each obstacle's collision radius and aligns the trail to its flight direction. Edit this SVG to reskin falling obstacles in another theme. Spawning and flight tuning live in `FALLING_OBSTACLES` in `src/engine.ts`.
+
+### Seekers / Obsession
+
+**Obsession (level 3)** uses a synthwave palette: violet skies, a striped pink sun, neon cyan/pink stations, and a perspective grid. It introduces four animated, amorphous cloud **seekers**. Set `seekerCount` to a nonnegative integer on any level (0 disables them), and supply `seeker-<number>.svg`. No falling obstacles are enabled on Obsession.
+
+![Obsession's synthwave scenery and four cloud seekers.](docs/screenshots/obsession-level.png)
+
+Seekers pass through pads, islands, buildings, falling obstacles, and one another. While the ship is in flight, they steer toward it with eased turns and a jellyfish-like pulse/glide. While the ship is landed, it is completely immune to seekers and they drift in random directions, choosing a new heading every 2–4 seconds. Taking off or retracting the gear removes this protection. Airborne hull or extended-gear contact costs a life and uses the normal crash/respawn cycle; seekers survive contact.
+
+The ship has no speed cap, so seekers use a fixed **30 world units/second** average target, roughly one quarter of a typical 120-unit/second flight speed, rather than scaling with the ship's instantaneous velocity. Tuning lives in `SEEKERS` in `src/engine.ts`. They stay within the flight field and begin at least 200 units from the initial ship position. Replay and level changes recreate their population. Countdown, pause, game over, and the final crash explosion freeze their movement and animation; they continue wandering during other replacement delays. The renderer animates the SVG's vapor wisps and breathing from simulation time and respects reduced-motion preferences for the decorative movement.

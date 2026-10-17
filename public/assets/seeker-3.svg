@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80" overflow="visible">
+  <title>Seeker cloud</title>
+  <defs>
+    <radialGradient id="aura">
+      <stop stop-color="#ffb0f0" stop-opacity=".3"/><stop offset=".67" stop-color="#e55cff" stop-opacity=".15"/><stop offset="1" stop-color="#bd57ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vapor" cx=".38" cy=".3" r=".72">
+      <stop stop-color="#effbff" stop-opacity=".9"/><stop offset=".4" stop-color="#c98dff" stop-opacity=".78"/><stop offset=".78" stop-color="#b64cdf" stop-opacity=".5"/><stop offset="1" stop-color="#ee62c2" stop-opacity=".16"/>
+    </radialGradient>
+    <radialGradient id="cold">
+      <stop stop-color="#b8ffff" stop-opacity=".6"/><stop offset="1" stop-color="#65deff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- The bright central vapor occupies the radius-28 collision body.
+       The transparent aura and trailing filaments are decorative. -->
+  <circle r="40" fill="url(#aura)"/>
+  <path d="M-27 0C-32-11-18-15-16-21C-12-30-1-25 5-26C15-30 20-18 24-14C31-8 24-1 27 6C30 17 17 19 12 23C5 30-3 23-10 25C-20 27-21 17-26 13C-32 8-25 5-27 0Z" fill="url(#vapor)" stroke="#f2b0ff" stroke-opacity=".38" stroke-width=".7"/>
+  <g data-wisp="0">
+    <ellipse cx="-8" cy="-5" rx="19" ry="17" fill="url(#cold)"/>
+    <path d="M-22-6C-18-18-7-20 3-15C12-11 11-4 21-3" fill="none" stroke="#d8ffff" stroke-opacity=".52" stroke-width="1.1" stroke-linecap="round"/>
+  </g>
+  <g data-wisp="2">
+    <path d="M-21 9C-13 16-8 5 2 8S15 21 23 9" fill="none" stroke="#ffb2e8" stroke-opacity=".55" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M-10 19C-13 27-1 28-7 35 M4 21C15 27 3 30 11 36 M18 14C28 20 20 26 26 29" fill="none" stroke="#d789ff" stroke-opacity=".3" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <g data-wisp="4" fill="url(#cold)">
+    <ellipse cx="9" cy="3" rx="12" ry="9"/><ellipse cx="-5" cy="12" rx="10" ry="7"/>
+  </g>
+</svg>

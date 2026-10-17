@@ -4,7 +4,7 @@ import { LEVELS, levelAssetNames, levelAssetPath } from './levels.js';
 import type { Level } from './levels.js';
 import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
 import type { ArtBox } from './svg-art.js';
-import { PHYSICS, CRASH_DURATION, verticalThrustDirection } from './engine.js';
+import { PHYSICS, CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -34,6 +34,8 @@ export class Renderer {
   private particleLayer = this.group();
   private fallingObstacleLayer = this.group();
   private fallingObstacleNodes = new Map<number, SVGGElement>();
+  private seekerLayer = this.group();
+  private seekerNodes = new Map<number, SVGGElement>();
   private stations: StationArt[] = [];
   private pads?: Pad[];
   private stars: { node: SVGGElement; phase: number }[] = [];
@@ -105,6 +107,7 @@ export class Renderer {
       this.templates = templates;
       this.scene.replaceChildren(); this.stationLayer.replaceChildren(); this.particleLayer.replaceChildren();
       this.fallingObstacleLayer.replaceChildren(); this.fallingObstacleNodes.clear();
+      this.seekerLayer.replaceChildren(); this.seekerNodes.clear();
       this.images.clear(); this.overrides.clear(); this.stars = []; this.stations = []; this.pads = undefined; this.particles = [];
       const effects = this.templates.get('effects')!;
       this.scene.append(effects.querySelector('defs')!.cloneNode(true), effects.querySelector('style')!.cloneNode(true));
@@ -136,7 +139,7 @@ export class Renderer {
       this.ship = this.group(); this.gear = this.asset('gear');
       this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
-      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.particleLayer, this.crash);
+      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.seekerLayer, this.particleLayer, this.crash);
       this.buildStations(level.pads);
       this.loaded = true;
       void this.loadOverrides(level, version);
@@ -238,6 +241,31 @@ export class Renderer {
       node.setAttribute('transform', `translate(${obstacle.x} ${obstacle.y}) rotate(${angle}) scale(${obstacle.radius / 16})`);
     }
   }
+  private renderSeekers(game: Game) {
+    const living = new Set(game.seekers.map(seeker => seeker.id));
+    for (const [id, node] of this.seekerNodes) {
+      if (!living.has(id)) { node.remove(); this.seekerNodes.delete(id); }
+    }
+    for (const seeker of game.seekers) {
+      let node = this.seekerNodes.get(seeker.id);
+      if (!node) {
+        node = this.group(); node.setAttribute('data-seeker', String(seeker.id));
+        const pulse = this.group(); pulse.setAttribute('data-seeker-pulse', '');
+        pulse.append(this.asset('seeker', [-40, -40, 80, 80])); node.append(pulse);
+        this.seekerLayer.append(node); this.seekerNodes.set(seeker.id, node);
+      }
+      move(node, seeker.x, seeker.y);
+      // Simulation age freezes both motion and the cloud's breathing while paused.
+      const beat = this.reducedMotion ? 0 : seeker.age * Math.PI * 2 / SEEKERS.pulsePeriod + seeker.phase;
+      const pulse = find(node, '[data-seeker-pulse]');
+      const breath = this.reducedMotion ? 0 : Math.sin(beat);
+      pulse.setAttribute('transform', `scale(${seeker.radius / SEEKERS.radius * (1 + breath * .05)} ${seeker.radius / SEEKERS.radius * (1 - breath * .05)})`);
+      for (const wisp of node.querySelectorAll<SVGElement>('[data-wisp]')) {
+        const phase = Number(wisp.dataset.wisp);
+        animateTranslation(wisp, this.reducedMotion ? 0 : Math.sin(beat + phase) * 2, this.reducedMotion ? 0 : Math.cos(beat * .7 + phase) * 2);
+      }
+    }
+  }
   draw(game: Game, controls: Controls, dt: number, time: number) {
     if (this.level !== game.level || !this.loaded) return;
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
@@ -261,6 +289,7 @@ export class Renderer {
     }
     this.saucer(game, controls, time);
     this.renderFallingObstacles(game);
+    this.renderSeekers(game);
     this.update(dt); this.renderParticles(); visible(this.crash, game.phase === 'crashed');
     setText(find(this.crash, '[data-message]'), game.lives > 0 ? 'DISPATCHING A REPLACEMENT…' : 'NO SAUCERS REMAINING');
   }

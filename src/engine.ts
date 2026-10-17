@@ -9,6 +9,13 @@ export const START_DELAY = 3;
 export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
 export const FALLING_OBSTACLES = { spawnDelay: 1, intervalMin: .8, intervalMax: 1.6, speedMin: 140, speedMax: 220, angleMax: 35 * Math.PI / 180, radiusMin: 10, radiusMax: 18 };
 export interface FallingObstacle { id: number; x: number; y: number; vx: number; vy: number; radius: number }
+// The ship has no speed cap. Use a typical 120-unit/sec flight speed as the
+// reference: seekers average one quarter of that, even when the ship is still.
+export const SEEKERS = { speed: 30, radius: 28, turnRate: 1.4, pulsePeriod: 2.8, wanderMin: 2, wanderMax: 4, spawnClearance: 200 };
+export interface Seeker { id: number; x: number; y: number; vx: number; vy: number; radius: number; age: number; phase: number; wanderAngle: number; wanderTime: number }
+export function seekerBody(seeker: Seeker): Point[] {
+  return Array.from({ length: 12 }, (_, i) => ({ x: seeker.x + Math.cos(i * Math.PI / 6) * seeker.radius, y: seeker.y + Math.sin(i * Math.PI / 6) * seeker.radius }));
+}
 export function fallingObstacleBody(obstacle: FallingObstacle): Point[] {
   return Array.from({ length: 8 }, (_, i) => ({ x: obstacle.x + Math.cos(i * Math.PI / 4) * obstacle.radius, y: obstacle.y + Math.sin(i * Math.PI / 4) * obstacle.radius }));
 }
@@ -41,6 +48,7 @@ export class Game {
   lowFuelWarned = false;
   events: GameEvent[] = [];
   fallingObstacles: FallingObstacle[] = [];
+  seekers: Seeker[] = [];
   private fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay;
   private nextFallingObstacleId = 0;
   dwell = 0;
@@ -73,6 +81,7 @@ export class Game {
       const initialTip = Math.round((5 + this.random() * 5) * 100) / 100;
       this.orders.push({ id, target, initialTip, elapsed: 0, availableAt, status: 'scheduled' });
     }
+    this.spawnSeekers();
     this.servicedPad = null; this.countdownTime = START_DELAY; this.pausedPhase = 'playing'; this.phase = 'countdown';
   }
   get order(): Order | null { return this.orders.find(order => order.status === 'onboard') ?? null; }
@@ -125,9 +134,65 @@ export class Game {
     const previousPhase = this.phase, previousShip = { ...this.ship };
     this.stepShip(dt, controls);
     // Flight hazards share gameplay pause/countdown/end rules. During replacement
-    // delay they keep falling, but cannot hit the absent ship or its new spawn.
+    // delay they keep moving, but cannot hit the absent ship or its new spawn.
     if ((previousPhase === 'playing' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
       this.stepFallingObstacles(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+      this.stepSeekers(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+    }
+  }
+  private spawnSeekers() {
+    this.seekers = Array.from({ length: this.level.seekerCount }, (_, id) => {
+      // Spread clouds across the field, with a clear corridor at the ship spawn.
+      const radius = SEEKERS.radius;
+      const x = radius + (id + .25 + this.random() * .5) / this.level.seekerCount * (WORLD_WIDTH - radius * 2);
+      let y = 150 + this.random() * (WORLD_HEIGHT - 230);
+      if (Math.hypot(x - this.ship.x, y - this.ship.y) < SEEKERS.spawnClearance) y = this.ship.y + SEEKERS.spawnClearance;
+      const wanderAngle = this.random() * Math.PI * 2;
+      return { id, x, y, vx: Math.cos(wanderAngle) * SEEKERS.speed, vy: Math.sin(wanderAngle) * SEEKERS.speed,
+        radius, age: 0, phase: this.random() * Math.PI * 2, wanderAngle,
+        wanderTime: SEEKERS.wanderMin + this.random() * (SEEKERS.wanderMax - SEEKERS.wanderMin) };
+    });
+  }
+  private stepSeekers(dt: number, previousShip: Ship, canHitShip: boolean) {
+    const hunting = canHitShip && this.ship.landed === null;
+    const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
+    const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
+    for (const seeker of this.seekers) {
+      seeker.age += dt;
+      if (!hunting) {
+        seeker.wanderTime -= dt;
+        if (seeker.wanderTime <= 0) {
+          seeker.wanderAngle = this.random() * Math.PI * 2;
+          seeker.wanderTime = SEEKERS.wanderMin + this.random() * (SEEKERS.wanderMax - SEEKERS.wanderMin);
+        }
+      }
+      const beat = seeker.age * Math.PI * 2 / SEEKERS.pulsePeriod + seeker.phase;
+      const angle = hunting ? Math.atan2(this.ship.y - seeker.y, this.ship.x - seeker.x) : seeker.wanderAngle;
+      // A soft contraction accelerates the cloud, followed by a drifting glide.
+      // Small lateral undulations and eased steering keep pursuit organic.
+      const speed = SEEKERS.speed * (1 + .35 * Math.sin(beat));
+      const sway = Math.sin(beat * .5) * .18;
+      const blend = 1 - Math.exp(-SEEKERS.turnRate * dt);
+      seeker.vx += (Math.cos(angle + sway) * speed - seeker.vx) * blend;
+      seeker.vy += (Math.sin(angle + sway) * speed - seeker.vy) * blend;
+      // Clouds ignore every solid and each other. Only the field bounds contain them.
+      const delta = { x: Math.max(seeker.radius, Math.min(WORLD_WIDTH - seeker.radius, seeker.x + seeker.vx * dt)) - seeker.x,
+        y: Math.max(seeker.radius, Math.min(WORLD_HEIGHT - 12 - seeker.radius, seeker.y + seeker.vy * dt)) - seeker.y };
+      if (hunting && this.phase === 'playing') {
+        const body = seekerBody(seeker);
+        if (shipShapes.some(shape => sweepContact(body, shape, delta, shipDelta) !== null)) {
+          this.crash('Seeker contact! Land on a pad to shelter from the clouds.');
+        }
+      }
+      seeker.x += delta.x; seeker.y += delta.y;
+      if (seeker.x <= seeker.radius || seeker.x >= WORLD_WIDTH - seeker.radius) {
+        seeker.vx = seeker.x <= seeker.radius ? Math.abs(seeker.vx) : -Math.abs(seeker.vx);
+        seeker.wanderAngle = Math.PI - seeker.wanderAngle;
+      }
+      if (seeker.y <= seeker.radius || seeker.y >= WORLD_HEIGHT - 12 - seeker.radius) {
+        seeker.vy = seeker.y <= seeker.radius ? Math.abs(seeker.vy) : -Math.abs(seeker.vy);
+        seeker.wanderAngle = -seeker.wanderAngle;
+      }
     }
   }
   private stepFallingObstacles(dt: number, previousShip: Ship, canHitShip: boolean) {
