@@ -9,6 +9,7 @@ import { svgRendererFixture } from './svg-fixture.mjs';
 
 const idle = { up: false, down: false, left: false, right: false };
 const dt = 1 / 120;
+const luna = LEVELS.find(level => level.id === 'luna');
 const shower = LEVELS.find(level => level.id === 'meteor-shower');
 function playing(level = shower) {
   const game = new Game(() => .5, level);
@@ -20,14 +21,15 @@ const createFallingObstacle = (values = {}) => ({ id: 99, x: 800, y: 80, vx: 40,
 function fly(game, seconds) { for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, idle); }
 const impacts = game => game.events.filter(event => event.type === 'falling-obstacle-impact');
 
-test('Meteor Shower follows Luna with matching geometry, cool grey assets, and four falling obstacles', () => {
-  assert.equal(LEVELS[1], shower);
+test('Meteor Shower precedes Luna during development with matching geometry, cool grey assets, and four falling obstacles', () => {
+  assert.equal(LEVELS[0], shower);
+  assert.equal(LEVELS[1], luna);
   assert.equal(shower.number, 2); assert.equal(shower.name, 'Meteor Shower');
   assert.equal(shower.fallingObstacleLimit, 4);
-  assert.equal(LEVELS[0].fallingObstacleLimit, 0);
-  assert.deepEqual(shower.solids, LEVELS[0].solids);
+  assert.equal(luna.fallingObstacleLimit, 0);
+  assert.deepEqual(shower.solids, luna.solids);
   assert.ok(levelAssetNames(shower).includes('falling-obstacle'));
-  assert.ok(!levelAssetNames(LEVELS[0]).includes('falling-obstacle'));
+  assert.ok(!levelAssetNames(luna).includes('falling-obstacle'));
   for (const name of levelAssetNames(shower)) accessSync(new URL('../public/' + levelAssetPath(name, shower), import.meta.url));
   for (const value of [-1, .5, NaN, Infinity]) {
     assert.throws(() => createLevel({ ...LEVEL_CONFIG[1], fallingObstacleLimit: value }), /fallingObstacleLimit/);
@@ -35,7 +37,7 @@ test('Meteor Shower follows Luna with matching geometry, cool grey assets, and f
 });
 
 test('zero disables falling obstacles; enabled levels spawn from the top and never exceed their limit', () => {
-  const disabled = playing(LEVELS[0]); disabled.ship = disabled.spawnAtStation();
+  const disabled = playing(luna); disabled.ship = disabled.spawnAtStation();
   fly(disabled, 8); assert.deepEqual(disabled.fallingObstacles, []);
   for (const limit of [1, 4]) {
     const game = playing({ ...shower, solids: [], fallingObstacleLimit: limit });
@@ -162,7 +164,7 @@ test('countdown, pause, final explosion, and game over freeze obstacles; replay 
   game.lives = 1; game.crash('test'); const final = JSON.stringify(game.fallingObstacles); fly(game, CRASH_DURATION + 1);
   assert.equal(game.phase, 'gameover'); assert.equal(JSON.stringify(game.fallingObstacles), final);
   game.start(); assert.deepEqual(game.fallingObstacles, []);
-  game.fallingObstacles = [createFallingObstacle()]; game.start('normal', LEVELS[0]); assert.deepEqual(game.fallingObstacles, []);
+  game.fallingObstacles = [createFallingObstacle()]; game.start('normal', luna); assert.deepEqual(game.fallingObstacles, []);
 });
 
 test('falling obstacle explosions reuse the ship particle count, palette, and lifetime', () => {

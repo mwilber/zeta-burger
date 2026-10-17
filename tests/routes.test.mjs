@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game, PHYSICS } from '../dist/src/engine.js';
 import { PADS } from '../dist/src/world.js';
+import { LEVELS } from '../dist/src/levels.js';
+const luna = LEVELS.find(level => level.id === 'luna');
 const dt = 1/120;
 function seek(game, x, y, landId = null) {
   const gear = landId !== null;
@@ -19,7 +21,7 @@ function seek(game, x, y, landId = null) {
   throw Error(`Navigation timeout to ${x},${y}; ${JSON.stringify(game.ship)}`);
 }
 for (let target=1; target<=5; target++) test(`Fly top center → restaurant → pad ${target} → restaurant without teleporting or losing a life`, () => {
-  const game = new Game(() => (target - .5)/5); game.start('casual');
+  const game = new Game(() => (target - .5)/5, luna); game.start('casual');
   for (let i = 0; i < 360; i++) game.step(dt, { up: false, down: false, left: false, right: false });
   // Move clear of the observatory before descending toward the restaurant.
   seek(game,640,125); seek(game,428,125); seek(game,428,450); seek(game,428,538,0);

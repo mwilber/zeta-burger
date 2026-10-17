@@ -5,7 +5,8 @@ import { LEVEL_CONFIG } from '../dist/src/level-config.js';
 import { LEVELS, createLevel, createLevels, nextLevel, levelAssetNames, levelAssetPath } from '../dist/src/levels.js';
 import { Game, START_DELAY, PHYSICS } from '../dist/src/engine.js';
 
-const copyConfig = () => structuredClone(LEVEL_CONFIG[0]);
+const luna = LEVELS.find(level => level.id === 'luna');
+const copyConfig = () => structuredClone(LEVEL_CONFIG.find(level => level.id === 'luna'));
 
 test('configuration order controls progression regardless of level numbers', () => {
   const configs = [8, 1, 4].map(number => ({ ...copyConfig(), number, id: `world-${number}` }));
@@ -28,7 +29,7 @@ test('configuration order controls progression regardless of level numbers', () 
 });
 
 test('Luna is level 1 and preserves all seven original stations', () => {
-  const level = LEVELS[0];
+  const level = luna;
   assert.equal(level.number, 1);
   assert.equal(level.name, 'Luna');
   assert.equal(level.padCount, 7);
@@ -42,7 +43,7 @@ test('Luna is level 1 and preserves all seven original stations', () => {
 test('editing a pad position moves its building, island, and all collisions together', () => {
   const config = copyConfig();
   config.pads[1].x += 25; config.pads[1].y -= 30;
-  const moved = createLevel(config), original = LEVELS[0];
+  const moved = createLevel(config), original = luna;
   const pad = moved.pads[1], old = original.pads[1];
   assert.equal(pad.building.x - old.building.x, 25);
   assert.equal(pad.building.y - old.building.y, -30);
@@ -68,7 +69,7 @@ test('pad list controls count, destinations, collision geometry, and required gr
 test('asset filenames append level number after the original name and all Luna assets exist', () => {
   assert.equal(levelAssetPath('pad-3-active', { number: 2 }), './assets/pad-3-active-2.svg');
   assert.equal(levelAssetPath('manifest', { number: 1 }, 'json'), './assets/manifest-1.json');
-  for (const name of levelAssetNames(LEVELS[0])) accessSync(new URL('../public/' + levelAssetPath(name, LEVELS[0]), import.meta.url));
+  for (const name of levelAssetNames(luna)) accessSync(new URL('../public/' + levelAssetPath(name, luna), import.meta.url));
   accessSync(new URL('../public/assets/manifest-1.json', import.meta.url));
 });
 
