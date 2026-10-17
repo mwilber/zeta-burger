@@ -100,11 +100,13 @@ export class Game {
   get destination(): Pad { return this.level.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
   finish(reason: NonNullable<Game['endReason']>) {
     this.endReason = reason; this.phase = 'gameover';
-    this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'Every remaining tip is below zero.' : 'No saucers remaining.', { endReason: reason });
+    this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'You’re fired! No remaining tip can keep your bank at or above $0.' : 'No saucers remaining.', { endReason: reason });
   }
   checkEnd() {
     if (this.orders.length && this.delivered === this.orders.length) this.finish('delivered');
-    else if (this.orders.length && this.scheduledCount === 0 && this.orders.filter(order => order.status !== 'delivered').every(order => this.tipFor(order) < 0)) this.finish('tips');
+    // Savings cover a negative tip; lose only when no remaining delivery can
+    // leave a nonnegative bank balance, and no more orders are incoming.
+    else if (this.orders.length && this.scheduledCount === 0 && this.orders.filter(order => order.status !== 'delivered').every(order => this.tipFor(order) < -this.bank)) this.finish('tips');
   }
   emit(type: GameEvent['type'], message: string, details: Pick<GameEvent, 'endReason' | 'hardLanding'> = {}) { this.events.push({ type, message, x: this.ship.x, y: this.ship.y, ...details }); }
   toggleGear() {

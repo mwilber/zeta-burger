@@ -193,10 +193,10 @@ function updateHud() {
     if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';
     if (game.phase === 'gameover') {
       resetInputs();
-      const reason = game.endReason === 'delivered' ? 'Every order delivered. Final level complete!' : game.endReason === 'tips' ? 'Every remaining tip fell below zero.' : 'Your last saucer was lost.';
+      const reason = game.endReason === 'delivered' ? 'Every order delivered. Final level complete!' : game.endReason === 'tips' ? 'No remaining tip can keep your bank at or above $0.' : 'Your last saucer was lost.';
       overlay.innerHTML = next && advanceFailed
         ? `<div class="overlay-card"><div class="card-tag">LEVEL COULD NOT LOAD</div><h2>${next.name} is waiting.</h2><p>Its artwork could not load. Retry to continue your game.</p><button class="primary-button" data-action="restart">RETRY NEXT LEVEL <span>→</span></button></div>`
-        : `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'GAME COMPLETE' : 'SHIFT ENDED'}</div><h2>That’s a wrap, pilot.</h2><p>Level ${game.level.number} · ${game.level.name}<br>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p><button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your level and skill above for the next shift.</small></div>`;
+        : `<div class="overlay-card"><div class="card-tag">${game.endReason === 'delivered' ? 'GAME COMPLETE' : 'SHIFT ENDED'}</div><h2>${game.endReason === 'delivered' ? 'That’s a wrap, pilot.' : 'You’re fired!'}</h2><p>Level ${game.level.number} · ${game.level.name}<br>${reason}<br>${game.delivered}/${game.totalOrders} deliveries · Your bank: <b>${money(game.bank)}</b><br>Best shift: ${money(best)}</p><button class="primary-button" data-action="restart">REPLAY LEVEL <span>→</span></button><small class="intro-note">Choose your level and skill above for the next shift.</small></div>`;
     }
   }
 }

@@ -361,6 +361,30 @@ test('tip failure waits for all arrivals, and requires strictly negative tips', 
   game.checkEnd(); assert.equal(game.phase, 'playing', 'zero is not below zero');
   game.step(dt, idle); assert.equal(game.endReason, 'tips'); assert.equal(game.phase, 'gameover');
 });
+test('banked money covers negative tips, including the $9.38 bank / -$0.51 tip case', () => {
+  const game = createGame(() => .5); startPlaying(game); game.ship = game.spawnAtStation();
+  game.bank = 9.38;
+  setOrder(game, { target: 1, initialTip: 5, elapsed: 68.875 });
+  game.orders = [game.orders[0], { id: 2, target: 2, initialTip: 5, elapsed: 75, availableAt: 0, status: 'waiting' }];
+  assert.ok(Math.abs(game.tip + .51) < 1e-9);
+  game.checkEnd(); assert.equal(game.phase, 'playing');
+  game.orders[0].elapsed = 200;
+  game.checkEnd(); assert.equal(game.phase, 'playing', 'another affordable order keeps the shift alive');
+  game.orders[1].elapsed = 200;
+  game.checkEnd(); assert.equal(game.endReason, 'tips');
+  assert.match(game.events.at(-1).message, /You’re fired/);
+});
+test('tip failure requires a loss beyond the bank, with exact coverage safe for positive, zero, and negative banks', () => {
+  for (const bank of [10, 0, -2.5]) {
+    const game = createGame(() => .5); startPlaying(game); game.ship = game.spawnAtStation();
+    game.bank = bank;
+    setOrder(game, { target: 1, initialTip: 5, elapsed: (5 + bank) / SKILLS.normal.tipRate });
+    game.orders = [game.orders[0]];
+    assert.equal(game.bank + game.tip, 0);
+    game.checkEnd(); assert.equal(game.phase, 'playing', `exactly covered with bank ${bank}`);
+    game.step(dt, idle); assert.equal(game.endReason, 'tips');
+  }
+});
 test('delivered orders do not participate in tip failure or keep aging', () => {
   const game = createGame(); startPlaying(game);
   game.orders = [
