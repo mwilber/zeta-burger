@@ -16,6 +16,7 @@ export interface Level {
   name: string;
   theme: string;
   gravity: number;
+  blackHole?: LevelConfig['blackHole'];
   thrustScale?: number;
   padCount: number;
   pads: Pad[];
@@ -31,6 +32,11 @@ export function createLevel(config: LevelConfig): Level {
   const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
   if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
   if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
+  if (config.blackHole) {
+    const hole = config.blackHole;
+    if (![hole.x, hole.y, hole.radius, hole.strength, hole.maxAcceleration].every(Number.isFinite)
+      || hole.radius <= 0 || hole.strength <= 0 || hole.maxAcceleration <= 0) fail('invalid blackHole');
+  }
   if (config.thrustScale !== undefined && (!Number.isFinite(config.thrustScale) || config.thrustScale < 0)) fail('thrustScale must be a finite nonnegative number');
   if (!Number.isInteger(config.fallingObstacleLimit) || config.fallingObstacleLimit < 0) fail('fallingObstacleLimit must be a nonnegative integer');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
@@ -69,8 +75,8 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
 export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
   return `./assets/${name}-${level.number}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'fallingObstacleLimit' | 'seekerCount'>): string[] {
-  return [...new Set(['background', 'saucer', 'effects', ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
+export function levelAssetNames(level: Pick<Level, 'pads' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...(level.blackHole ? ['black-hole'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
     pad.building.kind, `island-${pad.id}`, `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
 }

@@ -139,7 +139,7 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
-The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Event Horizon → Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
 Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a nonnegative `gravity` acceleration (world units/second²), a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
@@ -188,8 +188,18 @@ The ship has no speed cap, so seekers use a fixed **30 world units/second** aver
 
 ![Zero G’s drifting orbital stations.](docs/screenshots/zero-g-level.jpg)
 
-**Zero G (level 5)** starts the development play order. All seven stations float in deep space and gently drift along small orbital paths. There are no seekers or falling obstacles. Its `gravity: 0` means the ship keeps its horizontal and vertical momentum until you apply opposite thrust. Its `thrustScale: .75` reduces upward, downward, and sideways acceleration by 25%, with the usual fuel consumption. The existing four levels each retain `gravity: 100`, full thrust power, and their original landing behavior.
+**Zero G (level 5)** follows Event Horizon in the development play order. All seven stations float in deep space and gently drift along small orbital paths. There are no seekers or falling obstacles. Its `gravity: 0` means the ship keeps its horizontal and vertical momentum until you apply opposite thrust. Its `thrustScale: .75` reduces upward, downward, and sideways acceleration by 25%, with the usual fuel consumption. The existing four levels each retain `gravity: 100`, full thrust power, and their original landing behavior.
 
 Match a pad's motion and descend gently with gear extended. **Hold Down for 250 ms after touchdown** to press the ship onto the pad and engage its landing clamp. This burns the normal downward-thrust fuel; releasing early (or exhausting fuel) lets the ship rebound and float away, resetting docking progress. Pickup and delivery wait until the clamp engages. The ship shows a progress bar and a **HOLD ↓ TO CLAMP** prompt while settling.
 
 Once clamped, release Down: the ship rides with the station without using fuel until upward thrust or gear retraction releases it. Takeoff inherits the station's velocity. Landing speed limits are measured relative to the moving pad. Replacement saucers arrive already clamped at the moving gas station, so recovery and refueling remain safe. Level 5's `-5.svg` assets depict metal station modules against an open starfield; completing it advances to Trick Or Treat.
+
+### Event Horizon
+
+![Event Horizon's central black hole and seven peripheral stations.](docs/screenshots/event-horizon-level.jpg)
+
+**Event Horizon (level 6)** starts the development play order. Seven stationary stations surround a black hole at the center of the screen. There is no uniform downward gravity: the hole pulls airborne ships inward from every direction, including when fuel is empty or gear is extended. The inverse-square pull increases as distance shrinks and is capped near the center. Full-strength thrusters let you brake and navigate around the outer rim. Crossing the bright event horizon with the hull or landing gear costs a life; continuous collision checks also catch fast crossings.
+
+Descend onto a pad and hold Down for 250 ms to clamp. A clamped ship stays secure against the pull without burning fuel. Pickup, delivery, release, and refueling follow the same clamp rules as Zero G. Replacement ships arrive safely clamped at the gas station. There are no seekers or falling obstacles. Completing the level advances to Zero G.
+
+Configure the well with optional `blackHole: { x, y, radius, strength, maxAcceleration }` in a level entry. Positions and horizon radius use world units; acceleration is `min(maxAcceleration, strength / distance²)` toward the center. Supply `black-hole-<number>.svg` on a `-208 -156 416 312` artboard with a horizon radius of 52; the renderer scales the art to the configured radius. Event Horizon's station and background assets use the stable `-6.svg` suffix.

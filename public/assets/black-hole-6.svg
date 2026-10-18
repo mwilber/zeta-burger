@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-208 -156 416 312">
+  <defs>
+    <radialGradient id="halo"><stop offset=".2" stop-color="#ffae72" stop-opacity=".35"/><stop offset=".5" stop-color="#b157b8" stop-opacity=".16"/><stop offset="1" stop-color="#492169" stop-opacity="0"/></radialGradient>
+    <radialGradient id="rim"><stop offset=".82" stop-color="#ff8f4e" stop-opacity="0"/><stop offset=".93" stop-color="#ffe5ad"/><stop offset="1" stop-color="#ff774a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="disk"><stop stop-color="#b964dd" stop-opacity="0"/><stop offset=".3" stop-color="#ec8c73"/><stop offset=".5" stop-color="#fff0ca"/><stop offset=".7" stop-color="#ec8c73"/><stop offset="1" stop-color="#b964dd" stop-opacity="0"/></linearGradient>
+  </defs>
+  <ellipse rx="208" ry="156" fill="url(#halo)"/>
+  <g transform="rotate(-14)" fill="none">
+    <ellipse rx="177" ry="43" stroke="url(#disk)" stroke-width="13" opacity=".5"/>
+    <ellipse rx="166" ry="36" stroke="url(#disk)" stroke-width="3"/>
+    <ellipse rx="196" ry="54" stroke="#c17cd8" stroke-width="1" opacity=".25"/>
+  </g>
+  <circle r="64" fill="url(#rim)"/>
+  <circle r="52" fill="#010107"/>
+  <circle r="53" fill="none" stroke="#fff1cf" stroke-width="2"/>
+  <path d="M-165 41 Q-80 4-50 24 Q0 57 53-2 Q110-35 172-41" fill="none" stroke="url(#disk)" stroke-width="5"/>
+  <path d="M-164 46 Q-80 9-50 29 Q0 62 53 3 Q110-30 172-36" fill="none" stroke="#ffb37d" stroke-opacity=".4" stroke-width="2"/>
+  <g fill="#e8b997" font-family="monospace" text-anchor="middle">
+    <text y="113" font-size="10" letter-spacing="4">EVENT HORIZON</text>
+    <text y="130" font-size="7" letter-spacing="2" opacity=".6">GRAVITY WELL · KEEP CLEAR</text>
+  </g>
+</svg>

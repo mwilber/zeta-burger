@@ -131,6 +131,11 @@ export class Renderer {
         this.stars.push({ node, phase }); this.scene.append(node);
       }
       this.scene.append(this.image('background', background, 0, 0, WORLD_WIDTH, WORLD_HEIGHT));
+      if (level.blackHole) {
+        const { x, y, radius } = level.blackHole;
+        const hole = this.asset('black-hole', [-radius * 4, -radius * 3, radius * 8, radius * 6]);
+        move(hole, x, y); hole.setAttribute('data-black-hole', ''); this.scene.append(hole);
+      }
       this.scene.append(this.stationLayer);
       this.waiting = this.asset('waiting-order'); this.shadow = this.asset('ship-shadow');
       this.vertical = this.asset('vertical-thrust'); this.horizontal = this.asset('horizontal-thrust');

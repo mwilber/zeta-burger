@@ -347,9 +347,27 @@ export class Game {
     this.burnFuel(cost);
     s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
     s.vx += direction * PHYSICS.sideThrust * thrust * dt;
+    const hole = this.level.blackHole;
+    if (hole) {
+      const dx = hole.x - s.x, dy = hole.y - s.y, distance = Math.hypot(dx, dy);
+      // Cap the acceleration near the horizon, including the exact center.
+      const pull = Math.min(hole.maxAcceleration, hole.strength / Math.max(distance * distance, 1));
+      if (distance > 0) { s.vx += dx / distance * pull * dt; s.vy += dy / distance * pull * dt; }
+    }
     // Collision geometry stays upright, regardless of the visible tilt.
     this.updateTilt(dt, s.gear ? 0 : Number(controls.right) - Number(controls.left));
     s.x += s.vx * dt; s.y += s.vy * dt;
+    if (hole) {
+      const horizon = Array.from({ length: 48 }, (_, i) => ({
+        x: hole.x + Math.cos(i * Math.PI / 24) * hole.radius,
+        y: hole.y + Math.sin(i * Math.PI / 24) * hole.radius
+      }));
+      const delta = { x: s.x - previous.x, y: s.y - previous.y };
+      // Sweep the hull and feet so a fast crossing cannot skip the horizon.
+      if ([shipBody(previous), ...(s.gear ? gearShapes(previous) : [])].some(shape => sweepContact(shape, horizon, delta) !== null)) {
+        this.crash('Event horizon crossed! Keep to the outer rim and brake against the pull.'); return;
+      }
+    }
     if (s.x - 24 <= 0 || s.x + 24 >= WORLD_WIDTH || s.y - 17 <= 0 || s.y + (s.gear ? PHYSICS.footY : 8) >= WORLD_HEIGHT - 12) {
       this.crash('World edge impact. Stay inside the flight zone.'); return;
     }

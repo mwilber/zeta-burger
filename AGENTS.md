@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -20,3 +20,8 @@ move as whole stations, including art and collisions. In zero gravity, hold
 Down on a pad for 250 ms to clamp; releasing early floats away.
 A clamped ship rides the station until upward thrust or gear retraction.
 Zero G alone uses `thrustScale: .75` (25% less acceleration on every thruster).
+
+Event Horizon (6) uses a central `blackHole` gravity well with inverse-square
+pull capped near its fatal event horizon. Its seven stationary pads sit on the
+periphery. It has no downward gravity, uses full thrust, and shares the 250 ms
+landing clamp behavior. Keep black-hole artwork aligned with its configured radius.

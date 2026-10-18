@@ -19,8 +19,10 @@ export interface LevelConfig {
   id: string;
   name: string;
   theme: string;
-  // Downward acceleration in world units per second squared. 0 is weightless.
+  // Uniform downward acceleration in world units/second², separate from a black hole.
   gravity: number;
+  // Inward inverse-square gravity; strength is world units³/second².
+  blackHole?: { x: number; y: number; radius: number; strength: number; maxAcceleration: number };
   // Thruster acceleration multiplier; omitted levels use full power.
   thrustScale?: number;
   start: Point;
@@ -40,6 +42,27 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 6,
+  id: 'event-horizon',
+  name: 'Event Horizon',
+  theme: 'Stay on the outer rim. The black hole pulls harder as you approach. Hold Down to clamp.',
+  gravity: 0,
+  blackHole: { x: 640, y: 380, radius: 52, strength: 7200000, maxAcceleration: 240 },
+  start: { x: 640, y: 65 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  pads: [
+    { id: 6, name: 'Gas station', x: 82, y: 420, width: 110, color: '#80e9ff', island: { x: -48, width: 218 }, building: { x: 124, width: 28, height: 48, kind: 'gas' } },
+    { id: 0, name: 'Zeta Burger', x: 260, y: 155, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
+    { id: 1, name: 'Spore Heights', x: 1100, y: 420, width: 102, color: '#b1b5ff', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
+    { id: 2, name: 'Orbit Observatory', x: 588, y: 155, width: 104, color: '#80e9ff', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
+    { id: 3, name: 'Moon Motel', x: 950, y: 155, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
+    { id: 4, name: 'Crystal Gardens', x: 865, y: 655, width: 104, color: '#b1b5ff', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
+    { id: 5, name: 'Cosmic Outpost', x: 380, y: 655, width: 104, color: '#80e9ff', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  ]
+}, {
   number: 5,
   id: 'zero-g',
   name: 'Zero G',
