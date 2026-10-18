@@ -65,7 +65,7 @@ Each level begins with a fixed schedule of orders. The first order always arrive
 | Expert | 8 | 5–10 seconds | $0.12/second |
 | Tester | 1 | First order at 5 seconds; no later arrivals | $0.08/second |
 
-The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip would leave your bank below zero** (`bank + tip < 0`). Your savings cover negative tips: with $9.38 in the bank, a tip of −$9.38 is still affordable; a lower tip is not. The shift continues while any remaining delivery is affordable or orders are still incoming. Losing the shift displays **“You’re fired!”**. The result screen identifies the end reason and shows delivered/total progress. **Level 4 · Trick Or Treat**, **level 3 · Obsession**, **level 2 · Meteor Shower**, and **level 1 · Luna** are available in that development play order. Choose a level before starting, and completing all deliveries automatically starts the next configured level without a result dialog. The result screen appears after the final configured level or a failed shift.
+The level ends when all orders are delivered, or when all scheduled orders have arrived and **every undelivered tip would leave your bank below zero** (`bank + tip < 0`). Your savings cover negative tips: with $9.38 in the bank, a tip of −$9.38 is still affordable; a lower tip is not. The shift continues while any remaining delivery is affordable or orders are still incoming. Losing the shift displays **“You’re fired!”**. The result screen identifies the end reason and shows delivered/total progress. **Level 5 · Zero G**, **level 4 · Trick Or Treat**, **level 3 · Obsession**, **level 2 · Meteor Shower**, and **level 1 · Luna** are available in that development play order. Choose a level before starting, and completing all deliveries automatically starts the next configured level without a result dialog. The result screen appears after the final configured level or a failed shift.
 
 Fuel starts at **100%**. Upward or downward thrust consumes **1.8%/second** and sideways thrust **0.9%/second**; using both consumes both rates. Coasting and locked sideways controls use no fuel. At zero fuel, gravity and momentum continue but thrust stops. Land on **pad 6** to refill for free at **25%/second**. Below 25%, the HUD warns you and the gas station lights up. Refueling takes time while all order tips continue falling.
 
@@ -78,7 +78,7 @@ Landings require both feet to be completely inside the pad, a downward speed at 
 | File | Purpose |
 | --- | --- |
 | `src/engine.ts` | Browser-independent physics, landing, lives, orders, signed tips, and game state |
-| `src/level-config.ts` | Editable level numbers, names, themes, pad locations/counts, and station roles |
+| `src/level-config.ts` | Editable level numbers, names, gravity, themes, pad locations/motion/counts, and station roles |
 | `src/levels.ts` | Config validation, generated levels, asset filenames, and skill settings |
 | `src/world.ts` | Geometry generated from pad configuration and convex polygon collision |
 | `src/renderer.ts` | SVG scene assembly, animation, and optional asset overrides |
@@ -139,11 +139,11 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
-The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
-Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
+Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a nonnegative `gravity` acceleration (world units/second²), a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
-A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
+A pad's `x` and `y` locate the upper-left corner of its landing surface in the **1280 × 760** world. Its island and building `x` values are offsets from the pad, and building `height` positions its roof above the surface. Changing only the pad's `x`/`y` moves its island, building, graphics, and collision geometry together. Edit `width`, island dimensions, or building dimensions to resize a station. Add optional `motion: { x: 18, y: 12, period: 20 }` for a gentle orbital drift: `x`/`y` are amplitudes in world units and `period` is seconds. The whole station moves together, including its landing surface, scenery, collisions, and docked ship. Motion follows gameplay time and freezes on pause, countdown, and game over. Keep the artwork aligned with these generated collision shapes. Configuration errors such as duplicate pad IDs or missing station roles fail with a level-specific message.
 
 ```ts
 // Example pad entry (coordinates are world units):
@@ -182,3 +182,14 @@ The ship has no speed cap, so seekers use a fixed **30 world units/second** aver
 **Trick Or Treat (level 4)** is a Halloween reskin of Obsession with the same station layout, four seekers, movement, collisions, and landed immunity. The seekers appear as animated white-sheet ghosts with dark eyes and rippling hems. Buildings wear jack-o’-lanterns, cobwebs, bunting, and other Halloween decorations. Amber lights, spectral green accents, a full moon, bats, and distant haunted scenery replace the synthwave setting. All artwork uses the `-4.svg` suffix; progression continues to Obsession after completing the level.
 
 ![Trick Or Treat's ghost seekers and Halloween-decorated stations.](docs/screenshots/trick-or-treat-level.png)
+
+
+### Zero G
+
+![Zero G’s drifting orbital stations.](docs/screenshots/zero-g-level.jpg)
+
+**Zero G (level 5)** starts the development play order. All seven stations float in deep space and gently drift along small orbital paths. There are no seekers or falling obstacles. Its `gravity: 0` means the ship keeps its horizontal and vertical momentum until you apply opposite thrust. Its `thrustScale: .75` reduces upward, downward, and sideways acceleration by 25%, with the usual fuel consumption. The existing four levels each retain `gravity: 100`, full thrust power, and their original landing behavior.
+
+Match a pad's motion and descend gently with gear extended. **Hold Down for 250 ms after touchdown** to press the ship onto the pad and engage its landing clamp. This burns the normal downward-thrust fuel; releasing early (or exhausting fuel) lets the ship rebound and float away, resetting docking progress. Pickup and delivery wait until the clamp engages. The ship shows a progress bar and a **HOLD ↓ TO CLAMP** prompt while settling.
+
+Once clamped, release Down: the ship rides with the station without using fuel until upward thrust or gear retraction releases it. Takeoff inherits the station's velocity. Landing speed limits are measured relative to the moving pad. Replacement saucers arrive already clamped at the moving gas station, so recovery and refueling remain safe. Level 5's `-5.svg` assets depict metal station modules against an open starfield; completing it advances to Trick Or Treat.

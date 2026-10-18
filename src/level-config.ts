@@ -7,6 +7,8 @@ export interface PadConfig {
   y: number;
   width: number;
   color: string;
+  // Optional orbital drift amplitudes (world units) and period (seconds).
+  motion?: { x: number; y: number; period: number };
   // Island and building positions are offsets from the pad's (x, y).
   island: { x: number; width: number };
   building: { x: number; width: number; height: number; kind: string };
@@ -17,6 +19,10 @@ export interface LevelConfig {
   id: string;
   name: string;
   theme: string;
+  // Downward acceleration in world units per second squared. 0 is weightless.
+  gravity: number;
+  // Thruster acceleration multiplier; omitted levels use full power.
+  thrustScale?: number;
   start: Point;
   restaurant: number;
   gasStation: number;
@@ -34,10 +40,32 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 5,
+  id: 'zero-g',
+  name: 'Zero G',
+  theme: 'No gravity. Hold Down on a pad for 250 ms to engage the landing clamp.',
+  gravity: 0,
+  thrustScale: .75,
+  start: { x: 640, y: 80 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  pads: [
+    { id: 6, name: 'Gas station', x: 82, y: 640, width: 110, color: '#80e9ff', motion: { x: 16, y: 10, period: 18 }, island: { x: -48, width: 218 }, building: { x: 124, width: 28, height: 48, kind: 'gas' } },
+    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd789', motion: { x: 18, y: 12, period: 20 }, island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
+    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#b1b5ff', motion: { x: 16, y: 12, period: 16 }, island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
+    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#80e9ff', motion: { x: 18, y: 10, period: 22 }, island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
+    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#ffd789', motion: { x: 14, y: 12, period: 19 }, island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
+    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#b1b5ff', motion: { x: 16, y: 10, period: 17 }, island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
+    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#80e9ff', motion: { x: 14, y: 10, period: 21 }, island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  ]
+}, {
   number: 4,
   id: 'trick-or-treat',
   name: 'Trick Or Treat',
   theme: 'Burgers, boos, and midnight deliveries. Land to escape the ghosts.',
+  gravity: 100,
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,
@@ -57,6 +85,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   id: 'obsession',
   name: 'Obsession',
   theme: 'Neon skies. Something is following you. Land for safety.',
+  gravity: 100,
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,
@@ -76,6 +105,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   id: 'meteor-shower',
   name: 'Meteor Shower',
   theme: 'Cool skies. Watch for falling rocks.',
+  gravity: 100,
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,
@@ -95,6 +125,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   id: 'luna',
   name: 'Luna',
   theme: 'Low gravity. High stakes.',
+  gravity: 100,
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,

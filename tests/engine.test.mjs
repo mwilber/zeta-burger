@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game, PHYSICS, FUEL, LANDING_BOUNCE } from '../dist/src/engine.js';
 import { svgRendererFixture } from './svg-fixture.mjs';
-import { PADS, WORLD_WIDTH } from '../dist/src/world.js';
+import { WORLD_WIDTH } from '../dist/src/world.js';
 import { LEVELS, SKILLS } from '../dist/src/levels.js';
 const luna = LEVELS.find(level => level.id === 'luna');
+const PADS = luna.pads;
 // These physics/service cases use the original hazard-free level.
 const createGame = (random = Math.random, level = luna) => new Game(random, level);
 const dt = 1 / 120;
@@ -68,7 +69,7 @@ test('gear down blocks both sideways thrusters but preserves drift', () => {
   assert.equal(game.ship.vx, 48); assert.equal(game.ship.vy, -15);
   fly(game, .25, { ...idle, left: true });
   assert.equal(game.ship.vx, 48); assert.ok(Math.abs(game.ship.x - 422) < .001);
-  assert.ok(Math.abs(game.ship.vy - (-15 + PHYSICS.gravity * .25)) < .001);
+  assert.ok(Math.abs(game.ship.vy - (-15 + luna.gravity * .25)) < .001);
 });
 test('retracted gear allows independent up and side thrust and no horizontal drag', () => {
   const game = airborne(); fly(game, .25, { ...idle, right: true, up: true });
@@ -79,26 +80,26 @@ test('downward thrust accelerates descent with either gear setting and can brake
   for (const gear of [false, true]) {
     const game = airborne(); game.ship.gear = gear; game.ship.vy = -100; game.ship.vx = 12;
     fly(game, .25, { ...idle, down: true });
-    assert.ok(Math.abs(game.ship.vy - (-100 + (PHYSICS.gravity + PHYSICS.downThrust) * .25)) < 1e-9);
+    assert.ok(Math.abs(game.ship.vy - (-100 + (luna.gravity + PHYSICS.downThrust) * .25)) < 1e-9);
     assert.equal(game.ship.vx, 12); assert.equal(game.ship.gear, gear); assert.equal(game.phase, 'playing');
     assert.ok(Math.abs(game.fuel - (FUEL.capacity - FUEL.downRate * .25)) < 1e-9);
   }
 });
 test('down and sideways thrust combine, while opposite vertical inputs cancel without vertical fuel use', () => {
   const game = airborne(); fly(game, .25, { ...idle, down: true, right: true });
-  assert.ok(Math.abs(game.ship.vy - (PHYSICS.gravity + PHYSICS.downThrust) * .25) < 1e-9);
+  assert.ok(Math.abs(game.ship.vy - (luna.gravity + PHYSICS.downThrust) * .25) < 1e-9);
   assert.ok(Math.abs(game.ship.vx - PHYSICS.sideThrust * .25) < 1e-9);
   assert.ok(Math.abs(game.fuel - (FUEL.capacity - (FUEL.downRate + FUEL.sideRate) * .25)) < 1e-9);
   const balanced = airborne(); fly(balanced, .25, { ...idle, up: true, down: true, right: true });
-  assert.ok(Math.abs(balanced.ship.vy - PHYSICS.gravity * .25) < 1e-9);
+  assert.ok(Math.abs(balanced.ship.vy - luna.gravity * .25) < 1e-9);
   assert.ok(Math.abs(balanced.fuel - (FUEL.capacity - FUEL.sideRate * .25)) < 1e-9);
 });
 test('downward thrust respects empty and partial tanks, pause, and docked pads', () => {
   const empty = airborne(); empty.fuel = 0; empty.step(dt, { ...idle, down: true });
-  assert.equal(empty.ship.vy, PHYSICS.gravity * dt); assert.equal(empty.fuel, 0);
+  assert.equal(empty.ship.vy, luna.gravity * dt); assert.equal(empty.fuel, 0);
   const partial = airborne(); partial.fuel = FUEL.downRate * dt / 2;
   partial.step(dt, { ...idle, down: true });
-  assert.ok(Math.abs(partial.ship.vy - (PHYSICS.gravity + PHYSICS.downThrust / 2) * dt) < 1e-9);
+  assert.ok(Math.abs(partial.ship.vy - (luna.gravity + PHYSICS.downThrust / 2) * dt) < 1e-9);
   assert.equal(partial.fuel, 0);
   const paused = airborne(); paused.pause(); const snapshot = { ...paused.ship };
   fly(paused, 1, { ...idle, down: true }); assert.deepEqual(paused.ship, snapshot); assert.equal(paused.fuel, FUEL.capacity);
@@ -143,7 +144,7 @@ test('configured landing speed limits are inclusive and still reject harder impa
     [horizontal, vertical, true], [-horizontal, vertical, true],
     [0, vertical + .001, false], [horizontal + .001, 20, false], [-horizontal - .001, 20, false]
   ]) {
-    const game = airborne(); approach(game, 0, true, vx, impactVy - PHYSICS.gravity * dt);
+    const game = airborne(); approach(game, 0, true, vx, impactVy - luna.gravity * dt);
     game.step(dt, idle);
     assert.equal(game.phase, survives ? 'playing' : 'crashed', `impact ${vx}, ${impactVy}`);
     assert.equal(game.ship.landed, survives ? 0 : null);
@@ -157,7 +158,7 @@ test('only surviving touchdowns in the final 25% of either speed limit bounce', 
     [0, vertical, true], [horizontal, 20, true], [-horizontal, 20, true],
     [0, PHYSICS.safeVertical, true], [0, PHYSICS.safeVertical + .001, false]
   ]) {
-    const game = airborne(); approach(game, 0, true, vx, impactVy - PHYSICS.gravity * dt);
+    const game = airborne(); approach(game, 0, true, vx, impactVy - luna.gravity * dt);
     game.step(dt, idle);
     assert.equal(game.landingBounceTime > 0, bounces, `impact ${vx}, ${impactVy}`);
     assert.equal(game.events.some(event => event.type === 'land' && event.message.includes('Close call')), bounces);
@@ -417,14 +418,14 @@ test('fuel is charged only for working thrusters, with an empty tank disabling t
   game.ship.gear = false; game.fuel = 0;
   const vx = game.ship.vx, vy = game.ship.vy;
   fly(game, .1, { ...idle, up: true, right: true });
-  assert.equal(game.ship.vx, vx); assert.ok(Math.abs(game.ship.vy - vy - PHYSICS.gravity * .1) < .00001);
+  assert.equal(game.ship.vx, vx); assert.ok(Math.abs(game.ship.vy - vy - luna.gravity * .1) < .00001);
   assert.equal(game.fuel, 0);
 });
 test('a partial tank supplies only the remaining fraction of a thrust step', () => {
   const game = airborne(); game.fuel = FUEL.upRate * dt / 2;
   game.step(dt, { ...idle, up: true });
   assert.equal(game.fuel, 0);
-  assert.ok(Math.abs(game.ship.vy - (PHYSICS.gravity - PHYSICS.upThrust / 2) * dt) < .00001);
+  assert.ok(Math.abs(game.ship.vy - (luna.gravity - PHYSICS.upThrust / 2) * dt) < .00001);
 });
 test('gas station refills for free up to capacity; other pads do not refill', () => {
   const game = createGame(); startPlaying(game); game.ship = game.spawnAtStation(); game.fuel = 0;

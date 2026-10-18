@@ -15,6 +15,8 @@ export interface Level {
   id: string;
   name: string;
   theme: string;
+  gravity: number;
+  thrustScale?: number;
   padCount: number;
   pads: Pad[];
   solids: Solid[];
@@ -28,6 +30,8 @@ export interface Level {
 export function createLevel(config: LevelConfig): Level {
   const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
   if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
+  if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
+  if (config.thrustScale !== undefined && (!Number.isFinite(config.thrustScale) || config.thrustScale < 0)) fail('thrustScale must be a finite nonnegative number');
   if (!Number.isInteger(config.fallingObstacleLimit) || config.fallingObstacleLimit < 0) fail('fallingObstacleLimit must be a nonnegative integer');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
   const ids = new Set<number>();
@@ -37,6 +41,8 @@ export function createLevel(config: LevelConfig): Level {
     if (![pad.x, pad.y, pad.width, pad.island.x, pad.island.width, pad.building.x, pad.building.width, pad.building.height].every(Number.isFinite)
       || pad.width < 38 || pad.island.width <= 18 || pad.building.width <= 0 || pad.building.height <= 0) fail(`invalid geometry for pad ${pad.id}`);
     if (!/^[a-z][a-z0-9-]*$/.test(pad.building.kind)) fail(`invalid building asset name for pad ${pad.id}`);
+    if (pad.motion && (![pad.motion.x, pad.motion.y, pad.motion.period].every(Number.isFinite)
+      || pad.motion.x < 0 || pad.motion.y < 0 || pad.motion.period <= 0)) fail(`invalid motion for pad ${pad.id}`);
   }
   if (!ids.has(config.restaurant) || !ids.has(config.gasStation) || config.restaurant === config.gasStation) fail('restaurant and gas station must reference distinct existing pads');
   const destinations = config.pads.filter(pad => pad.id !== config.restaurant && pad.id !== config.gasStation).map(pad => pad.id);

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760">
+  <defs>
+    <linearGradient id="void" x2=".7" y2="1"><stop stop-color="#030917"/><stop offset=".55" stop-color="#0b1830"/><stop offset="1" stop-color="#17182f"/></linearGradient>
+    <radialGradient id="nebula"><stop stop-color="#46689d" stop-opacity=".22"/><stop offset="1" stop-color="#162442" stop-opacity="0"/></radialGradient>
+    <radialGradient id="planet" cx=".3" cy=".2"><stop stop-color="#6a829c"/><stop offset=".5" stop-color="#2c415b"/><stop offset="1" stop-color="#101c30"/></radialGradient>
+  </defs>
+  <g data-sky=""><path d="M0 0H1280V760H0Z" fill="url(#void)"/><ellipse cx="800" cy="420" rx="670" ry="380" fill="url(#nebula)"/></g>
+  <g opacity=".55"><circle cx="1030" cy="140" r="70" fill="url(#planet)"/>
+    <ellipse cx="1030" cy="140" rx="115" ry="19" transform="rotate(-25 1030 140)" fill="none" stroke="#7393ac" stroke-width="5" opacity=".3"/>
+    <circle cx="200" cy="120" r="17" fill="#4d617b"/><circle cx="195" cy="116" r="16" fill="#14243a"/>
+  </g>
+  <g fill="none" stroke="#81a6c9" opacity=".07"><ellipse cx="640" cy="400" rx="540" ry="230" transform="rotate(-16 640 400)"/><ellipse cx="640" cy="400" rx="580" ry="285" transform="rotate(12 640 400)"/></g>
+  <path d="M0 748H1280" stroke="#7ba8d0" stroke-opacity=".16" stroke-dasharray="2 12"/>
+</svg>

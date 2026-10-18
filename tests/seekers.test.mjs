@@ -25,8 +25,8 @@ function fly(game, seconds, holdShip = false) {
   }
 }
 
-test('Trick Or Treat reskins Obsession, leads the LIFO stack, and every level has its required assets', () => {
-  assert.equal(LEVELS[0], trickOrTreat);
+test('Trick Or Treat reskins Obsession and every level has its required assets', () => {
+  assert.equal(nextLevel(LEVELS[0]), trickOrTreat);
   assert.equal(trickOrTreat.number, 4); assert.equal(trickOrTreat.name, 'Trick Or Treat');
   assert.equal(nextLevel(trickOrTreat), obsession);
   assert.deepEqual(trickOrTreat.solids, obsession.solids);

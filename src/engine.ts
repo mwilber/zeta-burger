@@ -1,9 +1,10 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact } from './world.js';
-import type { Point, Pad } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTime, padVelocity, createSolids } from './world.js';
+import type { Point, Pad, Solid } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
-export const PHYSICS = { gravity: 100, upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
+export const PHYSICS = { upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
+export const ZERO_G = { clingDelay: .25, rebound: 8 };
 export const CRASH_DURATION = 1.5;
 export const START_DELAY = 3;
 export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
@@ -24,7 +25,7 @@ export function verticalThrustDirection(controls: Controls): number { return (co
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'falling-obstacle-impact' | 'land' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -41,6 +42,9 @@ export class Game {
   orders: Order[] = [];
   skill: Skill = 'normal';
   level: Level;
+  // Live geometry belongs to this shift; level definitions stay at their origin.
+  pads: Pad[];
+  solids: Solid[];
   endReason: EndReason | null = null;
   fuel = FUEL.capacity;
   tilt = 0;
@@ -58,18 +62,31 @@ export class Game {
   time = 0;
   servicedPad: number | null = null;
   random: () => number;
-  constructor(random: () => number = Math.random, level: Level = LEVELS[0]) { this.random = random; this.level = level; this.ship = this.spawn(); }
+  constructor(random: () => number = Math.random, level: Level = LEVELS[0]) { this.random = random; this.level = level; this.pads = level.pads; this.solids = level.solids; this.ship = this.spawn(); }
   spawn(): Ship {
     return { ...this.level.start, vx: 0, vy: 0, gear: false, landed: null };
   }
   spawnAtStation(): Ship {
-    const station = this.level.pads.find(p => p.id === this.level.gasStation)!;
-    return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: station.id };
+    const station = this.pads.find(p => p.id === this.level.gasStation)!;
+    return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, ...this.stationVelocity(station), gear: true, landed: station.id };
   }
+  private stationVelocity(pad: Pad): { vx: number; vy: number } {
+    const velocity = padVelocity(pad, this.time);
+    return { vx: velocity.x, vy: velocity.y };
+  }
+  private updateStations() {
+    if (!this.level.pads.some(pad => pad.motion)) return;
+    this.pads = this.level.pads.map(pad => padAtTime(pad, this.time));
+    this.solids = createSolids(this.pads);
+  }
+  get clinging(): boolean { return this.ship.landed !== null && (this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
+  get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
+  get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
   start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean } = {}) {
     this.skill = skill; this.level = level;
     this.ship = this.spawn(); this.lives = 3; this.bank = options.carryBank ? this.bank : 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
+    this.pads = level.pads; this.solids = level.solids;
     this.fallingObstacles = []; this.fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay; this.nextFallingObstacleId = 0;
     this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;
     const setting = SKILLS[skill];
@@ -97,7 +114,7 @@ export class Game {
   }
   tipFor(order: Order): number { return order.initialTip - order.elapsed * SKILLS[this.skill].tipRate; }
   get tip(): number { return this.order ? this.tipFor(this.order) : 0; }
-  get destination(): Pad { return this.level.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
+  get destination(): Pad { return this.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
   finish(reason: NonNullable<Game['endReason']>) {
     this.endReason = reason; this.phase = 'gameover';
     this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'You’re fired! No remaining tip can keep your bank at or above $0.' : 'No saucers remaining.', { endReason: reason });
@@ -218,7 +235,11 @@ export class Game {
     this.fallingObstacles.forEach((obstacle, i) => {
       const delta = deltas[i], body = bodies[i];
       for (const solid of this.level.solids) {
-        const time = sweepContact(body, solid.points, delta);
+        const pad = this.level.pads.find(pad => pad.id === solid.padId)!;
+        const before = padAtTime(pad, this.time - dt), after = padAtTime(pad, this.time);
+        const stationDelta = { x: after.x - before.x, y: after.y - before.y };
+        const points = solid.points.map(p => ({ x: p.x + before.x - pad.x, y: p.y + before.y - pad.y }));
+        const time = sweepContact(body, points, delta, stationDelta);
         if (time !== null) contacts.push({ obstacle, time });
       }
       if (canHitShip) for (const shape of shipShapes) {
@@ -269,6 +290,8 @@ export class Game {
     // Callers use a fixed 120 Hz timestep. Long gaps are discarded by the render loop.
     const previousTime = this.time;
     this.time += dt;
+    const previousPads = this.pads;
+    this.updateStations();
     for (const order of this.orders) {
       if (order.status === 'delivered') continue;
       if (order.status === 'scheduled' && this.time >= order.availableAt) {
@@ -281,18 +304,27 @@ export class Game {
     if (this.endReason !== null) return;
     if (this.phase === 'crashed') {
       this.crashTime += dt;
-      if (this.crashTime + 1e-9 >= CRASH_DURATION) { this.ship = this.spawnAtStation(); this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
+      if (this.crashTime + 1e-9 >= CRASH_DURATION) { this.ship = this.spawnAtStation(); this.dwell = this.serviceDelay; this.fuel = FUEL.capacity; this.tilt = 0; this.lowFuelWarned = false; this.phase = 'playing'; this.emit('respawn', 'Fresh saucer with a full tank. Your orders keep ticking.'); }
       return;
     }
     const s = this.ship;
     const vertical = this.fuel > 0 ? verticalThrustDirection(controls) : 0;
     const up = vertical > 0, down = vertical < 0;
     if (s.landed !== null) {
-      if (!up) {
+      const pad = this.pads.find(pad => pad.id === s.landed)!;
+      const oldPad = previousPads.find(pad => pad.id === s.landed)!;
+      s.x += pad.x - oldPad.x; s.y = pad.y - PHYSICS.footY;
+      const velocity = this.stationVelocity(pad);
+      const wasClinging = this.clinging;
+      if (!up && (wasClinging || down)) {
+        const heldTime = this.needsLandingThrust ? Math.min(dt, this.fuel / FUEL.downRate) : dt;
+        if (this.needsLandingThrust) this.burnFuel(FUEL.downRate * heldTime);
+        s.vx = velocity.vx; s.vy = velocity.vy;
         this.landingBounceTime = Math.max(0, this.landingBounceTime - dt);
         if (this.landingBounceTime < 1e-9) this.landingBounceTime = 0;
         this.updateTilt(dt, 0);
-        this.dwell += dt;
+        this.dwell += heldTime;
+        if (!wasClinging && this.clinging) this.emit('clamp', 'Landing clamp engaged. Release Down; thrust Up to take off.');
         if (s.landed === this.level.gasStation) {
           this.fuel = Math.min(FUEL.capacity, this.fuel + FUEL.refillRate * dt);
           if (this.fuel > FUEL.low) this.lowFuelWarned = false;
@@ -300,19 +332,21 @@ export class Game {
         this.service(); return;
       }
       s.landed = null; this.servicedPad = null; this.dwell = 0; this.landingBounceTime = 0;
-      s.gear = false;
-      this.emit('gear', 'Lift-off! Landing gear automatically retracted.');
+      // Without weight or a clamp, contact gives a small separating rebound.
+      s.vx = velocity.vx; s.vy = velocity.vy - (up ? 0 : ZERO_G.rebound);
+      if (up) {
+        s.gear = false;
+        this.emit('gear', 'Lift-off! Landing gear automatically retracted.');
+      }
     }
     const previous = { ...s };
     const direction = !s.gear && this.fuel > 0 ? Number(controls.right) - Number(controls.left) : 0;
     const cost = ((up ? FUEL.upRate : down ? FUEL.downRate : 0) + Math.abs(direction) * FUEL.sideRate) * dt;
     const power = cost > 0 ? Math.min(1, this.fuel / cost) : 0;
-    this.fuel = Math.max(0, this.fuel - cost);
-    if (this.fuel <= FUEL.low && !this.lowFuelWarned) {
-      this.lowFuelWarned = true; this.emit('fuel', `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
-    }
-    s.vy += (PHYSICS.gravity - (up ? PHYSICS.upThrust * power : 0) + (down ? PHYSICS.downThrust * power : 0)) * dt;
-    s.vx += direction * PHYSICS.sideThrust * power * dt;
+    const thrust = power * (this.level.thrustScale ?? 1);
+    this.burnFuel(cost);
+    s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
+    s.vx += direction * PHYSICS.sideThrust * thrust * dt;
     // Collision geometry stays upright, regardless of the visible tilt.
     this.updateTilt(dt, s.gear ? 0 : Number(controls.right) - Number(controls.left));
     s.x += s.vx * dt; s.y += s.vy * dt;
@@ -320,33 +354,51 @@ export class Game {
       this.crash('World edge impact. Stay inside the flight zone.'); return;
     }
     const body = shipBody(s);
-    for (const solid of this.level.solids) {
-      if (intersects(body, solid.points)) { this.crash('Hull impact. Only your landing gear can touch a pad.'); return; }
+    for (const solid of this.solids) {
+      const pad = this.pads.find(pad => pad.id === solid.padId)!;
+      const oldPad = previousPads.find(pad => pad.id === solid.padId)!;
+      const delta = { x: pad.x - oldPad.x, y: pad.y - oldPad.y };
+      const swept = pad.motion && sweepContact(shipBody(previous), solid.points.map(p => ({ x: p.x - delta.x, y: p.y - delta.y })),
+        { x: s.x - previous.x, y: s.y - previous.y }, delta) !== null;
+      if (swept || intersects(body, solid.points)) { this.crash('Hull impact. Only your landing gear can touch a pad.'); return; }
     }
     if (!s.gear) return;
     // Only a downward crossing with both feet inside the pad can become a landing.
-    for (const pad of this.level.pads) {
-      const crossed = previous.y + PHYSICS.footY <= pad.y + .001 && s.y + PHYSICS.footY >= pad.y && s.vy >= 0;
-      const feetInside = s.x - PHYSICS.footX - 3 >= pad.x && s.x + PHYSICS.footX + 3 <= pad.x + pad.width;
+    for (const pad of this.pads) {
+      const oldPad = previousPads.find(p => p.id === pad.id)!;
+      const velocity = this.stationVelocity(pad);
+      const vy = s.vy - velocity.vy, vx = s.vx - velocity.vx;
+      const crossed = previous.y + PHYSICS.footY <= oldPad.y + .001 && s.y + PHYSICS.footY >= pad.y && vy >= 0;
+      const distance = (s.y - previous.y) - (pad.y - oldPad.y);
+      const contact = distance > 0 ? Math.max(0, Math.min(1, (oldPad.y - previous.y - PHYSICS.footY) / distance)) : 0;
+      const contactX = previous.x + (s.x - previous.x) * contact - oldPad.x - (pad.x - oldPad.x) * contact;
+      const feetInside = contactX - PHYSICS.footX - 3 >= 0 && contactX + PHYSICS.footX + 3 <= pad.width
+        && s.x - PHYSICS.footX - 3 >= pad.x && s.x + PHYSICS.footX + 3 <= pad.x + pad.width;
       if (crossed && feetInside) {
-        if (s.vy > PHYSICS.safeVertical || Math.abs(s.vx) > PHYSICS.safeHorizontal) {
+        if (vy > PHYSICS.safeVertical || Math.abs(vx) > PHYSICS.safeHorizontal) {
           this.crash(`Hard landing. Descend at or below ${PHYSICS.safeVertical}; sideways drift at or below ${PHYSICS.safeHorizontal}.`); return;
         }
-        const nearCrash = s.vy >= PHYSICS.safeVertical * LANDING_BOUNCE.nearCrashRatio || Math.abs(s.vx) >= PHYSICS.safeHorizontal * LANDING_BOUNCE.nearCrashRatio;
-        this.landingBounceTime = nearCrash ? LANDING_BOUNCE.duration : 0;
-        s.y = pad.y - PHYSICS.footY; s.vx = 0; s.vy = 0; s.landed = pad.id; this.dwell = 0;
-        this.emit('land', `${pad.name} · ${nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`, { hardLanding: nearCrash });
+        const nearCrash = vy >= PHYSICS.safeVertical * LANDING_BOUNCE.nearCrashRatio || Math.abs(vx) >= PHYSICS.safeHorizontal * LANDING_BOUNCE.nearCrashRatio;
+        this.landingBounceTime = nearCrash && this.level.gravity > 0 ? LANDING_BOUNCE.duration : 0;
+        s.y = pad.y - PHYSICS.footY; s.vx = velocity.vx; s.vy = velocity.vy; s.landed = pad.id; this.dwell = 0;
+        this.emit('land', `${pad.name} · ${this.level.gravity === 0 ? 'Hold Down for 250 ms to clamp' : nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`, { hardLanding: nearCrash });
         return;
       }
     }
     for (const gear of gearShapes(s)) {
-      for (const solid of this.level.solids) {
+      for (const solid of this.solids) {
         if (intersects(gear, solid.points)) { this.crash('Landing gear impact. Approach the top of a pad with both feet.'); return; }
       }
     }
   }
+  private burnFuel(cost: number) {
+    this.fuel = Math.max(0, this.fuel - cost);
+    if (this.fuel <= FUEL.low && !this.lowFuelWarned) {
+      this.lowFuelWarned = true; this.emit('fuel', `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
+    }
+  }
   service() {
-    if (this.dwell < PHYSICS.dwell || this.ship.landed === this.servicedPad) return;
+    if (this.dwell + 1e-9 < this.serviceDelay || this.ship.landed === this.servicedPad) return;
     const id = this.ship.landed;
     if (id === this.level.restaurant && !this.order && this.waitingOrders.length) {
       const order = this.waitingOrders[0]; order.status = 'onboard'; this.servicedPad = id;

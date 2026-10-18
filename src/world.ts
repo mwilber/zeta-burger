@@ -3,11 +3,29 @@ import type { PadConfig } from './level-config.js';
 export const WORLD_WIDTH = 1280;
 export const WORLD_HEIGHT = 760;
 export interface Point { x: number; y: number }
-export interface Pad { id: number; name: string; x: number; y: number; width: number; color: string; island: Point[]; building: { x: number; y: number; width: number; height: number; kind: string } }
+export interface Pad { id: number; name: string; x: number; y: number; width: number; color: string; motion?: PadConfig['motion']; island: Point[]; building: { x: number; y: number; width: number; height: number; kind: string } }
 export function createPad(config: PadConfig): Pad {
   const { id, name, x, y, width, color, island, building } = config;
   const ix = x + island.x, iw = island.width;
-  return { id, name, x, y, width, color, island: [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }], building: { x: x + building.x, y: y - building.height, width: building.width, height: building.height + 10, kind: building.kind } };
+  return { id, name, x, y, width, color, motion: config.motion, island: [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }], building: { x: x + building.x, y: y - building.height, width: building.width, height: building.height + 10, kind: building.kind } };
+}
+/** Orbit the whole station, keeping its artwork and all collision shapes together. */
+export function padOffset(pad: Pad, time: number): Point {
+  if (!pad.motion) return { x: 0, y: 0 };
+  const angle = time * Math.PI * 2 / pad.motion.period;
+  return { x: Math.sin(angle) * pad.motion.x, y: (Math.cos(angle) - 1) * pad.motion.y };
+}
+export function padVelocity(pad: Pad, time: number): Point {
+  if (!pad.motion) return { x: 0, y: 0 };
+  const rate = Math.PI * 2 / pad.motion.period, angle = time * rate;
+  return { x: Math.cos(angle) * pad.motion.x * rate, y: -Math.sin(angle) * pad.motion.y * rate };
+}
+export function padAtTime(pad: Pad, time: number): Pad {
+  if (!pad.motion) return pad;
+  const offset = padOffset(pad, time);
+  return { ...pad, x: pad.x + offset.x, y: pad.y + offset.y,
+    island: pad.island.map(p => ({ x: p.x + offset.x, y: p.y + offset.y })),
+    building: { ...pad.building, x: pad.building.x + offset.x, y: pad.building.y + offset.y } };
 }
 // Default-level exports retained for physics and route consumers.
 export const PADS: Pad[] = LEVEL_CONFIG[0].pads.map(createPad);

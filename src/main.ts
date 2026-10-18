@@ -23,6 +23,7 @@ let advanceFailed = false;
 levelSelect.addEventListener('change', () => {
   if (game.phase !== 'ready' || starting) return;
   game.level = LEVELS.find(level => level.id === levelSelect.value)!;
+  game.pads = game.level.pads; game.solids = game.level.solids; game.time = 0;
   game.ship = game.spawn();
   void renderer.setLevel(game.level);
   updateHud();
@@ -142,11 +143,13 @@ function updateHud() {
   text(get('level-theme'), game.level.theme.toUpperCase());
   text(get('fuel-pad'), `REFILL · PAD ${game.level.gasStation}`);
   const intro = document.querySelector<HTMLElement>('#intro-description');
-  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
   text(get('help-gas'), `pad ${game.level.gasStation}`);
   get('falling-obstacle-help').hidden = game.level.fallingObstacleLimit === 0;
   get('seeker-help').hidden = game.level.seekerCount === 0;
+  get('zero-g-help').hidden = game.level.gravity !== 0;
   text(fuelValue, `${Math.floor(game.fuel)}%`); fuelMeter.value = game.fuel;
   fuelValue.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
   text(orderSummary, game.phase === 'ready' ? `${orderCount} ${orderCount === 1 ? 'order' : 'orders'} this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);

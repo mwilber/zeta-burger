@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game, PHYSICS } from '../dist/src/engine.js';
-import { PADS } from '../dist/src/world.js';
 import { LEVELS } from '../dist/src/levels.js';
 const luna = LEVELS.find(level => level.id === 'luna');
+const PADS = luna.pads;
 const dt = 1/120;
 function seek(game, x, y, landId = null) {
   const gear = landId !== null;

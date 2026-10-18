@@ -111,7 +111,7 @@ test('continuing levels carries the signed bank balance and adds new tips; fresh
     const order = game.orders[0]; order.status = 'onboard'; order.elapsed = elapsed;
     const pad = game.destination;
     game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: pad.id };
-    game.dwell = PHYSICS.dwell; game.service();
+    game.dwell = game.serviceDelay; game.service();
     assert.equal(game.endReason, 'delivered');
   };
   game.start('tester', LEVELS[0]); deliver();

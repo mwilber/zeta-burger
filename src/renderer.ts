@@ -1,10 +1,10 @@
-import { WORLD_WIDTH, WORLD_HEIGHT } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, padOffset } from './world.js';
 import type { Pad } from './world.js';
 import { LEVELS, levelAssetNames, levelAssetPath } from './levels.js';
 import type { Level } from './levels.js';
 import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
 import type { ArtBox } from './svg-art.js';
-import { PHYSICS, CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
+import { CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -271,6 +271,8 @@ export class Renderer {
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
     for (const star of this.stars) attr(star.node, { opacity: .3 + (this.reducedMotion ? .25 : (Math.sin(time * .55 + star.phase) + 1) * .25) });
     for (const station of this.stations) {
+      const offset = padOffset(station.pad, game.time);
+      move(station.root, offset.x, offset.y);
       const active = station.pad.id === game.destination.id || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
       visible(station.idle, !active); visible(station.active, active);
       animateTranslation(station.beacon, 0, this.reducedMotion ? 0 : Math.sin(time * 3) * 3);
@@ -283,7 +285,7 @@ export class Renderer {
     }
     const waiting = game.waitingOrders[0]; visible(this.waiting, !!waiting);
     if (waiting) {
-      const restaurant = game.level.pads.find(pad => pad.id === game.level.restaurant)!;
+      const restaurant = game.pads.find(pad => pad.id === game.level.restaurant)!;
       move(this.waiting, restaurant.building.x + restaurant.building.width / 2, restaurant.building.y - 28);
       this.tip(this.waiting, game.tipFor(waiting)); setText(find(this.waiting, '[data-count]'), `${game.waitingOrders.length} READY`);
     }
@@ -297,7 +299,7 @@ export class Renderer {
     const s = game.ship, showShip = game.phase !== 'crashed' && game.phase !== 'gameover';
     visible(this.ship, showShip); visible(this.shadow, showShip && s.landed !== null); move(this.shadow, s.x, s.y);
     const vertical = verticalThrustDirection(controls);
-    visible(this.vertical, showShip && vertical !== 0 && game.fuel > 0 && game.phase === 'playing' && (vertical > 0 || s.landed === null));
+    visible(this.vertical, showShip && vertical !== 0 && game.fuel > 0 && game.phase === 'playing' && (vertical > 0 || s.landed === null || game.needsLandingThrust));
     const side = vertical > 0 ? 1 : -1;
     this.vertical.setAttribute('transform', `translate(${s.x} ${s.y}) scale(1 ${side})`);
     this.verticalWaves.forEach((wave, i) => {
@@ -317,11 +319,12 @@ export class Renderer {
     visible(this.gear, s.gear); move(this.carried, s.x, s.y); visible(this.carried, showShip && !!game.order);
     if (game.order) { this.tip(this.carried, game.tip); setText(find(this.carried, '[data-destination]'), `→ PAD ${game.order.target}`); }
     move(this.service, s.x, s.y); visible(this.service, showShip);
-    const dwell = s.landed !== null && game.dwell < PHYSICS.dwell && (s.landed === game.level.restaurant || s.landed === game.order?.target);
+    const dwell = s.landed !== null && game.dwell < game.serviceDelay && (game.needsLandingThrust || s.landed === game.level.restaurant || s.landed === game.order?.target);
     visible(find(this.service, '[data-dwell]'), dwell);
     const progress = find<SVGRectElement>(this.service, '[data-progress]');
-    attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / PHYSICS.dwell), 'x') });
-    const refuel = find<SVGTextElement>(this.service, '[data-refuel]'); visible(refuel, s.landed === game.level.gasStation);
-    setText(refuel, game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL');
+    attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
+    const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
+    visible(refuel, s.landed === game.level.gasStation || (game.level.gravity === 0 && s.landed !== null));
+    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }

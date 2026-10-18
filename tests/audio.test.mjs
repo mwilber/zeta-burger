@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Sound } from '../dist/src/audio.js';
-import { Game, LANDING_BOUNCE, PHYSICS } from '../dist/src/engine.js';
+import { Game, LANDING_BOUNCE, PHYSICS, ZERO_G } from '../dist/src/engine.js';
+import { LEVELS } from '../dist/src/levels.js';
+const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 
 function audio() {
@@ -34,8 +36,8 @@ function audio() {
   return { sound, context, nodes };
 }
 
-function playing() {
-  const game = new Game(() => .5); game.start();
+function playing(level = luna) {
+  const game = new Game(() => .5, level); game.start();
   game.step(3, idle);
   return game;
 }
@@ -212,4 +214,16 @@ test('falling obstacle impacts reuse explosion audio without interrupting the fl
   assert.ok(thrust.every(node => node.stops.length === 0));
   const count = nodes.length; sound.update(game, controls);
   assert.equal(nodes.length, count, 'ship thrust voices continue without restarting');
+});
+
+
+test('Zero G holding thrust is audible until the landing clamp engages', () => {
+  const { sound, nodes } = audio(), game = playing(LEVELS.find(level => level.id === 'zero-g'));
+  game.ship = game.spawnAtStation();
+  const down = { ...idle, down: true };
+  sound.update(game, down);
+  assert.equal(nodes.length, 2);
+  for (let i = 0; i < ZERO_G.clingDelay * 120; i++) game.step(1 / 120, down);
+  sound.update(game, down);
+  assert.ok(nodes.every(node => node.stops.length === 1));
 });
