@@ -23,5 +23,7 @@ Zero G alone uses `thrustScale: .75` (25% less acceleration on every thruster).
 
 Event Horizon (6) uses a central `blackHole` gravity well with inverse-square
 pull capped near its fatal event horizon. Its seven stationary pads sit on the
-periphery. It has no downward gravity, uses full thrust, and shares the 250 ms
-landing clamp behavior. Keep black-hole artwork aligned with its configured radius.
+periphery. It has no downward gravity and uses full thrust. Landing immediately
+blocks the pull without holding Down or using fuel; upward thrust or gear
+retraction restores it. Pickup/delivery take 250 ms. Keep black-hole artwork
+aligned with its configured radius.

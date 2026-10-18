@@ -79,7 +79,7 @@ export class Game {
     this.pads = this.level.pads.map(pad => padAtTime(pad, this.time));
     this.solids = createSolids(this.pads);
   }
-  get clinging(): boolean { return this.ship.landed !== null && (this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
+  get clinging(): boolean { return this.ship.landed !== null && (this.level.blackHole !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
   get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
   start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean } = {}) {
@@ -399,7 +399,7 @@ export class Game {
         const nearCrash = vy >= PHYSICS.safeVertical * LANDING_BOUNCE.nearCrashRatio || Math.abs(vx) >= PHYSICS.safeHorizontal * LANDING_BOUNCE.nearCrashRatio;
         this.landingBounceTime = nearCrash && this.level.gravity > 0 ? LANDING_BOUNCE.duration : 0;
         s.y = pad.y - PHYSICS.footY; s.vx = velocity.vx; s.vy = velocity.vy; s.landed = pad.id; this.dwell = 0;
-        this.emit('land', `${pad.name} · ${this.level.gravity === 0 ? 'Hold Down for 250 ms to clamp' : nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`, { hardLanding: nearCrash });
+        this.emit('land', `${pad.name} · ${this.needsLandingThrust ? 'Hold Down for 250 ms to clamp' : nearCrash ? 'Close call! Almost a fatal landing' : 'Docked'} at pad ${pad.id}`, { hardLanding: nearCrash });
         return;
       }
     }

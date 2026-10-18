@@ -330,6 +330,6 @@ export class Renderer {
     attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
     visible(refuel, s.landed === game.level.gasStation || (game.level.gravity === 0 && s.landed !== null));
-    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : 'CLAMPED · ↑ TO LIFT OFF');
+    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.blackHole ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }

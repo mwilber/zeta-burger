@@ -143,7 +143,7 @@ function updateHud() {
   text(get('level-theme'), game.level.theme.toUpperCase());
   text(get('fuel-pad'), `REFILL · PAD ${game.level.gasStation}`);
   const intro = document.querySelector<HTMLElement>('#intro-description');
-  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Hold Down on a pad for 250 ms to clamp.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `Start above ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
   text(get('help-gas'), `pad ${game.level.gasStation}`);

@@ -45,7 +45,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   number: 6,
   id: 'event-horizon',
   name: 'Event Horizon',
-  theme: 'Stay on the outer rim. The black hole pulls harder as you approach. Hold Down to clamp.',
+  theme: 'Stay on the outer rim. The black hole pulls harder as you approach. Land for safety.',
   gravity: 0,
   blackHole: { x: 640, y: 380, radius: 52, strength: 7200000, maxAcceleration: 240 },
   start: { x: 640, y: 65 },

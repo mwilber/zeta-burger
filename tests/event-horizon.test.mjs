@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, PHYSICS, START_DELAY, ZERO_G, CRASH_DURATION } from '../dist/src/engine.js';
+import { Game, PHYSICS, START_DELAY, CRASH_DURATION } from '../dist/src/engine.js';
 import { LEVELS, createLevel, nextLevel } from '../dist/src/levels.js';
 import { LEVEL_CONFIG } from '../dist/src/level-config.js';
 import { WORLD_WIDTH, WORLD_HEIGHT, intersects } from '../dist/src/world.js';
@@ -66,7 +66,7 @@ test('hull and gear contact, exact-center spawns, and fast crossings lose one li
   }
 });
 
-test('every station accepts touchdown and a secure clamp, pickup and delivery, with normal refueling and release', () => {
+test('every station immediately shelters a landed ship without holding thrust, with normal service and refueling', () => {
   for (const pad of level.pads) {
     const game = playing();
     game.orders[0].availableAt = 0;
@@ -74,14 +74,39 @@ test('every station accepts touchdown and a secure clamp, pickup and delivery, w
       game.orders[0].status = 'onboard'; game.orders[0].target = pad.id;
     }
     game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .05, vx: 0, vy: 20, gear: true, landed: null };
-    game.step(dt, { ...idle, down: true }); assert.equal(game.ship.landed, pad.id);
-    fly(game, ZERO_G.clingDelay, { ...idle, down: true }); assert.equal(game.clinging, true);
+    game.step(dt, idle); assert.equal(game.ship.landed, pad.id);
+    assert.equal(game.clinging, true); assert.equal(game.needsLandingThrust, false);
+    assert.match(game.events.at(-1).message, /Docked/);
+    assert.equal(game.dwell, 0);
+    fly(game, game.serviceDelay);
     if (pad.id === level.restaurant) assert.ok(game.order);
     else if (pad.id !== level.gasStation) assert.equal(game.delivered, 1);
     game.fuel = 40; const ship = { ...game.ship }; fly(game, 1);
     assert.deepEqual(game.ship, ship); assert.equal(game.lives, 3);
     assert.ok(Math.abs(game.fuel - (pad.id === level.gasStation ? 65 : 40)) < 1e-9);
     game.step(dt, { ...idle, up: true }); assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false);
+  }
+});
+
+test('landed immunity needs no fuel and ends when gear retracts or the ship takes off', () => {
+  for (const pad of level.pads) for (const release of ['gear', 'up']) {
+    const game = playing(); game.fuel = 0;
+    game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .05, vx: 0, vy: 20, gear: true, landed: null };
+    game.step(dt, idle); assert.equal(game.ship.landed, pad.id); assert.equal(game.clinging, true);
+    const landed = { ...game.ship }; fly(game, .5);
+    assert.deepEqual(game.ship, landed);
+    if (pad.id !== level.gasStation) assert.equal(game.fuel, 0);
+    game.fuel = 40;
+    if (release === 'gear') game.toggleGear();
+    game.step(dt, release === 'up' ? { ...idle, up: true } : idle);
+    assert.equal(game.ship.landed, null);
+    assert.equal(game.ship.gear, false);
+    const previous = { ...game.ship };
+    game.step(dt, idle);
+    const dx = 640 - previous.x, dy = 380 - previous.y, distance = Math.hypot(dx, dy);
+    const pull = Math.min(level.blackHole.maxAcceleration, level.blackHole.strength / distance ** 2);
+    assert.ok(Math.abs(game.ship.vx - previous.vx - dx / distance * pull * dt) < 1e-9);
+    assert.ok(Math.abs(game.ship.vy - previous.vy - dy / distance * pull * dt) < 1e-9);
   }
 });
 
@@ -117,13 +142,13 @@ test('a full restaurant–delivery–refuel–restaurant route works around the 
       if (landId !== null && !s.gear && Math.abs(dx) < .5 && Math.abs(s.vx) < .6 && Math.abs(dy) < 12) game.toggleGear();
       const desiredX = clamp(dx * 1.8, -85, 85);
       const desiredY = s.gear ? clamp((dy + 8) * 1.5, 12, 25) : clamp(dy * 1.8, -65, 65);
-      const controls = s.landed !== null ? { ...idle, down: true } : {
+      const controls = s.landed !== null ? idle : {
         left: !s.gear && s.vx > desiredX + .3, right: !s.gear && s.vx < desiredX - .3,
         up: s.vy > desiredY + .3, down: s.vy < desiredY - .3
       };
       game.step(dt, controls);
       assert.equal(game.phase, 'playing', `${game.events.at(-1)?.message} heading to ${x},${y}; fuel ${game.fuel}; ship ${JSON.stringify(s)}`);
-      if (landId !== null && game.clinging) return;
+      if (landId !== null && s.landed === landId && game.dwell + 1e-9 >= game.serviceDelay) return;
       if (landId === null && Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(s.vx) < 3 && Math.abs(s.vy) < 3) return;
     }
     assert.fail(`Navigation timed out at ${JSON.stringify(game.ship)}`);
