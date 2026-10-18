@@ -45,7 +45,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   name: 'Zero G',
   theme: 'No gravity. Hold Down on a pad for 250 ms to engage the landing clamp.',
   gravity: 0,
-  thrustScale: .75,
+  thrustScale: .3,
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,
