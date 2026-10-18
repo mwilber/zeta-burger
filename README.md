@@ -6,7 +6,7 @@ Hot burgers. Cold space. A side-view arcade game about flying a saucer on an ali
 
 ## Run locally
 
-Requires Node.js 20 or newer and npm.
+Uses Node.js 24 LTS and npm.
 
 ```sh
 npm install
@@ -22,6 +22,25 @@ npm run build       # Compile a static site into dist/
 ```
 
 Serve `dist/` with any static HTTP host, at the domain root or in a subdirectory such as `/games/zeta-burger/`. The game uses relative asset URLs. No server APIs, remote fonts, or runtime dependencies are needed. TypeScript is the only development dependency, approved for compilation and type checking.
+
+## Deploy to Heroku
+
+The deployed app is **zeta-burger**:
+https://zeta-burger-f207cc267fb2.herokuapp.com/.
+
+Heroku installs the build dependencies and runs `npm run build` during deployment.
+The `Procfile` runs `npm start`, which serves only the built `dist/` files using
+Node's HTTP server on `0.0.0.0:$PORT`. No database or add-ons are required.
+
+```sh
+heroku create YOUR-APP-NAME --stack heroku-24 --buildpack heroku/nodejs
+git push heroku HEAD:main
+heroku open
+```
+
+For subsequent deployments, commit your changes and run `git push heroku HEAD:main`.
+To preview the production server locally, run `npm run build && npm start` and open
+http://localhost:5173 (or set `PORT` to another port).
 
 ## Play
 
