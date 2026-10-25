@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" overflow="visible">
+  <title>Abyss — deep ocean</title>
+  <defs>
+    <linearGradient id="ocean" x2=".15" y2="1"><stop stop-color="#07536a"/><stop offset=".42" stop-color="#063249"/><stop offset="1" stop-color="#020f25"/></linearGradient>
+    <linearGradient id="sunshaft" x2=".25" y2="1"><stop stop-color="#92f5e7" stop-opacity=".14"/><stop offset="1" stop-color="#60dfd9" stop-opacity="0"/></linearGradient>
+    <linearGradient id="sand" x2="0" y2="1"><stop stop-color="#123740"/><stop offset="1" stop-color="#061a2a"/></linearGradient>
+    <radialGradient id="bloom"><stop stop-color="#3ee0c2" stop-opacity=".13"/><stop offset="1" stop-color="#3ee0c2" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g data-sky="">
+    <path d="M0 0H1280V760H0Z" fill="url(#ocean)"/>
+    <path d="M110 0H220L570 690H220Z M390 0H440L800 640H610Z M850 0H990L1150 650H940Z" fill="url(#sunshaft)"/>
+    <ellipse cx="480" cy="110" rx="710" ry="250" fill="url(#bloom)"/>
+    <g fill="none" stroke="#7de4d9" stroke-opacity=".09" stroke-width="2">
+      <path d="M0 34Q80 14 160 34T320 34T480 34T640 34T800 34T960 34T1120 34T1280 34"/>
+      <path d="M0 48Q80 28 160 48T320 48T480 48T640 48T800 48T960 48T1120 48T1280 48"/>
+    </g>
+  </g>
+  <!-- Distant reef and shoals are scenery, clear of the landing lanes. -->
+  <g fill="#2d8a91" opacity=".16">
+    <path d="M60 455Q100 420 143 455Q100 480 60 455M66 455L44 437V472Z"/>
+    <path d="M900 176Q927 152 955 176Q926 193 900 176M904 176L887 163V188Z"/>
+    <path d="M975 196Q993 181 1013 196Q993 210 975 196M979 196L967 187V205Z"/>
+    <path d="M1040 172Q1055 161 1071 172Q1055 183 1040 172M1044 172L1032 163V182Z"/>
+  </g>
+  <g fill="none" stroke="#2c707c" stroke-opacity=".12">
+    <path d="M0 685Q120 590 210 670T430 672T680 685T910 660T1130 684T1310 660"/>
+    <path d="M0 706Q120 611 210 691T430 693T680 706T910 681T1130 705T1310 681"/>
+  </g>
+  <path d="M0 722Q90 690 190 723T400 726T610 718T830 728T1060 714T1280 719V760H0Z" fill="url(#sand)"/>
+  <g fill="none" stroke-linecap="round">
+    <g stroke="#166258" stroke-width="7" opacity=".65">
+      <path d="M25 748Q42 704 26 667T35 599M49 748Q31 712 52 681T45 636M1251 748Q1225 713 1247 673T1238 600M1228 748Q1240 723 1221 688"/>
+    </g>
+    <g stroke="#30a58a" stroke-width="3" opacity=".5">
+      <path d="M15 748Q6 716 18 691M68 749Q80 724 69 700M1266 748Q1278 717 1265 681"/>
+    </g>
+    <g stroke="#c06d8a" stroke-width="4" opacity=".6">
+      <path d="M544 748V714M544 732L530 721V711M544 725L559 713V702M544 718L535 706M1148 748V724M1148 737L1138 728V718M1148 733L1160 722"/>
+    </g>
+  </g>
+  <g fill="#6de2cb" opacity=".5"><circle cx="535" cy="706" r="2"/><circle cx="559" cy="702" r="2"/><circle cx="530" cy="711" r="2"/><circle cx="1160" cy="722" r="2"/></g>
+  <path d="M0 748H1280" stroke="#73d9d0" stroke-opacity=".18" stroke-dasharray="2 12"/>
+  <g font-family="monospace" fill="#a4e6df" text-anchor="end">
+    <text x="1180" y="36" font-size="11" letter-spacing="2">ABYSS / PELAGIC ZONE</text>
+    <text data-current-label="" x="1180" y="56" font-size="10" letter-spacing="1">CURRENT → EAST</text>
+  </g>
+</svg>

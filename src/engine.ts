@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTime, padVelocity, createSolids } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTime, padVelocity, createSolids, currentVelocity, currentOffset } from './world.js';
 import type { Point, Pad, Solid } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
@@ -71,12 +71,12 @@ export class Game {
     return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, ...this.stationVelocity(station), gear: true, landed: station.id };
   }
   private stationVelocity(pad: Pad): { vx: number; vy: number } {
-    const velocity = padVelocity(pad, this.time);
+    const velocity = padVelocity(pad, this.time, this.level.current);
     return { vx: velocity.x, vy: velocity.y };
   }
   private updateStations() {
-    if (!this.level.pads.some(pad => pad.motion)) return;
-    this.pads = this.level.pads.map(pad => padAtTime(pad, this.time));
+    if (!this.level.current && !this.level.pads.some(pad => pad.motion)) return;
+    this.pads = this.level.pads.map(pad => padAtTime(pad, this.time, this.level.current));
     this.solids = createSolids(this.pads);
   }
   get clinging(): boolean { return this.ship.landed !== null && (this.level.blackHole !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
@@ -176,6 +176,7 @@ export class Game {
     const hunting = canHitShip && this.ship.landed === null;
     const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
     const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
+    const drift = currentOffset(this.level.current, this.time) - currentOffset(this.level.current, this.time - dt);
     for (const seeker of this.seekers) {
       seeker.age += dt;
       if (!hunting) {
@@ -195,12 +196,12 @@ export class Game {
       seeker.vx += (Math.cos(angle + sway) * speed - seeker.vx) * blend;
       seeker.vy += (Math.sin(angle + sway) * speed - seeker.vy) * blend;
       // Clouds ignore every solid and each other. Only the field bounds contain them.
-      const delta = { x: Math.max(seeker.radius, Math.min(WORLD_WIDTH - seeker.radius, seeker.x + seeker.vx * dt)) - seeker.x,
+      const delta = { x: Math.max(seeker.radius, Math.min(WORLD_WIDTH - seeker.radius, seeker.x + seeker.vx * dt + drift)) - seeker.x,
         y: Math.max(seeker.radius, Math.min(WORLD_HEIGHT - 12 - seeker.radius, seeker.y + seeker.vy * dt)) - seeker.y };
       if (hunting && this.phase === 'playing') {
         const body = seekerBody(seeker);
         if (shipShapes.some(shape => sweepContact(body, shape, delta, shipDelta) !== null)) {
-          this.crash('Seeker contact! Land on a pad to shelter from the clouds.');
+          this.crash('Seeker contact! Land on a pad to shelter from roaming hazards.');
         }
       }
       seeker.x += delta.x; seeker.y += delta.y;
@@ -236,7 +237,7 @@ export class Game {
       const delta = deltas[i], body = bodies[i];
       for (const solid of this.level.solids) {
         const pad = this.level.pads.find(pad => pad.id === solid.padId)!;
-        const before = padAtTime(pad, this.time - dt), after = padAtTime(pad, this.time);
+        const before = padAtTime(pad, this.time - dt, this.level.current), after = padAtTime(pad, this.time, this.level.current);
         const stationDelta = { x: after.x - before.x, y: after.y - before.y };
         const points = solid.points.map(p => ({ x: p.x + before.x - pad.x, y: p.y + before.y - pad.y }));
         const time = sweepContact(body, points, delta, stationDelta);
@@ -345,6 +346,9 @@ export class Game {
     const power = cost > 0 ? Math.min(1, this.fuel / cost) : 0;
     const thrust = power * (this.level.thrustScale ?? 1);
     this.burnFuel(cost);
+    const current = this.level.current;
+    // Water carries even an unpowered ship; sideways thrust can fight the flow.
+    if (current) s.vx += (currentVelocity(current, this.time) - s.vx) * (1 - Math.exp(-current.drag * dt));
     s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
     s.vx += direction * PHYSICS.sideThrust * thrust * dt;
     const hole = this.level.blackHole;
@@ -376,7 +380,7 @@ export class Game {
       const pad = this.pads.find(pad => pad.id === solid.padId)!;
       const oldPad = previousPads.find(pad => pad.id === solid.padId)!;
       const delta = { x: pad.x - oldPad.x, y: pad.y - oldPad.y };
-      const swept = pad.motion && sweepContact(shipBody(previous), solid.points.map(p => ({ x: p.x - delta.x, y: p.y - delta.y })),
+      const swept = (pad.motion || current) && sweepContact(shipBody(previous), solid.points.map(p => ({ x: p.x - delta.x, y: p.y - delta.y })),
         { x: s.x - previous.x, y: s.y - previous.y }, delta) !== null;
       if (swept || intersects(body, solid.points)) { this.crash('Hull impact. Only your landing gear can touch a pad.'); return; }
     }

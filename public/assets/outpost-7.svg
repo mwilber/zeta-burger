@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 53 77" overflow="visible">
+  <title>Trench Outpost survey habitat</title>
+  <path d="M2 76V32Q2 21 15 21H38Q51 21 51 32V76Z" fill="#2c6570" stroke="#9fc7b8" stroke-width="2"/>
+  <circle cx="15" cy="42" r="8.5" fill="#b0c9b9"/><circle cx="15" cy="42" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M11.5 39.55Q15 36.4 18.15 40.6" fill="none" stroke="#76e3df" stroke-width="1.2"/><circle cx="38" cy="42" r="8.5" fill="#b0c9b9"/><circle cx="38" cy="42" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M34.5 39.55Q38 36.4 41.15 40.6" fill="none" stroke="#76e3df" stroke-width="1.2"/>
+  <rect x="18" y="58" width="18" height="18" rx="4" fill="#0c3143" stroke="#72e6dc"/>
+  <path d="M11 21V6H25M39 21V12H48" fill="none" stroke="#b2ccbb" stroke-width="3"/>
+  <path d="M25 2V10M48 8V16" stroke="#ffd18c" stroke-width="3"/>
+  <path d="M4 53H49" stroke="#518d91" stroke-width="2"/>
+</svg>

@@ -30,7 +30,7 @@ test('Zero G retains its identity and configurable gravity is validated and appl
   assert.equal(zeroG.number, 5); assert.equal(zeroG.name, 'Zero G');
   assert.equal(nextLevel(zeroG).id, 'trick-or-treat');
   assert.equal(zeroG.gravity, 0); assert.ok(zeroG.pads.every(pad => pad.motion));
-  assert.ok(LEVELS.filter(level => !['zero-g', 'event-horizon'].includes(level.id)).every(level => level.gravity === 100));
+  assert.ok(LEVELS.filter(level => !['abyss', 'zero-g', 'event-horizon'].includes(level.id)).every(level => level.gravity === 100));
   const config = structuredClone(LEVEL_CONFIG.find(level => level.id === 'luna'));
   for (const gravity of [-1, NaN, Infinity, undefined]) assert.throws(() => createLevel({ ...config, gravity }), /gravity/);
   for (const gravity of [0, 45, 175]) {
@@ -61,7 +61,7 @@ test('only Zero G reduces every thruster to 30% acceleration while keeping norma
   assert.equal(zeroG.thrustScale, .3);
   const config = LEVEL_CONFIG.find(level => level.id === 'zero-g');
   for (const thrustScale of [-1, NaN, Infinity]) assert.throws(() => createLevel({ ...config, thrustScale }), /thrustScale/);
-  for (const level of LEVELS.filter(level => !level.blackHole)) for (const sign of [-1, 1]) {
+  for (const level of LEVELS.filter(level => !level.blackHole && !level.current)) for (const sign of [-1, 1]) {
     const game = playing(level), scale = level === zeroG ? .3 : 1;
     fly(game, .1, { up: sign < 0, down: sign > 0, left: sign < 0, right: sign > 0 });
     assert.ok(Math.abs(game.ship.vx - sign * PHYSICS.sideThrust * scale * .1) < 1e-9, level.name);

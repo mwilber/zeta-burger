@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, padOffset } from './world.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, padOffset, currentOffset, currentVelocity } from './world.js';
 import type { Pad } from './world.js';
 import { LEVELS, levelAssetNames, levelAssetPath } from './levels.js';
 import type { Level } from './levels.js';
@@ -38,7 +38,8 @@ export class Renderer {
   private seekerNodes = new Map<number, SVGGElement>();
   private stations: StationArt[] = [];
   private pads?: Pad[];
-  private stars: { node: SVGGElement; phase: number }[] = [];
+  private stars: { node: SVGGElement; phase: number; x: number; y: number }[] = [];
+  private currentLabel?: SVGTextElement;
   private shadow!: SVGGElement;
   private vertical!: SVGGElement;
   private horizontal!: SVGGElement;
@@ -122,13 +123,14 @@ export class Renderer {
         }
       };
       retainSky(sky); find(background, '[data-sky]').remove(); this.scene.append(sky);
+      this.currentLabel = background.querySelector<SVGTextElement>('[data-current-label]') ?? undefined;
       let seed = 4827;
       const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
       // Keep the original star positions and twinkle phases.
       for (let i = 0; i < 145; i++) {
         const x = random() * WORLD_WIDTH, y = random() * 650, large = random() > .9, phase = random() * 6.28;
         const node = this.asset(large ? 'star-large' : 'star-small'); move(node, x, y);
-        this.stars.push({ node, phase }); this.scene.append(node);
+        this.stars.push({ node, phase, x, y }); this.scene.append(node);
       }
       this.scene.append(this.image('background', background, 0, 0, WORLD_WIDTH, WORLD_HEIGHT));
       if (level.blackHole) {
@@ -259,7 +261,8 @@ export class Renderer {
         pulse.append(this.asset('seeker', [-40, -40, 80, 80])); node.append(pulse);
         this.seekerLayer.append(node); this.seekerNodes.set(seeker.id, node);
       }
-      move(node, seeker.x, seeker.y);
+      const swimming = node.querySelector('[data-swimmer]') !== null;
+      node.setAttribute('transform', `translate(${seeker.x} ${seeker.y})${swimming ? ` rotate(${Math.atan2(seeker.vy, seeker.vx) * 180 / Math.PI}) scale(1 ${seeker.vx < 0 ? -1 : 1})` : ''}`);
       // Simulation age freezes both motion and the cloud's breathing while paused.
       const beat = this.reducedMotion ? 0 : seeker.age * Math.PI * 2 / SEEKERS.pulsePeriod + seeker.phase;
       const pulse = find(node, '[data-seeker-pulse]');
@@ -274,9 +277,19 @@ export class Renderer {
   draw(game: Game, controls: Controls, dt: number, time: number) {
     if (this.level !== game.level || !this.loaded) return;
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
-    for (const star of this.stars) attr(star.node, { opacity: .3 + (this.reducedMotion ? .25 : (Math.sin(time * .55 + star.phase) + 1) * .25) });
+    for (const star of this.stars) {
+      attr(star.node, { opacity: .3 + (this.reducedMotion ? .25 : (Math.sin(time * .55 + star.phase) + 1) * .25) });
+      if (game.level.current && !this.reducedMotion) {
+        move(star.node, (star.x + currentOffset(game.level.current, game.time) + WORLD_WIDTH) % WORLD_WIDTH,
+          (star.y - game.time * (2 + star.phase) % 700 + 700) % 700);
+      }
+    }
+    if (this.currentLabel) {
+      const speed = currentVelocity(game.level.current, game.time);
+      setText(this.currentLabel, `CURRENT ${Math.abs(speed) < 1 ? '· TURNING' : speed > 0 ? '→ EAST' : '← WEST'}`);
+    }
     for (const station of this.stations) {
-      const offset = padOffset(station.pad, game.time);
+      const offset = padOffset(station.pad, game.time, game.level.current);
       move(station.root, offset.x, offset.y);
       const active = station.pad.id === game.destination.id || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
       visible(station.idle, !active); visible(station.active, active);

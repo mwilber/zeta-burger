@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 218 83" overflow="visible">
+  <title>Abyss reef station 6</title>
+  <defs><linearGradient id="reef" x2="0" y2="1"><stop stop-color="#23626a"/><stop offset="1" stop-color="#0a293c"/></linearGradient></defs>
+  <polygon points="0,0 218,0 200,33 135.16,73 65.4,54 15,29" fill="url(#reef)" stroke="#438b8c" stroke-width="1"/>
+  <path d="M2 2H216M18 27L65.4 51L135.16 70L198 32" fill="none" stroke="#79d5bc" stroke-opacity=".5" stroke-width="2"/>
+  <path d="M39.24 6L61.04 28L54.5 37M152.6 5L135.16 24L152.6 43" fill="none" stroke="#163d4c" stroke-width="3"/>
+  <g fill="#80e8c3" opacity=".75"><circle cx="76.3" cy="15" r="2"/><circle cx="87.2" cy="19" r="1.4"/><circle cx="174.4" cy="14" r="2"/></g>
+  <g fill="none" stroke="#63bca2" stroke-width="2" stroke-linecap="round">
+    <path d="M30.52 3V15M30.52 10L21.8 6M187.48 2V12M187.48 7L196.2 4"/>
+  </g>
+  <text x="109" y="38" fill="#90c9c2" font-family="monospace" font-size="6" letter-spacing="1" text-anchor="middle">ABYSS / 06</text>
+</svg>

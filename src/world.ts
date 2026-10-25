@@ -1,5 +1,5 @@
 import { LEVEL_CONFIG } from './level-config.js';
-import type { PadConfig } from './level-config.js';
+import type { LevelConfig, PadConfig } from './level-config.js';
 export const WORLD_WIDTH = 1280;
 export const WORLD_HEIGHT = 760;
 export interface Point { x: number; y: number }
@@ -9,20 +9,32 @@ export function createPad(config: PadConfig): Pad {
   const ix = x + island.x, iw = island.width;
   return { id, name, x, y, width, color, motion: config.motion, island: [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }], building: { x: x + building.x, y: y - building.height, width: building.width, height: building.height + 10, kind: building.kind } };
 }
-/** Orbit the whole station, keeping its artwork and all collision shapes together. */
-export function padOffset(pad: Pad, time: number): Point {
-  if (!pad.motion) return { x: 0, y: 0 };
+type Current = LevelConfig['current'];
+/** Integrate the same reversing flow for stations, fish, and water particles. */
+export function currentOffset(current: Current, time: number): number {
+  if (!current) return 0;
+  const rate = Math.PI * 2 / current.period;
+  return Math.sin(time * rate) * current.speed / rate;
+}
+export function currentVelocity(current: Current, time: number): number {
+  return current ? Math.cos(time * Math.PI * 2 / current.period) * current.speed : 0;
+}
+/** Move the whole station, keeping artwork and all collision shapes together. */
+export function padOffset(pad: Pad, time: number, current?: Current): Point {
+  const drift = currentOffset(current, time);
+  if (!pad.motion) return { x: drift, y: 0 };
   const angle = time * Math.PI * 2 / pad.motion.period;
-  return { x: Math.sin(angle) * pad.motion.x, y: (Math.cos(angle) - 1) * pad.motion.y };
+  return { x: drift + Math.sin(angle) * pad.motion.x, y: (Math.cos(angle) - 1) * pad.motion.y };
 }
-export function padVelocity(pad: Pad, time: number): Point {
-  if (!pad.motion) return { x: 0, y: 0 };
+export function padVelocity(pad: Pad, time: number, current?: Current): Point {
+  const drift = currentVelocity(current, time);
+  if (!pad.motion) return { x: drift, y: 0 };
   const rate = Math.PI * 2 / pad.motion.period, angle = time * rate;
-  return { x: Math.cos(angle) * pad.motion.x * rate, y: -Math.sin(angle) * pad.motion.y * rate };
+  return { x: drift + Math.cos(angle) * pad.motion.x * rate, y: -Math.sin(angle) * pad.motion.y * rate };
 }
-export function padAtTime(pad: Pad, time: number): Pad {
-  if (!pad.motion) return pad;
-  const offset = padOffset(pad, time);
+export function padAtTime(pad: Pad, time: number, current?: Current): Pad {
+  if (!pad.motion && !current) return pad;
+  const offset = padOffset(pad, time, current);
   return { ...pad, x: pad.x + offset.x, y: pad.y + offset.y,
     island: pad.island.map(p => ({ x: p.x + offset.x, y: p.y + offset.y })),
     building: { ...pad.building, x: pad.building.x + offset.x, y: pad.building.y + offset.y } };

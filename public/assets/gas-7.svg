@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 58" overflow="visible">
+  <title>Dive station fuel and air supply</title>
+  <rect x="2" y="1" width="24" height="55" rx="9" fill="#317b80" stroke="#a1d5c0" stroke-width="2"/>
+  <rect x="6" y="18" width="16" height="12" rx="2" fill="#092f43"/>
+  <text x="14" y="27" font-family="monospace" font-size="7" fill="#a4f5d9" text-anchor="middle">FUEL</text>
+  <circle cx="14" cy="9" r="4.5" fill="#b0c9b9"/><circle cx="14" cy="9" r="3" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M12.5 7.95Q14 6.6 15.35 8.4" fill="none" stroke="#76e3df" stroke-width="1.2"/>
+  <path d="M2 37H26M2 44H26M9 52H19" stroke="#a1d5c0" stroke-width="2"/>
+  <path d="M24 33Q30 30 26 13" fill="none" stroke="#ffd18c" stroke-width="2"/>
+</svg>

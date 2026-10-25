@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65 93" overflow="visible">
+  <title>Nautilus Lodge deep sea hotel</title>
+  <path d="M1 92V16Q1 2 17 2H48Q64 2 64 16V92Z" fill="#225361" stroke="#9fc7b8" stroke-width="2"/>
+  <rect x="6" y="10" width="53" height="16" rx="3" fill="#0c3143"/>
+  <text x="32.5" y="21" font-family="monospace" font-size="7" fill="#ffd18c" text-anchor="middle">NAUTILUS</text>
+  <circle cx="18" cy="40" r="8.5" fill="#b0c9b9"/><circle cx="18" cy="40" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M14.5 37.55Q18 34.4 21.15 38.6" fill="none" stroke="#76e3df" stroke-width="1.2"/><circle cx="47" cy="40" r="8.5" fill="#b0c9b9"/><circle cx="47" cy="40" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M43.5 37.55Q47 34.4 50.15 38.6" fill="none" stroke="#76e3df" stroke-width="1.2"/><circle cx="18" cy="64" r="8.5" fill="#b0c9b9"/><circle cx="18" cy="64" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M14.5 61.55Q18 58.4 21.15 62.6" fill="none" stroke="#76e3df" stroke-width="1.2"/><circle cx="47" cy="64" r="8.5" fill="#b0c9b9"/><circle cx="47" cy="64" r="7" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M43.5 61.55Q47 58.4 50.15 62.6" fill="none" stroke="#76e3df" stroke-width="1.2"/>
+  <path d="M25 92V83Q32 75 40 83V92" fill="#0c3143" stroke="#9fc7b8"/>
+  <path d="M3 51H62M3 76H62" stroke="#568b8a"/>
+  <path d="M5 90H60" stroke="#ffd18c" stroke-width="2"/>
+</svg>

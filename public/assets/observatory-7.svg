@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 75" overflow="visible">
+  <title>Bathysphere research laboratory</title>
+  <path d="M3 74V32Q3 14 22 14Q41 14 41 32V74Z" fill="#286270" stroke="#9fc7b8" stroke-width="2"/>
+  <circle cx="22" cy="37" r="16.5" fill="#b0c9b9"/><circle cx="22" cy="37" r="15" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M14.5 31.75Q22 25.0 28.75 34.0" fill="none" stroke="#76e3df" stroke-width="1.2"/>
+  <path d="M22 23V51M8 37H36" stroke="#679c9b" stroke-width="1"/>
+  <rect x="8" y="59" width="28" height="10" rx="3" fill="#103d53"/>
+  <text x="22" y="66" font-family="monospace" font-size="6" fill="#72e6dc" text-anchor="middle">LAB 02</text>
+  <path d="M22 15V3H33M31 3V9" fill="none" stroke="#c5d3bc" stroke-width="3"/>
+  <circle cx="33" cy="9" r="2" fill="#ffd18c"/>
+</svg>

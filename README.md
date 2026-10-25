@@ -171,7 +171,7 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
-The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Event Horizon → Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Abyss → Event Horizon → Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
 Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a nonnegative `gravity` acceleration (world units/second²), a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
@@ -230,8 +230,19 @@ Once clamped, release Down: the ship rides with the station without using fuel u
 
 ![Event Horizon's central black hole and seven peripheral stations.](docs/screenshots/event-horizon-level.jpg)
 
-**Event Horizon (level 6)** starts the development play order. Seven stationary stations surround a black hole at the center of the screen. There is no uniform downward gravity: the hole pulls airborne ships inward from every direction, including when fuel is empty or gear is extended. The inverse-square pull increases as distance shrinks and is capped near the center. Full-strength thrusters let you brake and navigate around the outer rim. Crossing the bright event horizon with the hull or landing gear costs a life; continuous collision checks also catch fast crossings.
+**Event Horizon (level 6)** follows Abyss in the development play order. Seven stationary stations surround a black hole at the center of the screen. There is no uniform downward gravity: the hole pulls airborne ships inward from every direction, including when fuel is empty or gear is extended. The inverse-square pull increases as distance shrinks and is capped near the center. Full-strength thrusters let you brake and navigate around the outer rim. Crossing the bright event horizon with the hull or landing gear costs a life; continuous collision checks also catch fast crossings.
 
 Landing on any pad immediately stops the black hole’s pull, without holding Down or burning fuel, even with an empty tank. Pickup and delivery take 250 ms. Upward thrust or gear retraction releases the ship and restores the pull. Replacement ships arrive safely docked at the gas station. There are no seekers or falling obstacles. Completing the level advances to Zero G.
 
 Configure the well with optional `blackHole: { x, y, radius, strength, maxAcceleration }` in a level entry. Positions and horizon radius use world units; acceleration is `min(maxAcceleration, strength / distance²)` toward the center. Supply `black-hole-<number>.svg` on a `-208 -156 416 312` artboard with a horizon radius of 52; the renderer scales the art to the configured radius. Event Horizon's station and background assets use the stable `-6.svg` suffix.
+
+
+### Abyss
+
+![Abyss ocean stations, reversing current, and fish hazards.](docs/screenshots/abyss-level.jpg)
+
+**Abyss (level 7)** starts the development play order, underwater in the deep ocean. Seven reef stations drift together in a reversing horizontal current, with pressure-sealed habitats, coral, light shafts, bubbles, and an ocean-colored delivery submersible. The current indicator shows the flow direction. Gravity is reduced to **35**, so the ship slowly sinks; thrusters retain full power.
+
+Configure flow with optional `current: { speed, period, drag }`: peak water speed in world units/second, cycle length in seconds, and the ship’s horizontal drag response in 1/second. Stations follow the integrated flow, moving their artwork and all collision shapes together. Water drag carries airborne ships even with empty fuel or extended gear. Brake with sideways thrust before extending the landing gear and match the station’s velocity. Docking immediately secures the ship, which rides the current for free; pickup and delivery use the normal 0.8-second dwell. Upward thrust or gear retraction releases it.
+
+Four animated fish use the generic seeker system, pursuing an airborne ship and passing through scenery and each other. Landed ships are immune; fish wander while the ship is docked. Fish and currents freeze during countdown, pause, the final explosion, and game over, and reset on replay or level changes. All Abyss artwork uses the stable `-7.svg` suffix.

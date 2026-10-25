@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80" overflow="visible">
+  <title>Abyss fish seeker</title>
+  <defs>
+    <radialGradient id="fish-glow"><stop stop-color="#ffc38a" stop-opacity=".16"/><stop offset="1" stop-color="#ffc38a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="scales" x2=".2" y2="1"><stop stop-color="#ffcf91"/><stop offset=".55" stop-color="#f88e77"/><stop offset="1" stop-color="#bd5972"/></linearGradient>
+  </defs>
+  <circle r="38" fill="url(#fish-glow)"/>
+  <g data-swimmer="">
+    <g data-wisp="2"><path d="M-15-1L-27-16Q-20 0-27 16L-15 5Z" fill="#e68c86" stroke="#ffd2a5" stroke-width="1"/>
+      <path d="M-24-10L-17 1L-24 10" fill="none" stroke="#9d5069"/></g>
+    <path d="M-6-14Q2-28 11-21L15-13M-3 14L9 25L15 11" fill="#dc7d84" stroke="#ffba9b" stroke-width="1"/>
+    <path d="M-21 0Q-17-18 1-17Q19-18 26-2Q28 1 24 4Q16 18 0 17Q-18 17-21 0Z" fill="url(#scales)" stroke="#ffcf9e" stroke-width="1"/>
+    <path d="M-11-8Q-6 0-11 8M-5-11Q1 0-5 11M2-12Q8 0 2 12" fill="none" stroke="#fff0c0" stroke-opacity=".25" stroke-width="2"/>
+    <path d="M12-9Q6 0 12 9" fill="none" stroke="#a64a62" stroke-width="1.5"/>
+    <g data-wisp="0"><path d="M1 2Q-5 6-8 13Q4 12 9 5" fill="#ffd499" stroke="#bd5972" stroke-width="1"/></g>
+    <circle cx="17" cy="-5" r="4.5" fill="#fff3d3"/><circle cx="18" cy="-5" r="2.3" fill="#172c40"/><circle cx="19" cy="-6" r=".8" fill="#fff"/>
+    <path d="M23 4L19 4" stroke="#893e5b" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

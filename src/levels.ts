@@ -16,6 +16,7 @@ export interface Level {
   name: string;
   theme: string;
   gravity: number;
+  current?: LevelConfig['current'];
   blackHole?: LevelConfig['blackHole'];
   thrustScale?: number;
   padCount: number;
@@ -32,6 +33,8 @@ export function createLevel(config: LevelConfig): Level {
   const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
   if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
   if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
+  if (config.current && (![config.current.speed, config.current.period, config.current.drag].every(Number.isFinite)
+    || config.current.speed < 0 || config.current.period <= 0 || config.current.drag <= 0)) fail('invalid current');
   if (config.blackHole) {
     const hole = config.blackHole;
     if (![hole.x, hole.y, hole.radius, hole.strength, hole.maxAcceleration].every(Number.isFinite)

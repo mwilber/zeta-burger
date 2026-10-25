@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 43 83" overflow="visible">
+  <title>Coral Cove pressure habitat</title>
+  <path d="M4 81V38Q4 24 21 24Q39 24 39 38V81Z" fill="#2b626d" stroke="#9fc7b8" stroke-width="2"/>
+  <path d="M1 37Q-1 8 20 8Q43 8 42 37Z" fill="#ca7d88" stroke="#ffbcaa" stroke-width="1.5"/>
+  <path d="M8 24Q21 14 35 25" fill="none" stroke="#ffd9b5" stroke-width="2" stroke-dasharray="3 4"/>
+  <circle cx="21" cy="51" r="9.5" fill="#b0c9b9"/><circle cx="21" cy="51" r="8" fill="#103d53" stroke="#e4dcad" stroke-width=".7"/><path d="M17.0 48.2Q21 44.6 24.6 49.4" fill="none" stroke="#76e3df" stroke-width="1.2"/>
+  <path d="M12 82V70Q21 62 30 70V82" fill="#0d3648" stroke="#9fc7b8"/>
+  <path d="M7 16V2M7 9L1 5M34 16V3M34 9L41 4" stroke="#ed9d9d" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -17 48 25" overflow="visible">
+  <title>Abyss delivery submersible</title>
+  <defs><linearGradient id="hull" x2="0" y2="1"><stop stop-color="#ffe3a1"/><stop offset="1" stop-color="#b97d4b"/></linearGradient></defs>
+  <path d="M-13-6L-10-15Q0-19 10-15L13-6" fill="#72e6dc" stroke="#c5fff1"/>
+  <path d="M-7-14Q0-16 7-14L9-7H-9Z" fill="#103e50"/>
+  <path d="M-24 0Q-20-8 0-8Q20-8 24 0L19 8H-19Z" fill="url(#hull)" stroke="#ffe5b6" stroke-width=".7"/>
+  <path d="M-23 1H23" stroke="#855e4f"/>
+  <g fill="#16495b" stroke="#f9d193" stroke-width=".7"><circle cx="-12" cy="-2" r="2.6"/><circle cy="-2" r="2.6"/><circle cx="12" cy="-2" r="2.6"/></g>
+  <path d="M-18 5H-10M10 5H18" stroke="#a0fff0" stroke-width="2" stroke-linecap="round"/>
+</svg>
