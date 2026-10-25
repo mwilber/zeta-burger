@@ -26,7 +26,7 @@ export interface Ship { x: number; y: number; vx: number; vy: number; gear: bool
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
 export type GameEvent = { type: 'crash' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
-export type Phase = 'ready' | 'countdown' | 'playing' | 'paused' | 'crashed' | 'gameover';
+export type Phase = 'ready' | 'countdown' | 'playing' | 'idle' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
 }
@@ -35,6 +35,7 @@ export function gearShapes(ship: Ship): Point[][] {
 }
 export class Game {
   phase: Phase = 'ready';
+  designMode = false;
   ship: Ship;
   lives = 3;
   bank = 0;
@@ -82,8 +83,9 @@ export class Game {
   get clinging(): boolean { return this.ship.landed !== null && (this.level.blackHole !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
   get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
-  start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean } = {}) {
+  start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean; designMode?: boolean } = {}) {
     this.skill = skill; this.level = level;
+    this.designMode = options.designMode ?? this.designMode;
     this.ship = this.spawn(); this.lives = 3; this.bank = options.carryBank ? this.bank : 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
     this.pads = level.pads; this.solids = level.solids;
@@ -99,7 +101,8 @@ export class Game {
       this.orders.push({ id, target, initialTip, elapsed: 0, availableAt, status: 'scheduled' });
     }
     this.spawnSeekers();
-    this.servicedPad = null; this.countdownTime = START_DELAY; this.pausedPhase = 'playing'; this.phase = 'countdown';
+    this.servicedPad = null; this.countdownTime = this.designMode ? 0 : START_DELAY;
+    this.pausedPhase = 'playing'; this.phase = this.designMode ? 'idle' : 'countdown';
   }
   get order(): Order | null { return this.orders.find(order => order.status === 'onboard') ?? null; }
   get waitingOrders(): Order[] { return this.orders.filter(order => order.status === 'waiting'); }
@@ -116,6 +119,7 @@ export class Game {
   get tip(): number { return this.order ? this.tipFor(this.order) : 0; }
   get destination(): Pad { return this.pads.find(p => p.id === (this.order?.target ?? this.level.restaurant))!; }
   finish(reason: NonNullable<Game['endReason']>) {
+    if (this.designMode) return;
     this.endReason = reason; this.phase = 'gameover';
     this.emit('gameover', reason === 'delivered' ? 'All orders delivered!' : reason === 'tips' ? 'You’re fired! No remaining tip can keep your bank at or above $0.' : 'No saucers remaining.', { endReason: reason });
   }
@@ -133,7 +137,7 @@ export class Game {
     this.emit('gear', this.ship.gear ? 'Gear extended. Side thrusters locked. Keep an eye on your drift.' : 'Gear retracted. Side thrusters ready.');
   }
   pause() {
-    if (this.phase === 'playing' || this.phase === 'countdown' || this.phase === 'crashed') {
+    if (this.phase === 'playing' || this.phase === 'idle' || this.phase === 'countdown' || this.phase === 'crashed') {
       this.pausedPhase = this.phase; this.phase = 'paused';
     } else if (this.phase === 'paused') this.phase = this.pausedPhase;
   }
@@ -154,7 +158,7 @@ export class Game {
     this.stepShip(dt, controls);
     // Flight hazards share gameplay pause/countdown/end rules. During replacement
     // delay they keep moving, but cannot hit the absent ship or its new spawn.
-    if ((previousPhase === 'playing' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
+    if ((previousPhase === 'playing' || previousPhase === 'idle' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
       this.stepFallingObstacles(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
       this.stepSeekers(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
     }
@@ -173,7 +177,7 @@ export class Game {
     });
   }
   private stepSeekers(dt: number, previousShip: Ship, canHitShip: boolean) {
-    const hunting = canHitShip && this.ship.landed === null;
+    const hunting = (canHitShip || this.phase === 'idle') && this.ship.landed === null;
     const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
     const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
     const drift = currentOffset(this.level.current, this.time) - currentOffset(this.level.current, this.time - dt);
@@ -304,8 +308,10 @@ export class Game {
         order.status = 'waiting';
         this.emit('arrival', `Order #${order.id} ready at ${this.level.pads.find(pad => pad.id === this.level.restaurant)!.name} · Pad ${order.target}`);
       }
-      if (order.status !== 'scheduled') order.elapsed += this.time - Math.max(previousTime, order.availableAt);
+      if (!this.designMode && order.status !== 'scheduled') order.elapsed += this.time - Math.max(previousTime, order.availableAt);
     }
+    // Keep the world and dispatch running without physics, docking, or deaths.
+    if (this.phase === 'idle') return;
     this.checkEnd();
     if (this.endReason !== null) return;
     if (this.phase === 'crashed') {

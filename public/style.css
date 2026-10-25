@@ -1337,3 +1337,34 @@ dialog .primary-button {
 }
 
 .shift-settings [hidden] { display: none; }
+
+.mode-controls {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px 25px;
+  background:#151c25;
+  border-bottom:1px solid var(--border);
+  color:#8594a6;
+  font:10px/1.5 monospace;
+}
+.design-button {
+  color:#e1edda;
+  background:#26322b;
+  border:1px solid #526245;
+  border-radius:5px;
+  padding:8px 10px;
+  font:10px monospace;
+}
+.design-button[aria-pressed=true] { color:#10141b; background:var(--lime); border-color:var(--lime); }
+.design-button:disabled { opacity:.65; }
+@media(max-width:700px) {
+  .mode-controls { padding:10px 12px; font-size:8px; }
+}
+@media(max-height:600px) and (orientation:landscape) {
+  .mode-controls { grid-column:1; grid-row:1; align-self:end; padding:8px; }
+  .mode-controls span { display:none; }
+  .shift-settings { padding-bottom:54px; }
+  .design-button { width:100%; font-size:8px; }
+}

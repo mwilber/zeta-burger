@@ -16,11 +16,13 @@ const pointers = new Map<number, keyof Controls>();
 const touchButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-control]'));
 const skillSelect = get<HTMLSelectElement>('skill');
 const levelSelect = get<HTMLSelectElement>('level');
+const designButton = get<HTMLButtonElement>('design');
 for (const level of LEVELS) levelSelect.add(new Option(`${level.number} · ${level.name}`, level.id));
 get('level-picker').hidden = LEVELS.length === 1;
 let starting = false;
 let advanceFailed = false;
 levelSelect.addEventListener('change', () => {
+  if (game.designMode && !starting) { void start(); return; }
   if (game.phase !== 'ready' || starting) return;
   game.level = LEVELS.find(level => level.id === levelSelect.value)!;
   game.pads = game.level.pads; game.solids = game.level.solids; game.time = 0;
@@ -49,7 +51,7 @@ function controls(): Controls {
   const held = new Set(pointers.values());
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up'), down: keys.has('ArrowDown') || keys.has('KeyS') || held.has('down') };
 }
-async function start(continuing = false) {
+async function start(continuing = false, designMode = game.designMode) {
   if (starting) return;
   const level = LEVELS.find(level => level.id === levelSelect.value)!;
   const skill = continuing ? game.skill : skillSelect.value as Skill;
@@ -58,12 +60,13 @@ async function start(continuing = false) {
   const loaded = await renderer.setLevel(level);
   starting = false;
   if (!loaded) { advanceFailed = true; toast(`Could not load ${level.name} artwork. Retry to continue.`); updateHud(); return; }
-  game.start(skill, level, { carryBank: continuing }); resetInputs(); overlay.hidden = true;
+  sound.stopAll();
+  game.start(skill, level, { carryBank: continuing, designMode }); resetInputs(); overlay.hidden = true;
   accumulator = 0; last = performance.now(); renderer.particles = [];
-  toast(continuing ? `${level.name} is about to begin…` : 'Your shift is about to begin…');
+  toast(designMode ? 'Design mode · Saucer idle, tips frozen, world running.' : continuing ? `${level.name} is about to begin…` : 'Your shift is about to begin…');
   if (continuing && (document.hidden || dialog.open)) {
     game.pause(); sound.stopAll(); helpPaused = dialog.open;
-  } else playStartJingle();
+  } else if (!designMode) playStartJingle();
   stage.focus({ preventScroll: true }); updateHud();
 }
 function playStartJingle() {
@@ -77,11 +80,13 @@ function pause() {
 }
 function toggleGear() { game.toggleGear(); }
 function openHelp() {
-  helpPaused = game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed';
+  helpPaused = game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed';
   if (helpPaused) pause();
   resetInputs(); dialog.showModal();
 }
 get('help').addEventListener('click', openHelp);
+designButton.addEventListener('click', () => { void start(false, !game.designMode); });
+skillSelect.addEventListener('change', () => { if (game.designMode && !starting) void start(); });
 get('close-help').addEventListener('click', () => dialog.close());
 get('help-done').addEventListener('click', () => dialog.close());
 dialog.addEventListener('close', () => { if (helpPaused && game.phase === 'paused') pause(); helpPaused = false; });
@@ -105,6 +110,7 @@ overlay.addEventListener('click', event => {
 const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
 window.addEventListener('keydown', event => {
   if (dialog.open || event.target instanceof HTMLSelectElement || !handled.has(event.code)) return;
+  if (event.target instanceof HTMLButtonElement && (event.code === 'Enter' || event.code === 'Space')) return;
   if (event.code === 'Enter') {
     if (game.phase === 'ready' || game.phase === 'gameover') { event.preventDefault(); void start(advanceFailed); }
     return;
@@ -116,8 +122,8 @@ window.addEventListener('keydown', event => {
   else if (game.phase === 'playing') keys.add(event.code);
 });
 window.addEventListener('keyup', event => keys.delete(event.code));
-window.addEventListener('blur', () => { resetInputs(); if (game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed') pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInputs(); if (game.phase === 'playing' || game.phase === 'countdown' || game.phase === 'crashed') pause(); } });
+window.addEventListener('blur', () => { resetInputs(); if (game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed') pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInputs(); if (game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed') pause(); } });
 for (const button of touchButtons) {
   const control = button.dataset.control as keyof Controls;
   button.addEventListener('pointerdown', event => {
@@ -132,8 +138,11 @@ for (const button of touchButtons) {
   button.addEventListener('contextmenu', event => event.preventDefault());
 }
 function updateHud() {
-  skillSelect.disabled = starting || (game.phase !== 'ready' && game.phase !== 'gameover');
+  skillSelect.disabled = starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
   levelSelect.disabled = skillSelect.disabled;
+  designButton.disabled = starting;
+  designButton.setAttribute('aria-pressed', String(game.designMode));
+  text(designButton, game.designMode ? 'DESIGN MODE · ON' : 'DESIGN MODE');
   overlay.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = starting; });
   const orderCount = game.phase === 'ready' ? SKILLS[skillSelect.value as Skill].orders : game.totalOrders;
   text(get('order-total'), String(orderCount));
@@ -169,6 +178,8 @@ function updateHud() {
   const gearMarkup = `${game.ship.gear ? '↓ EXTENDED' : '↑ RETRACTED'} <kbd>G</kbd>`;
   if (hud.gear.innerHTML !== gearMarkup) hud.gear.innerHTML = gearMarkup;
   hud.gear.classList.toggle('retracted', !game.ship.gear); hud.gear.setAttribute('aria-pressed', String(game.ship.gear));
+  (hud.gear as HTMLButtonElement).disabled = game.designMode;
+  get<HTMLButtonElement>('touch-gear').disabled = game.designMode;
   for (const button of touchButtons) button.disabled = game.phase !== 'playing' || ((button.dataset.control === 'left' || button.dataset.control === 'right') && game.ship.gear);
   const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver order #${game.order.id} to pad ${game.order.target}</span>` : `${game.destination.name} <span>· ${game.waitingOrders.length ? `${game.waitingOrders.length} ${game.waitingOrders.length === 1 ? "order" : "orders"} ready at pad ${game.level.restaurant}` : `Await dispatch at pad ${game.level.restaurant}`}</span>`;
   if (hud.mission.innerHTML !== missionMarkup) hud.mission.innerHTML = missionMarkup;
@@ -196,7 +207,7 @@ function updateHud() {
     }
     previousPhase = game.phase;
     overlay.hidden = game.phase !== 'ready' && game.phase !== 'paused' && game.phase !== 'gameover';
-    if (game.phase === 'paused') overlay.innerHTML = '<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">BACK TO THE SHIFT <span>→</span></button></div>';
+    if (game.phase === 'paused') overlay.innerHTML = `<div class="overlay-card"><div class="card-tag">TAKE A BREATHER</div><h2>Parked in orbit.</h2><p>Your shift, fuel, arrivals, and tip timers are paused.</p><button class="primary-button" data-action="resume">${game.designMode ? 'BACK TO DESIGN MODE' : 'BACK TO THE SHIFT'} <span>→</span></button></div>`;
     if (game.phase === 'gameover') {
       resetInputs();
       const reason = game.endReason === 'delivered' ? 'Every order delivered. Final level complete!' : game.endReason === 'tips' ? 'No remaining tip can keep your bank at or above $0.' : 'Your last saucer was lost.';
