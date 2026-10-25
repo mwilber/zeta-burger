@@ -32,15 +32,47 @@ Heroku installs the build dependencies and runs `npm run build` during deploymen
 The `Procfile` runs `npm start`, which serves only the built `dist/` files using
 Node's HTTP server on `0.0.0.0:$PORT`. No database or add-ons are required.
 
+### Automatic deployments
+
+Push to **any branch** on GitHub to run the
+[Deploy to Heroku workflow](https://github.com/mwilber/zeta-burger/actions/workflows/deploy-heroku.yml).
+It installs dependencies, checks types, builds the site, and uploads that push's
+exact commit to Heroku's build API. There is no direct Git push to Heroku.
+Tag pushes and branch deletions do not deploy.
+
+All branches share one app and one deployment queue. Newer deployment requests
+supersede queued older requests; requests already building on Heroku finish
+before the next deployment starts. "Latest" means the latest push/deployment
+request, regardless of the commit's author date or branch. A failing check/build
+leaves the previous working release online. GitHub queues up to 100 pending
+requests; workflow skip directives such as `[skip ci]` also skip deployment.
+
+The workflow must exist in a branch for pushes to that branch to trigger it.
+Merge or cherry-pick this setup into older branches before expecting automatic
+deployments from them.
+
+### Manually deploy a branch
+
+Open **Actions → Deploy to Heroku → Run workflow**. Leave **Use workflow from**
+set to `master`, enter the desired branch in **Branch to deploy**, and run it.
+The requested branch does not need to contain the workflow or deployment script;
+deployment tooling comes from the workflow revision. It must support the project's
+normal npm build/typecheck commands. The branch tip is resolved when the job
+starts. A later push to any branch takes over again.
+
 ```sh
-heroku create YOUR-APP-NAME --stack heroku-24 --buildpack heroku/nodejs
-git push heroku HEAD:main
-heroku open
+gh workflow run deploy-heroku.yml --ref master -f branch=YOUR-BRANCH
 ```
 
-For subsequent deployments, commit your changes and run `git push heroku HEAD:main`.
-To preview the production server locally, run `npm run build && npm start` and open
-http://localhost:5173 (or set `PORT` to another port).
+The workflow is available for manual runs once it is on the default branch
+(`master`). The repository secret `HEROKU_API_KEY` holds a dedicated, non-expiring
+Heroku OAuth authorization named `GitHub Actions: mwilber/zeta-burger`, with
+`read,write` scopes. Revoke that authorization in Heroku to disable its access;
+replace the GitHub secret when rotating it. The app name is configured in the
+workflow as `HEROKU_APP_NAME`.
+
+To preview the production server locally, run `npm run build && npm start` and
+open http://localhost:5173 (or set `PORT` to another port).
 
 ## Play
 
