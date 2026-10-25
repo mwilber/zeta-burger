@@ -30,11 +30,8 @@ levelSelect.addEventListener('change', () => {
   void renderer.setLevel(game.level);
   updateHud();
 });
-const orderQueue = get('order-queue');
-const orderSummary = get('order-summary');
-const fuelValue = get('fuel');
 const fuelMeter = get<HTMLMeterElement>('fuel-meter');
-const hud = { bank: get('bank'), tip: get('tip'), deliveries: get('deliveries'), lives: get('lives'), gear: get('gear-status'), mission: get('mission'), label: get('mission-label'), pad: get('mission-pad'), velocity: get('velocity'), best: get('best'), pause: get<HTMLButtonElement>('pause') };
+const hud = { bank: get('bank'), tip: get('tip'), deliveries: get('deliveries'), lives: get('lives'), velocity: get('velocity'), best: get('best'), pause: get<HTMLButtonElement>('pause') };
 let best = 0;
 try { best = Math.max(0, Number(localStorage.getItem('zeta-burger-best')) || 0); } catch { /* Private browsing can disable storage. */ }
 let toastTimer = 0;
@@ -42,9 +39,16 @@ let helpPaused = false;
 let previousPhase: Phase = 'ready';
 const money = (amount: number) => `${amount < 0 ? '−' : ''}$${Math.abs(amount).toFixed(2)}`;
 function text(element: HTMLElement, value: string) { if (element.textContent !== value) element.textContent = value; }
-function toast(message: string) {
-  const element = get('toast'); text(element, message); element.classList.add('visible');
-  clearTimeout(toastTimer); toastTimer = window.setTimeout(() => element.classList.remove('visible'), 4800);
+function toast(message: string, order = false) {
+  const element = get('toast');
+  text(element, message);
+  element.classList.remove('visible');
+  element.classList.toggle('order-popup', order);
+  // Restart the entrance even when a new order replaces an existing message.
+  void element.offsetWidth;
+  element.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => element.classList.remove('visible'), order ? 6400 : 4800);
 }
 function resetInputs() { keys.clear(); pointers.clear(); touchButtons.forEach(button => button.classList.remove('held')); }
 function controls(): Controls {
@@ -99,7 +103,6 @@ get('sound').addEventListener('click', () => {
     if (enabled && game.phase === 'countdown') playStartJingle();
   } catch { toast('Audio is unavailable in this browser.'); sound.enabled = false; }
 });
-hud.gear.addEventListener('click', toggleGear);
 get('touch-gear').addEventListener('click', toggleGear);
 hud.pause.addEventListener('click', pause);
 overlay.addEventListener('click', event => {
@@ -148,9 +151,6 @@ function updateHud() {
   text(get('order-total'), String(orderCount));
   text(get('level-name'), `LEVEL ${game.level.number} · ${game.level.name.toUpperCase()}`);
   text(get('world-name'), game.level.name.toUpperCase());
-  text(get('shift-world'), game.level.name.toUpperCase());
-  text(get('level-theme'), game.level.theme.toUpperCase());
-  text(get('fuel-pad'), `REFILL · PAD ${game.level.gasStation}`);
   const intro = document.querySelector<HTMLElement>('#intro-description');
   if (intro) text(intro, `${game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
@@ -162,28 +162,16 @@ function updateHud() {
   get('current-help').hidden = !game.level.current;
   get('zero-g-help').hidden = game.level.id !== 'zero-g';
   get('black-hole-help').hidden = !game.level.blackHole;
-  text(fuelValue, `${Math.floor(game.fuel)}%`); fuelMeter.value = game.fuel;
-  fuelValue.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
-  text(orderSummary, game.phase === 'ready' ? `${orderCount} ${orderCount === 1 ? 'order' : 'orders'} this shift` : `${game.delivered}/${game.totalOrders} delivered · ${game.waitingOrders.length} waiting · ${game.scheduledCount} incoming`);
-  const activeOrders = game.orders.filter(order => order.status === 'waiting' || order.status === 'onboard');
-  const queueMarkup = activeOrders.map(order => {
-    const tip = game.tipFor(order);
-    return `<div class="order-card ${tip < 0 ? 'negative' : ''} ${order.status === 'onboard' ? 'onboard' : ''}"><strong>${money(tip)}</strong><span class="package-icon" aria-hidden="true">▣</span><span>#${order.id} → PAD ${order.target}</span><small>${order.status === 'onboard' ? 'ON BOARD' : 'WAITING'}</small></div>`;
-  }).join('') || `<span class="queue-empty">${game.phase === 'ready' ? 'Orders arrive throughout the shift. Every tip has its own timer.' : game.scheduledCount ? 'Dispatch is preparing the next order…' : 'No orders waiting.'}</span>`;
-  if (orderQueue.innerHTML !== queueMarkup) orderQueue.innerHTML = queueMarkup;
+  fuelMeter.value = game.fuel;
+  fuelMeter.setAttribute('aria-valuetext', `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`);
+  fuelMeter.title = `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`;
+  fuelMeter.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
   text(hud.bank, money(game.bank)); text(hud.tip, game.order ? money(game.tip) : '—');
   hud.tip.parentElement!.classList.toggle('negative', !!game.order && game.tip < 0);
   text(hud.deliveries, String(game.delivered).padStart(2, '0'));
   text(hud.lives, Array.from({ length: 3 }, (_, i) => i < game.lives ? '◒' : '◌').join(' ')); hud.lives.setAttribute('aria-label', `${game.lives} lives`);
-  const gearMarkup = `${game.ship.gear ? '↓ EXTENDED' : '↑ RETRACTED'} <kbd>G</kbd>`;
-  if (hud.gear.innerHTML !== gearMarkup) hud.gear.innerHTML = gearMarkup;
-  hud.gear.classList.toggle('retracted', !game.ship.gear); hud.gear.setAttribute('aria-pressed', String(game.ship.gear));
-  (hud.gear as HTMLButtonElement).disabled = game.designMode;
   get<HTMLButtonElement>('touch-gear').disabled = game.designMode;
   for (const button of touchButtons) button.disabled = game.phase !== 'playing' || ((button.dataset.control === 'left' || button.dataset.control === 'right') && game.ship.gear);
-  const missionMarkup = game.order ? `${game.destination.name} <span>· Deliver order #${game.order.id} to pad ${game.order.target}</span>` : `${game.destination.name} <span>· ${game.waitingOrders.length ? `${game.waitingOrders.length} ${game.waitingOrders.length === 1 ? "order" : "orders"} ready at pad ${game.level.restaurant}` : `Await dispatch at pad ${game.level.restaurant}`}</span>`;
-  if (hud.mission.innerHTML !== missionMarkup) hud.mission.innerHTML = missionMarkup;
-  text(hud.label, game.order ? 'ORDER ON BOARD' : 'NEXT STOP'); text(hud.pad, `PAD ${game.destination.id}`);
   text(hud.velocity, `${game.ship.vy < 0 ? '↑' : '↓'} ${Math.round(Math.abs(game.ship.vy))}  ·  ↔ ${Math.round(Math.abs(game.ship.vx))}`);
   hud.velocity.classList.toggle('unsafe', game.ship.vy > PHYSICS.safeVertical || Math.abs(game.ship.vx) > PHYSICS.safeHorizontal);
   if (game.bank > best) {
@@ -229,7 +217,7 @@ function frame(now: number) {
   if (frozen) accumulator = 0;
   for (const event of game.events.splice(0)) {
     if (event.type === 'gameover' && event.endReason === 'delivered' && nextLevel(game.level)) continue;
-    if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact') toast(event.message);
+    if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact') toast(event.message, event.type === 'arrival' || event.type === 'pickup' || event.type === 'delivery');
     renderer.burst(event); sound.play(event);
   }
   sound.update(game, input);
