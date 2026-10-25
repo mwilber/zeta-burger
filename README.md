@@ -67,9 +67,9 @@ gh workflow run deploy-heroku.yml --ref master -f branch=YOUR-BRANCH
 The workflow is available for manual runs once it is on the default branch
 (`master`). The repository secret `HEROKU_API_KEY` holds a dedicated, non-expiring
 Heroku OAuth authorization named `GitHub Actions: mwilber/zeta-burger`, with
-`identity,read,write` scopes. Revoke that authorization in Heroku to disable its access;
-replace the GitHub secret when rotating it. The app name is configured in the
-workflow as `HEROKU_APP_NAME`.
+the `global` scope for Heroku's build service. Revoke that authorization to disable
+its access; replace the GitHub secret when rotating it. The app name is configured
+in the workflow as `HEROKU_APP_NAME`.
 
 To preview the production server locally, run `npm run build && npm start` and
 open http://localhost:5173 (or set `PORT` to another port).
