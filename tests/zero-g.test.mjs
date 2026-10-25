@@ -57,12 +57,12 @@ test('weightless flight preserves both axes of momentum with idle, empty fuel, a
   fly(game, .3, { ...idle, up: true }); assert.ok(Math.abs(game.ship.vy) < 1e-9);
 });
 
-test('only Zero G reduces every thruster to 75% acceleration while keeping normal fuel consumption', () => {
-  assert.equal(zeroG.thrustScale, .75);
+test('only Zero G reduces every thruster to 30% acceleration while keeping normal fuel consumption', () => {
+  assert.equal(zeroG.thrustScale, .3);
   const config = LEVEL_CONFIG.find(level => level.id === 'zero-g');
   for (const thrustScale of [-1, NaN, Infinity]) assert.throws(() => createLevel({ ...config, thrustScale }), /thrustScale/);
   for (const level of LEVELS.filter(level => !level.blackHole)) for (const sign of [-1, 1]) {
-    const game = playing(level), scale = level === zeroG ? .75 : 1;
+    const game = playing(level), scale = level === zeroG ? .3 : 1;
     fly(game, .1, { up: sign < 0, down: sign > 0, left: sign < 0, right: sign > 0 });
     assert.ok(Math.abs(game.ship.vx - sign * PHYSICS.sideThrust * scale * .1) < 1e-9, level.name);
     const acceleration = level.gravity + sign * (sign < 0 ? PHYSICS.upThrust : PHYSICS.downThrust) * scale;

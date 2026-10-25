@@ -19,7 +19,7 @@ uses 0; existing levels use 100. Its pads have optional orbital `motion` and
 move as whole stations, including art and collisions. In zero gravity, hold
 Down on a pad for 250 ms to clamp; releasing early floats away.
 A clamped ship rides the station until upward thrust or gear retraction.
-Zero G alone uses `thrustScale: .75` (25% less acceleration on every thruster).
+Zero G alone uses `thrustScale: .3` (70% less acceleration on every thruster).
 
 Event Horizon (6) uses a central `blackHole` gravity well with inverse-square
 pull capped near its fatal event horizon. Its seven stationary pads sit on the

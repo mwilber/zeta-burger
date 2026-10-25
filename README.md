@@ -220,7 +220,7 @@ The ship has no speed cap, so seekers use a fixed **30 world units/second** aver
 
 ![Zero G’s drifting orbital stations.](docs/screenshots/zero-g-level.jpg)
 
-**Zero G (level 5)** follows Event Horizon in the development play order. All seven stations float in deep space and gently drift along small orbital paths. There are no seekers or falling obstacles. Its `gravity: 0` means the ship keeps its horizontal and vertical momentum until you apply opposite thrust. Its `thrustScale: .75` reduces upward, downward, and sideways acceleration by 25%, with the usual fuel consumption. The existing four levels each retain `gravity: 100`, full thrust power, and their original landing behavior.
+**Zero G (level 5)** follows Event Horizon in the development play order. All seven stations float in deep space and gently drift along small orbital paths. There are no seekers or falling obstacles. Its `gravity: 0` means the ship keeps its horizontal and vertical momentum until you apply opposite thrust. Its `thrustScale: .3` reduces upward, downward, and sideways acceleration by 70%, with the usual fuel consumption. The existing four levels each retain `gravity: 100`, full thrust power, and their original landing behavior.
 
 Match a pad's motion and descend gently with gear extended. **Hold Down for 250 ms after touchdown** to press the ship onto the pad and engage its landing clamp. This burns the normal downward-thrust fuel; releasing early (or exhausting fuel) lets the ship rebound and float away, resetting docking progress. Pickup and delivery wait until the clamp engages. The ship shows a progress bar and a **HOLD ↓ TO CLAMP** prompt while settling.
 
