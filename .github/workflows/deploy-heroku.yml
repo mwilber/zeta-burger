@@ -33,7 +33,7 @@ jobs:
       HEROKU_APP_NAME: zeta-burger
     steps:
       - name: Check out deployment tooling from the workflow revision
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.workflow_sha }}
           path: .deployment
@@ -42,14 +42,14 @@ jobs:
           persist-credentials: false
 
       - name: Check out the requested commit or branch
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/heads/{0}', inputs.branch) || github.sha }}
           path: app
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -61,7 +61,7 @@ jobs:
 
       - name: Skip superseded deployment requests
         id: latest
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         with:
           script: |
             const { data: current } = await github.rest.actions.getWorkflowRun({
@@ -81,5 +81,5 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          git archive --format=tar.gz --output="$RUNNER_TEMP/zeta-burger.tar.gz" HEAD
+          git archive --format=tar.gz --prefix=zeta-burger/ --output="$RUNNER_TEMP/zeta-burger.tar.gz" HEAD
           node "$GITHUB_WORKSPACE/.deployment/scripts/deploy-heroku.mjs" "$RUNNER_TEMP/zeta-burger.tar.gz" "$(git rev-parse HEAD)"

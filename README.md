@@ -67,7 +67,7 @@ gh workflow run deploy-heroku.yml --ref master -f branch=YOUR-BRANCH
 The workflow is available for manual runs once it is on the default branch
 (`master`). The repository secret `HEROKU_API_KEY` holds a dedicated, non-expiring
 Heroku OAuth authorization named `GitHub Actions: mwilber/zeta-burger`, with
-`read,write` scopes. Revoke that authorization in Heroku to disable its access;
+`identity,read,write` scopes. Revoke that authorization in Heroku to disable its access;
 replace the GitHub secret when rotating it. The app name is configured in the
 workflow as `HEROKU_APP_NAME`.
 
