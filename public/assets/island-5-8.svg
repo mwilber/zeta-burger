@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 118 83" overflow="visible">
+  <title>Attached balcony steel support</title>
+  <polygon points="0,0 118,0 100,33 73.16,73 35.4,54 15,29" fill="#17263b" stroke="#5a6a82" stroke-width="1"/>
+  <path d="M1 3H117M16 26L35.4 51L73.16 70L98 31M15 8L73 63L110 8M35 8L96 29" fill="none" stroke="#4f6279" stroke-width="3"/>
+  <path d="M6 6H111" stroke="#6fe4e9" stroke-opacity=".4"/>
+  <g fill="#90a1b1"><circle cx="10" cy="10" r="1.6"/><circle cx="108" cy="10" r="1.6"/><circle cx="73" cy="66" r="1.6"/></g>
+</svg>

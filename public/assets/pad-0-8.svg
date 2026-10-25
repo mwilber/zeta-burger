@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 130 160" overflow="visible">
+  <title>ZETA BURGER roof landing pad</title>
+  
+  <rect y="0" width="120" height="10" rx="1" fill="#26384b"/>
+  <path d="M1 1H119" stroke="#ffcb79" stroke-width="3"/>
+  <path d="M7 6H113" stroke="#ffcb79" stroke-width="2" stroke-dasharray="5 9" opacity=".5"/>
+  <path d="M0 0V-5M120 0V-5" stroke="#718294" stroke-width="2"/>
+  <circle cy="-6" r="2" fill="#ffcb79"/><circle cx="120" cy="-6" r="2" fill="#ffcb79"/>
+  <rect x="49.0" y="17" width="22" height="22" rx="2" fill="#0a1425" stroke="#ffcb79" stroke-opacity=".6"/>
+  <text x="60.0" y="33" fill="#ffcb79" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">0</text>
+  <text x="60.0" y="53" fill="#d2d6df" font-family="monospace" font-size="6.5" letter-spacing=".2" text-anchor="middle">ZETA BURGER</text>
+  <text x="60.0" y="64" fill="#ffcb79" opacity=".65" font-family="monospace" font-size="6" letter-spacing="1" text-anchor="middle">ROOF</text>
+</svg>

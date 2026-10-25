@@ -10,8 +10,17 @@ export interface PadConfig {
   // Optional orbital drift amplitudes (world units) and period (seconds).
   motion?: { x: number; y: number; period: number };
   // Island and building positions are offsets from the pad's (x, y).
-  island: { x: number; width: number };
+  // Omit for a rooftop pad built directly onto a level structure.
+  island?: { x: number; width: number };
   building: { x: number; width: number; height: number; kind: string };
+}
+export interface StructureConfig {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  kind: string;
 }
 export interface LevelConfig {
   // Stable asset suffix and display number; independent of play order.
@@ -34,6 +43,8 @@ export interface LevelConfig {
   fallingObstacleLimit: number;
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
   seekerCount: number;
+  // Stationary solid barriers, independent of individual landing pads.
+  structures?: StructureConfig[];
   pads: PadConfig[];
 }
 
@@ -44,6 +55,32 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 8,
+  id: 'megalopolis',
+  name: 'Megalopolis',
+  theme: 'City canyons. Clear the towers, then descend onto rooftops and balconies.',
+  gravity: 100,
+  start: { x: 640, y: 80 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  structures: [
+    { id: 'west', x: 40, y: 460, width: 180, height: 300, kind: 'tower-west' },
+    { id: 'central', x: 380, y: 310, width: 170, height: 450, kind: 'tower-central' },
+    { id: 'civic', x: 730, y: 210, width: 170, height: 550, kind: 'tower-civic' },
+    { id: 'east', x: 1060, y: 370, width: 180, height: 390, kind: 'tower-east' }
+  ],
+  pads: [
+    { id: 6, name: 'Skyway Fuel', x: 64, y: 460, width: 126, color: '#6fe4e9', building: { x: -20, width: 16, height: 36, kind: 'gas' } },
+    { id: 0, name: 'Zeta Burger', x: 395, y: 310, width: 120, color: '#ffcb79', building: { x: 126, width: 24, height: 42, kind: 'restaurant' } },
+    { id: 1, name: 'Market Balcony', x: 220, y: 590, width: 110, color: '#f58dbb', island: { x: -8, width: 118 }, building: { x: -24, width: 20, height: 38, kind: 'market' } },
+    { id: 2, name: 'Civic Crown', x: 745, y: 210, width: 124, color: '#6fe4e9', building: { x: 128, width: 22, height: 45, kind: 'civic' } },
+    { id: 3, name: 'Midtown Terrace', x: 620, y: 470, width: 110, color: '#ffcb79', island: { x: 0, width: 118 }, building: { x: 112, width: 20, height: 38, kind: 'terrace' } },
+    { id: 4, name: 'Neon Heights', x: 1080, y: 370, width: 124, color: '#f58dbb', building: { x: -16, width: 14, height: 40, kind: 'heights' } },
+    { id: 5, name: 'Eastside Balcony', x: 950, y: 600, width: 110, color: '#6fe4e9', island: { x: 0, width: 118 }, building: { x: 112, width: 20, height: 38, kind: 'eastside' } }
+  ]
+}, {
   number: 7,
   id: 'abyss',
   name: 'Abyss',

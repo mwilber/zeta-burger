@@ -1,13 +1,13 @@
 import { LEVEL_CONFIG } from './level-config.js';
-import type { LevelConfig, PadConfig } from './level-config.js';
+import type { LevelConfig, PadConfig, StructureConfig } from './level-config.js';
 export const WORLD_WIDTH = 1280;
 export const WORLD_HEIGHT = 760;
 export interface Point { x: number; y: number }
 export interface Pad { id: number; name: string; x: number; y: number; width: number; color: string; motion?: PadConfig['motion']; island: Point[]; building: { x: number; y: number; width: number; height: number; kind: string } }
 export function createPad(config: PadConfig): Pad {
   const { id, name, x, y, width, color, island, building } = config;
-  const ix = x + island.x, iw = island.width;
-  return { id, name, x, y, width, color, motion: config.motion, island: [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }], building: { x: x + building.x, y: y - building.height, width: building.width, height: building.height + 10, kind: building.kind } };
+  const ix = x + (island?.x ?? 0), iw = island?.width ?? 0;
+  return { id, name, x, y, width, color, motion: config.motion, island: island ? [{ x: ix, y: y + 10 }, { x: ix + iw, y: y + 10 }, { x: ix + iw - 18, y: y + 43 }, { x: ix + iw * .62, y: y + 83 }, { x: ix + iw * .3, y: y + 64 }, { x: ix + 15, y: y + 39 }] : [], building: { x: x + building.x, y: y - building.height, width: building.width, height: building.height + 10, kind: building.kind } };
 }
 type Current = LevelConfig['current'];
 /** Integrate the same reversing flow for stations, fish, and water particles. */
@@ -41,16 +41,16 @@ export function padAtTime(pad: Pad, time: number, current?: Current): Pad {
 }
 // Default-level exports retained for physics and route consumers.
 export const PADS: Pad[] = LEVEL_CONFIG[0].pads.map(createPad);
-export interface Solid { points: Point[]; kind: 'pad' | 'island' | 'building'; padId: number }
+export interface Solid { points: Point[]; kind: 'pad' | 'island' | 'building' | 'structure'; padId: number | null; structureId?: string }
 export function rectangle(x: number, y: number, w: number, h: number): Point[] {
   return [{ x, y }, { x: x + w, y }, { x: x + w, y: y + h }, { x, y: y + h }];
 }
-export function createSolids(pads: Pad[]): Solid[] { return pads.flatMap(pad => [
+export function createSolids(pads: Pad[], structures: StructureConfig[] = []): Solid[] { return [...pads.flatMap(pad => [
   { points: rectangle(pad.x, pad.y, pad.width, 10), kind: 'pad' as const, padId: pad.id },
-  { points: pad.island, kind: 'island' as const, padId: pad.id },
+  ...(pad.island.length ? [{ points: pad.island, kind: 'island' as const, padId: pad.id }] : []),
   { points: rectangle(pad.building.x, pad.building.y, pad.building.width, pad.building.height), kind: 'building' as const, padId: pad.id }
-]); }
-export const SOLIDS = createSolids(PADS);
+]), ...structures.map(structure => ({ points: rectangle(structure.x, structure.y, structure.width, structure.height), kind: 'structure' as const, padId: null, structureId: structure.id }))]; }
+export const SOLIDS = createSolids(PADS, LEVEL_CONFIG[0].structures);
 /** Continuous SAT: earliest contact in [0, 1] for two moving convex polygons. */
 export function sweepContact(a: Point[], b: Point[], deltaA: Point, deltaB: Point = { x: 0, y: 0 }): number | null {
   let entry = 0, exit = 1;

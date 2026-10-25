@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" overflow="visible">
+  <title>Megalopolis — the city that never closes</title>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#090d23"/><stop offset=".5" stop-color="#24233f"/><stop offset="1" stop-color="#74364e"/></linearGradient>
+    <radialGradient id="haze"><stop stop-color="#ed819d" stop-opacity=".22"/><stop offset="1" stop-color="#ed819d" stop-opacity="0"/></radialGradient>
+    <linearGradient id="distance" x2="0" y2="1"><stop stop-color="#3b3455"/><stop offset="1" stop-color="#151b30"/></linearGradient>
+    <pattern id="distant-windows" width="18" height="26" patternUnits="userSpaceOnUse"><rect x="6" y="9" width="3" height="7" fill="#bb9aab" opacity=".16"/></pattern>
+  </defs>
+  <g data-sky=""><path d="M0 0H1280V760H0Z" fill="url(#sky)"/><ellipse cx="650" cy="620" rx="800" ry="420" fill="url(#haze)"/></g>
+  <circle cx="1060" cy="115" r="34" fill="#dfc6b5" opacity=".6"/>
+  <circle cx="1048" cy="105" r="32" fill="#1a1a32"/>
+  <g fill="#34304c" opacity=".6">
+    <path d="M0 760V430H32V385H65V430H97V520H132V396H186V760Z M210 760V360H249V300H285V360H309V452H340V760Z M557 760V390H581V340H626V390H653V480H691V760Z M915 760V420H944V360H988V420H1015V510H1043V760Z M1248 760V355H1280V760Z"/>
+  </g>
+  <g fill="url(#distance)">
+    <path d="M0 760V585H80V515H118V570H151V760Z M238 760V470H274V434H313V470H346V620H371V760Z M563 760V570H590V525H634V570H679V474H714V760Z M910 760V518H942V485H980V518H1014V610H1048V760Z"/>
+  </g>
+  <path d="M238 760V470H274V434H313V470H346V620H371V760Z M563 760V570H590V525H634V570H679V474H714V760Z M910 760V518H942V485H980V518H1014V610H1048V760Z" fill="url(#distant-windows)"/>
+  <g fill="none" stroke="#f5a6c1" stroke-opacity=".08" stroke-width="12"><path d="M0 255Q260 220 510 255T1010 255T1510 255"/><path d="M-80 660Q210 610 490 660T1060 660T1630 660"/></g>
+  <path d="M0 726H1280V760H0Z" fill="#090f1d"/>
+  <path d="M0 734H1280M0 755H1280" stroke="#6b4c68" stroke-width="1"/>
+  <path d="M0 745H1280" stroke="#ffc28e" stroke-opacity=".5" stroke-dasharray="14 25"/>
+  <g font-family="monospace" fill="#baadc4" text-anchor="end"><text x="1120" y="36" font-size="10" letter-spacing="2">MEGALOPOLIS / NIGHT SHIFT</text><text x="1120" y="55" font-size="9" letter-spacing="1">ROOFTOPS + BALCONIES</text></g>
+</svg>

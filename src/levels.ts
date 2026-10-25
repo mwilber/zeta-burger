@@ -27,6 +27,7 @@ export interface Level {
   gasStation: number;
   fallingObstacleLimit: number;
   seekerCount: number;
+  structures: NonNullable<LevelConfig['structures']>;
   destinations: number[];
 }
 export function createLevel(config: LevelConfig): Level {
@@ -47,8 +48,9 @@ export function createLevel(config: LevelConfig): Level {
   for (const pad of config.pads) {
     if (!Number.isInteger(pad.id) || pad.id < 0 || ids.has(pad.id)) fail('pad IDs must be unique nonnegative integers');
     ids.add(pad.id);
-    if (![pad.x, pad.y, pad.width, pad.island.x, pad.island.width, pad.building.x, pad.building.width, pad.building.height].every(Number.isFinite)
-      || pad.width < 38 || pad.island.width <= 18 || pad.building.width <= 0 || pad.building.height <= 0) fail(`invalid geometry for pad ${pad.id}`);
+    if (![pad.x, pad.y, pad.width, pad.building.x, pad.building.width, pad.building.height].every(Number.isFinite)
+      || pad.width < 38 || pad.building.width <= 0 || pad.building.height <= 0
+      || (pad.island && (![pad.island.x, pad.island.width].every(Number.isFinite) || pad.island.width <= 18))) fail(`invalid geometry for pad ${pad.id}`);
     if (!/^[a-z][a-z0-9-]*$/.test(pad.building.kind)) fail(`invalid building asset name for pad ${pad.id}`);
     if (pad.motion && (![pad.motion.x, pad.motion.y, pad.motion.period].every(Number.isFinite)
       || pad.motion.x < 0 || pad.motion.y < 0 || pad.motion.period <= 0)) fail(`invalid motion for pad ${pad.id}`);
@@ -57,8 +59,16 @@ export function createLevel(config: LevelConfig): Level {
   const destinations = config.pads.filter(pad => pad.id !== config.restaurant && pad.id !== config.gasStation).map(pad => pad.id);
   if (!destinations.length) fail('at least one delivery pad is required');
   if (![config.start.x, config.start.y].every(Number.isFinite)) fail('invalid starting position');
+  const structures = config.structures ?? [], structureIds = new Set<string>();
+  for (const structure of structures) {
+    if (!structure.id || structureIds.has(structure.id)) fail('structure IDs must be unique and nonempty');
+    structureIds.add(structure.id);
+    if (![structure.x, structure.y, structure.width, structure.height].every(Number.isFinite)
+      || structure.width <= 0 || structure.height <= 0) fail(`invalid geometry for structure ${structure.id}`);
+    if (!/^[a-z][a-z0-9-]*$/.test(structure.kind)) fail(`invalid structure asset name for ${structure.id}`);
+  }
   const pads = config.pads.map(createPad);
-  return { ...config, pads, padCount: pads.length, solids: createSolids(pads), destinations };
+  return { ...config, structures, pads, padCount: pads.length, solids: createSolids(pads, structures), destinations };
 }
 /** Configuration array order controls selection and progression; numbers stay stable for assets. */
 export function createLevels(configs: LevelConfig[]): Level[] {
@@ -78,8 +88,8 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
 export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
   return `./assets/${name}-${level.number}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole'>): string[] {
-  return [...new Set(['background', 'saucer', 'effects', ...(level.blackHole ? ['black-hole'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
-    pad.building.kind, `island-${pad.id}`, `pad-${pad.id}`, `pad-${pad.id}-active`
+export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
+    pad.building.kind, ...(pad.island.length ? [`island-${pad.id}`] : []), `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
 }

@@ -171,7 +171,7 @@ Image paths in the manifest resolve relative to the game page. Omitted or failed
 
 ## Level configuration
 
-The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Abyss → Event Horizon → Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
+The **order of entries in `LEVEL_CONFIG` is the play order**, including the initial level, level selector, and automatic level progression. Numbers do not need to be consecutive or ascending: entries numbered `8, 1, 4` play in that order. During development, treat levels as a **LIFO stack (newest first)**: prepend each new level so it becomes the starting level. The current play order is **Megalopolis → Abyss → Event Horizon → Zero G → Trick Or Treat → Obsession → Meteor Shower → Luna**. Keep each level's `number` and `id` unchanged so its graphics filenames and identity stay the same.
 
 Edit `src/level-config.ts` to customize levels. Luna is level **1**, with the original seven pads and artwork. Each level has a unique `number` and `id`, a display `name`, a `theme` tagline, a nonnegative `gravity` acceleration (world units/second²), a ship `start` position, a numeric `fallingObstacleLimit`, a numeric `seekerCount`, restaurant and gas station pad IDs, and a `pads` list. The list length is the total number of pads: add or remove entries to change it. Pad IDs may be nonconsecutive. All pads except the restaurant and gas station become delivery destinations automatically; each level requires at least one delivery destination.
 
@@ -241,8 +241,17 @@ Configure the well with optional `blackHole: { x, y, radius, strength, maxAccele
 
 ![Abyss ocean stations, reversing current, and fish hazards.](docs/screenshots/abyss-level.jpg)
 
-**Abyss (level 7)** starts the development play order, underwater in the deep ocean. Seven reef stations drift together in a reversing horizontal current, with pressure-sealed habitats, coral, light shafts, bubbles, and an ocean-colored delivery submersible. The current indicator shows the flow direction. Gravity is reduced to **35**, so the ship slowly sinks; thrusters retain full power.
+**Abyss (level 7)** follows Megalopolis in the development play order, underwater in the deep ocean. Seven reef stations drift together in a reversing horizontal current, with pressure-sealed habitats, coral, light shafts, bubbles, and an ocean-colored delivery submersible. The current indicator shows the flow direction. Gravity is reduced to **35**, so the ship slowly sinks; thrusters retain full power.
 
 Configure flow with optional `current: { speed, period, drag }`: peak water speed in world units/second, cycle length in seconds, and the ship’s horizontal drag response in 1/second. Stations follow the integrated flow, moving their artwork and all collision shapes together. Water drag carries airborne ships even with empty fuel or extended gear. Brake with sideways thrust before extending the landing gear and match the station’s velocity. Docking immediately secures the ship, which rides the current for free; pickup and delivery use the normal 0.8-second dwell. Upward thrust or gear retraction releases it.
 
 Four animated fish use the generic seeker system, pursuing an airborne ship and passing through scenery and each other. Landed ships are immune; fish wander while the ship is docked. Fish and currents freeze during countdown, pause, the final explosion, and game over, and reset on replay or level changes. All Abyss artwork uses the stable `-7.svg` suffix.
+
+
+### Megalopolis
+
+![Megalopolis towers with rooftop and balcony landing pads.](docs/screenshots/megalopolis-level.png)
+
+**Megalopolis (level 8)** starts the development play order. Four illuminated skyscrapers rise from street level, forming solid barriers across the city. Seven numbered pads serve the buildings: four on rooftops and three on projecting side balconies. Climb into the open lane above the skyline before crossing town, then descend along the destination's clear approach corridor. Tower walls and unmarked roof surfaces are fatal. Gravity is **100**, thrusters retain full power, and there are no seekers or falling obstacles.
+
+Optional `structures: [{ id, x, y, width, height, kind }]` entries define independent stationary collision rectangles and matching SVG assets. Structure artwork uses the same dimensions as its collision box. Rooftop pads omit `island`; balcony pads retain the usual support geometry, drawn as attached steel cantilevers. Normal docking, pickup, delivery, and refueling apply. Megalopolis assets use the stable `-8.svg` suffix.

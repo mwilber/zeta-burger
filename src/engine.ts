@@ -77,7 +77,7 @@ export class Game {
   private updateStations() {
     if (!this.level.current && !this.level.pads.some(pad => pad.motion)) return;
     this.pads = this.level.pads.map(pad => padAtTime(pad, this.time, this.level.current));
-    this.solids = createSolids(this.pads);
+    this.solids = createSolids(this.pads, this.level.structures);
   }
   get clinging(): boolean { return this.ship.landed !== null && (this.level.blackHole !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
@@ -236,6 +236,11 @@ export class Game {
     this.fallingObstacles.forEach((obstacle, i) => {
       const delta = deltas[i], body = bodies[i];
       for (const solid of this.level.solids) {
+        if (solid.padId === null) {
+          const time = sweepContact(body, solid.points, delta);
+          if (time !== null) contacts.push({ obstacle, time });
+          continue;
+        }
         const pad = this.level.pads.find(pad => pad.id === solid.padId)!;
         const before = padAtTime(pad, this.time - dt, this.level.current), after = padAtTime(pad, this.time, this.level.current);
         const stationDelta = { x: after.x - before.x, y: after.y - before.y };
@@ -377,6 +382,12 @@ export class Game {
     }
     const body = shipBody(s);
     for (const solid of this.solids) {
+      if (solid.padId === null) {
+        if (sweepContact(shipBody(previous), solid.points, { x: s.x - previous.x, y: s.y - previous.y }) !== null) {
+          this.crash('Tower impact. Clear the rooftops before crossing the city.'); return;
+        }
+        continue;
+      }
       const pad = this.pads.find(pad => pad.id === solid.padId)!;
       const oldPad = previousPads.find(pad => pad.id === solid.padId)!;
       const delta = { x: pad.x - oldPad.x, y: pad.y - oldPad.y };
@@ -407,8 +418,12 @@ export class Game {
         return;
       }
     }
-    for (const gear of gearShapes(s)) {
+    const previousGear = gearShapes(previous);
+    for (const [index, gear] of gearShapes(s).entries()) {
       for (const solid of this.solids) {
+        if (solid.kind === 'structure' && sweepContact(previousGear[index], solid.points, { x: s.x - previous.x, y: s.y - previous.y }) !== null) {
+          this.crash('Landing gear impact. Approach the top of a numbered pad.'); return;
+        }
         if (intersects(gear, solid.points)) { this.crash('Landing gear impact. Approach the top of a pad with both feet.'); return; }
       }
     }

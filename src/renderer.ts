@@ -138,6 +138,10 @@ export class Renderer {
         const hole = this.asset('black-hole', [-radius * 4, -radius * 3, radius * 8, radius * 6]);
         move(hole, x, y); hole.setAttribute('data-black-hole', ''); this.scene.append(hole);
       }
+      for (const structure of level.structures) {
+        const node = this.asset(structure.kind, [0, 0, structure.width, structure.height]);
+        move(node, structure.x, structure.y); node.setAttribute('data-structure', structure.id); this.scene.append(node);
+      }
       this.scene.append(this.stationLayer);
       this.waiting = this.asset('waiting-order'); this.shadow = this.asset('ship-shadow');
       this.vertical = this.asset('vertical-thrust'); this.horizontal = this.asset('horizontal-thrust');
@@ -192,7 +196,8 @@ export class Renderer {
     this.stationLayer.replaceChildren();
     this.stations = pads.map(pad => {
       const root = this.group(), base = pad.island[0];
-      const island = this.asset(`island-${pad.id}`, [0, 0, pad.island[1].x - base.x, 83]); move(island, base.x, base.y);
+      const island = base ? this.asset(`island-${pad.id}`, [0, 0, pad.island[1].x - base.x, 83]) : this.group();
+      if (base) move(island, base.x, base.y);
       const building = this.image(pad.building.kind, this.asset(pad.building.kind, [0, 0, pad.building.width, pad.building.height]), 0, 0, pad.building.width, pad.building.height);
       move(building, pad.building.x, pad.building.y);
       const box: ArtBox = [-5, -90, pad.width + 10, 160];

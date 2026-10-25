@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 120 160" overflow="visible">
+  <title>EASTSIDE BALCONY balcony landing pad</title>
+  <path d="M5-5V-48H105V-5" fill="none" stroke="#6fe4e9" stroke-opacity=".25" stroke-dasharray="3 6"/><text data-beacon="" x="55.0" y="-63" fill="#6fe4e9" font-family="monospace" font-size="12" text-anchor="middle">▼</text>
+  <rect y="0" width="110" height="10" rx="1" fill="#26384b"/>
+  <path d="M1 1H109" stroke="#6fe4e9" stroke-width="3"/>
+  <path d="M7 6H103" stroke="#6fe4e9" stroke-width="2" stroke-dasharray="5 9" opacity=".5"/>
+  <path d="M0 0V-5M110 0V-5" stroke="#718294" stroke-width="2"/>
+  <circle cy="-6" r="2" fill="#6fe4e9"/><circle cx="110" cy="-6" r="2" fill="#6fe4e9"/>
+  <rect x="44.0" y="17" width="22" height="22" rx="2" fill="#0a1425" stroke="#6fe4e9" stroke-opacity=".6"/>
+  <text x="55.0" y="33" fill="#6fe4e9" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">5</text>
+  <text x="55.0" y="53" fill="#d2d6df" font-family="monospace" font-size="6.5" letter-spacing=".2" text-anchor="middle">EASTSIDE BALCONY</text>
+  <text x="55.0" y="64" fill="#6fe4e9" opacity=".65" font-family="monospace" font-size="6" letter-spacing="1" text-anchor="middle">BALCONY</text>
+</svg>

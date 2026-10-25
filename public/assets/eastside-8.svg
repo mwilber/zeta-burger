@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 48" overflow="visible">
+  <title>eastside illuminated access kiosk</title>
+  <rect x=".5" y=".5" width="19" height="47" rx="2" fill="#17253a" stroke="#62758b"/>
+  <rect x="2" y="3" width="16" height="18" rx="1" fill="#10192c" stroke="#6fe4e9" stroke-width=".8"/>
+  <text x="10.0" y="16" fill="#6fe4e9" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">E</text>
+  <path d="M3 26H17V45H3Z" fill="#243b51"/>
+  <path d="M4 41H16" stroke="#6fe4e9" stroke-opacity=".6"/>
+  <circle cx="15" cy="34" r="1" fill="#6fe4e9"/>
+</svg>

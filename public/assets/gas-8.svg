@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 46" overflow="visible">
+  <title>gas illuminated access kiosk</title>
+  <rect x=".5" y=".5" width="15" height="45" rx="2" fill="#17253a" stroke="#62758b"/>
+  <rect x="2" y="3" width="12" height="18" rx="1" fill="#10192c" stroke="#6fe4e9" stroke-width=".8"/>
+  <text x="8.0" y="16" fill="#6fe4e9" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">F</text>
+  <path d="M3 26H13V43H3Z" fill="#243b51"/>
+  <path d="M4 39H12" stroke="#6fe4e9" stroke-opacity=".6"/>
+  <circle cx="11" cy="32" r="1" fill="#6fe4e9"/>
+</svg>

@@ -23,9 +23,9 @@ function dock(game, id = 0) {
 const fish = values => ({ id: 99, x: 250, y: 150, vx: 0, vy: 0, radius: SEEKERS.radius,
   age: 0, phase: 0, wanderAngle: 0, wanderTime: 3, ...values });
 
-test('Abyss starts the stack and preserves every existing level identity and progression', () => {
-  assert.equal(LEVELS[0], abyss); assert.equal(new Game().level, abyss);
-  assert.deepEqual(LEVELS.map(l => [l.number, l.id]), [[7, 'abyss'], [6, 'event-horizon'], [5, 'zero-g'], [4, 'trick-or-treat'], [3, 'obsession'], [2, 'meteor-shower'], [1, 'luna']]);
+test('Abyss preserves its identity and progression behind Megalopolis', () => {
+  assert.equal(nextLevel(LEVELS[0]), abyss);
+  assert.deepEqual(LEVELS.map(l => [l.number, l.id]), [[8, 'megalopolis'], [7, 'abyss'], [6, 'event-horizon'], [5, 'zero-g'], [4, 'trick-or-treat'], [3, 'obsession'], [2, 'meteor-shower'], [1, 'luna']]);
   assert.equal(nextLevel(abyss).id, 'event-horizon');
   assert.equal(abyss.padCount, 7); assert.equal(abyss.seekerCount, 4); assert.equal(abyss.fallingObstacleLimit, 0);
   assert.equal(abyss.gravity, 35); assert.equal(abyss.thrustScale ?? 1, 1);
@@ -149,7 +149,7 @@ test('currents and fish freeze on countdown, pause, and final crash, then reset 
   fly(game, CRASH_DURATION); assert.equal(game.phase, 'gameover'); assert.equal(snapshot(), final);
   fly(game, 1); assert.equal(snapshot(), final);
   game.start(); assert.equal(snapshot(), start);
-  game.start('casual', LEVELS[1]); assert.deepEqual(game.seekers, []); assert.equal(game.level.current, undefined);
+  game.start('casual', LEVELS.find(level => level.id === 'event-horizon')); assert.deepEqual(game.seekers, []); assert.equal(game.level.current, undefined);
 });
 
 test('current-driven scenery cannot sweep through the ship between frames', () => {

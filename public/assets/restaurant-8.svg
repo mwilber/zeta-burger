@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 52" overflow="visible">
+  <title>restaurant illuminated access kiosk</title>
+  <rect x=".5" y=".5" width="23" height="51" rx="2" fill="#17253a" stroke="#62758b"/>
+  <rect x="2" y="3" width="20" height="18" rx="1" fill="#10192c" stroke="#ffcb79" stroke-width=".8"/>
+  <text x="12.0" y="16" fill="#ffcb79" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">ZB</text>
+  <path d="M3 26H21V49H3Z" fill="#243b51"/>
+  <path d="M4 45H20" stroke="#ffcb79" stroke-opacity=".6"/>
+  <circle cx="19" cy="38" r="1" fill="#ffcb79"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 120 160" overflow="visible">
+  <title>MIDTOWN TERRACE balcony landing pad</title>
+  
+  <rect y="0" width="110" height="10" rx="1" fill="#26384b"/>
+  <path d="M1 1H109" stroke="#ffcb79" stroke-width="3"/>
+  <path d="M7 6H103" stroke="#ffcb79" stroke-width="2" stroke-dasharray="5 9" opacity=".5"/>
+  <path d="M0 0V-5M110 0V-5" stroke="#718294" stroke-width="2"/>
+  <circle cy="-6" r="2" fill="#ffcb79"/><circle cx="110" cy="-6" r="2" fill="#ffcb79"/>
+  <rect x="44.0" y="17" width="22" height="22" rx="2" fill="#0a1425" stroke="#ffcb79" stroke-opacity=".6"/>
+  <text x="55.0" y="33" fill="#ffcb79" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">3</text>
+  <text x="55.0" y="53" fill="#d2d6df" font-family="monospace" font-size="6.5" letter-spacing=".2" text-anchor="middle">MIDTOWN TERRACE</text>
+  <text x="55.0" y="64" fill="#ffcb79" opacity=".65" font-family="monospace" font-size="6" letter-spacing="1" text-anchor="middle">BALCONY</text>
+</svg>

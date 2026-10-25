@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -33,3 +33,11 @@ The current moves whole stations, including art and collisions; water drag
 carries airborne ships even without fuel. Docked ships ride pads for free,
 with normal pickup/delivery timing. Its fish use the generic seeker behavior:
 pursue in flight, wander while landed, and never harm a landed ship.
+
+Megalopolis (8) uses solid `structures` rising from street level as tower
+barriers. Four pads sit on roofs (without islands) and three are attached
+balconies with steel supports. Tower SVG artboards match the structure's exact
+collision rectangle. Only numbered pads allow landing; all tower faces and
+unmarked roof surfaces are fatal. Keep the upper flight lane and balcony
+approach corridors clear. Gravity is 100, with full thrust and no seekers or
+falling obstacles.
