@@ -177,7 +177,7 @@ export class Game {
     });
   }
   private stepSeekers(dt: number, previousShip: Ship, canHitShip: boolean) {
-    const hunting = (canHitShip || this.phase === 'idle') && this.ship.landed === null;
+    const hunting = canHitShip && this.ship.landed === null;
     const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
     const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
     const drift = currentOffset(this.level.current, this.time) - currentOffset(this.level.current, this.time - dt);

@@ -61,16 +61,24 @@ test('moving stations and their collision geometry continue while the ship stays
   }
 });
 
-test('seekers still pursue the idle airborne ship and cannot kill it on contact', () => {
-  const game = design(LEVELS.find(level => level.id === 'obsession'));
-  game.seekers = [{ id: 99, x: game.ship.x - 100, y: game.ship.y, vx: 0, vy: 0, radius: SEEKERS.radius,
-    age: 0, phase: 0, wanderAngle: Math.PI, wanderTime: 3 }];
-  run(game, 2);
-  assert.ok(game.seekers[0].vx > 0, 'pursues the ship instead of wandering left');
-  game.seekers[0].x = game.ship.x; game.seekers[0].y = game.ship.y;
-  run(game, 1);
-  assert.equal(game.phase, 'idle'); assert.equal(game.lives, 3);
-  assert.ok(game.seekers[0].age > 2.9);
+test('design-mode seekers wander exactly as they do around a landed player and cannot harm the ship', () => {
+  for (const level of LEVELS.filter(level => level.seekerCount > 0)) {
+    const game = design(level), landed = new Game(() => .5, level);
+    landed.start(); landed.step(START_DELAY, noInput); landed.ship = landed.spawnAtStation();
+    game.seekers = [{ id: 99, x: game.ship.x - 100, y: game.ship.y, vx: 0, vy: 0, radius: SEEKERS.radius,
+      age: 0, phase: 0, wanderAngle: Math.PI, wanderTime: 3 }];
+    landed.seekers = structuredClone(game.seekers);
+    run(game, 2); run(landed, 2);
+    assert.ok(game.seekers[0].vx < 0, 'wanders left instead of pursuing the ship to the right');
+    assert.deepEqual(game.seekers, landed.seekers, level.id);
+    run(game, 2); run(landed, 2);
+    assert.deepEqual(game.seekers, landed.seekers, `${level.id}: random wander turns still match`);
+    assert.ok(game.seekers[0].wanderTime > 1.9, 'wander timer resets after choosing a new heading');
+    game.seekers[0].x = game.ship.x; game.seekers[0].y = game.ship.y;
+    run(game, 1);
+    assert.equal(game.phase, 'idle'); assert.equal(game.lives, 3);
+    assert.ok(game.seekers[0].age > 4.9);
+  }
 });
 
 test('falling obstacles spawn and move through the idle ship, then explode on scenery', () => {
