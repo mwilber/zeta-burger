@@ -36,6 +36,7 @@ export function gearShapes(ship: Ship): Point[][] {
 export class Game {
   phase: Phase = 'ready';
   designMode = false;
+  editing = false;
   ship: Ship;
   lives = 3;
   bank = 0;
@@ -68,7 +69,7 @@ export class Game {
     return { ...this.level.start, vx: 0, vy: 0, gear: false, landed: null };
   }
   spawnAtStation(): Ship {
-    const station = this.pads.find(p => p.id === this.level.gasStation)!;
+    const station = this.pads.find(p => p.id === (this.level.gasStation ?? this.level.restaurant))!;
     return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, ...this.stationVelocity(station), gear: true, landed: station.id };
   }
   private stationVelocity(pad: Pad): { vx: number; vy: number } {
@@ -83,9 +84,10 @@ export class Game {
   get clinging(): boolean { return this.ship.landed !== null && (this.level.gravityWell !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
   get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
-  start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean; designMode?: boolean } = {}) {
+  start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean; designMode?: boolean; editing?: boolean } = {}) {
     this.skill = skill; this.level = level;
-    this.designMode = options.designMode ?? this.designMode;
+    this.editing = options.editing ?? false;
+    this.designMode = this.editing || (options.designMode ?? this.designMode);
     this.ship = this.spawn(); this.lives = 3; this.bank = options.carryBank ? this.bank : 0; this.delivered = 0;
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
     this.pads = level.pads; this.solids = level.solids;
@@ -94,7 +96,7 @@ export class Game {
     const setting = SKILLS[skill];
     // The first order always arrives five seconds into the shift.
     let availableAt = 5;
-    for (let id = 1; id <= setting.orders; id++) {
+    for (let id = 1; id <= (level.destinations.length ? setting.orders : 0); id++) {
       if (id > 1) availableAt += setting.arrivalMin + this.random() * (setting.arrivalMax - setting.arrivalMin);
       const target = level.destinations[Math.min(level.destinations.length - 1, Math.floor(this.random() * level.destinations.length))];
       const initialTip = Math.round((5 + this.random() * 5) * 100) / 100;
@@ -137,6 +139,7 @@ export class Game {
     this.emit('gear', this.ship.gear ? 'Gear extended. Side thrusters locked. Keep an eye on your drift.' : 'Gear retracted. Side thrusters ready.');
   }
   pause() {
+    if (this.editing) return;
     if (this.phase === 'playing' || this.phase === 'idle' || this.phase === 'countdown' || this.phase === 'crashed') {
       this.pausedPhase = this.phase; this.phase = 'paused';
     } else if (this.phase === 'paused') this.phase = this.pausedPhase;
@@ -154,6 +157,7 @@ export class Game {
     if (Math.abs(target - this.tilt) < .001) this.tilt = target;
   }
   step(dt: number, controls: Controls) {
+    if (this.editing) return;
     const previousPhase = this.phase, previousShip = { ...this.ship };
     this.stepShip(dt, controls);
     // Flight hazards share gameplay pause/countdown/end rules. During replacement
@@ -437,7 +441,7 @@ export class Game {
   private burnFuel(cost: number) {
     this.fuel = Math.max(0, this.fuel - cost);
     if (this.fuel <= FUEL.low && !this.lowFuelWarned) {
-      this.lowFuelWarned = true; this.emit('fuel', `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
+      this.lowFuelWarned = true; this.emit('fuel', this.level.gasStation === null ? 'Low fuel! This level has no fuel station.' : `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
     }
   }
   service() {

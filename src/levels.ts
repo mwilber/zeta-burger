@@ -15,6 +15,7 @@ export interface Level {
   id: string;
   name: string;
   theme: string;
+  assets?: LevelConfig['assets'];
   gravity: number;
   current?: LevelConfig['current'];
   blackHole?: LevelConfig['blackHole'];
@@ -26,13 +27,13 @@ export interface Level {
   solids: Solid[];
   start: Point;
   restaurant: number;
-  gasStation: number;
+  gasStation: number | null;
   fallingObstacleLimit: number;
   seekerCount: number;
   structures: NonNullable<LevelConfig['structures']>;
   destinations: number[];
 }
-export function createLevel(config: LevelConfig): Level {
+export function createLevel(config: LevelConfig, options: { editing?: boolean } = {}): Level {
   const fail = (message: string): never => { throw new Error(`Level ${config.number}: ${message}`); };
   if (!Number.isInteger(config.number) || config.number < 1) fail('number must be a positive integer');
   if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
@@ -59,9 +60,10 @@ export function createLevel(config: LevelConfig): Level {
     if (pad.motion && (![pad.motion.x, pad.motion.y, pad.motion.period].every(Number.isFinite)
       || pad.motion.x < 0 || pad.motion.y < 0 || pad.motion.period <= 0)) fail(`invalid motion for pad ${pad.id}`);
   }
-  if (!ids.has(config.restaurant) || !ids.has(config.gasStation) || config.restaurant === config.gasStation) fail('restaurant and gas station must reference distinct existing pads');
+  if ((!options.editing && !ids.has(config.restaurant)) || (config.gasStation !== null && (!ids.has(config.gasStation) || config.restaurant === config.gasStation))) fail('restaurant and gas station must reference distinct existing pads');
   const destinations = config.pads.filter(pad => pad.id !== config.restaurant && pad.id !== config.gasStation).map(pad => pad.id);
-  if (!destinations.length) fail('at least one delivery pad is required');
+  if (!options.editing && !destinations.length) fail('at least one delivery pad is required');
+  if (config.assets && Object.values(config.assets).some(name => !/^[a-z][a-z0-9-]*$/.test(name))) fail('invalid asset basename');
   if (![config.start.x, config.start.y].every(Number.isFinite)) fail('invalid starting position');
   const structures = config.structures ?? [], structureIds = new Set<string>();
   for (const structure of structures) {
@@ -76,7 +78,7 @@ export function createLevel(config: LevelConfig): Level {
 }
 /** Configuration array order controls selection and progression; numbers stay stable for assets. */
 export function createLevels(configs: LevelConfig[]): Level[] {
-  const levels = configs.map(createLevel);
+  const levels = configs.map(config => createLevel(config));
   if (!levels.length) throw new Error('At least one level must be configured');
   if (new Set(levels.map(level => level.number)).size !== levels.length || new Set(levels.map(level => level.id)).size !== levels.length) {
     throw new Error('Level numbers and IDs must be unique');
@@ -89,11 +91,17 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
   return index < 0 ? undefined : levels[index + 1];
 }
 /** Append the level number after the full original asset name, before its extension. */
-export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
-  return `./assets/${name}-${level.number}.${extension}`;
+export function levelAssetPath(name: string, level: Pick<Level, 'number' | 'assets'>, extension = 'svg'): string {
+  return `./assets/${level.assets?.[name] ?? `${name}-${level.number}`}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star'>): string[] {
+export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star' | 'assets'>): string[] {
   return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
-    pad.building.kind, ...(pad.island.length ? [`island-${pad.id}`] : []), `pad-${pad.id}`, `pad-${pad.id}-active`
+    padBuildingAssetName(pad, level), ...(pad.island.length ? [`island-${pad.id}`] : []), `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
+}
+
+/** Per-pad building slots allow the same building kind in multiple visual themes. */
+export function padBuildingAssetName(pad: Pad, level: Pick<Level, 'assets'>): string {
+  const slot = `building-${pad.id}`;
+  return level.assets?.[slot] ? slot : pad.building.kind;
 }
