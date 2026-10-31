@@ -52,12 +52,12 @@ export class LevelEditor {
         this.draft.config[field] = input.valueAsNumber;
       }));
     }
-    get('add-platform').addEventListener('click', () => this.change(() => {
+    get('platform-asset').addEventListener('artwork-pick', () => this.change(() => {
       if (this.draft.config.pads.length >= 30) throw new Error('Use at most 30 platforms.');
       const asset = PLATFORM_ASSETS.find(asset => asset.key === get<ArtworkPicker>('platform-asset').value)!;
       this.selected = `pad:${this.draft.addPlatform(asset).id}`;
     }));
-    get('add-barrier').addEventListener('click', () => this.change(() => {
+    get('barrier-asset').addEventListener('artwork-pick', () => this.change(() => {
       this.selected = `structure:${this.draft.addBarrier(get<ArtworkPicker>('barrier-asset').value).id}`;
     }));
     get('meteors').addEventListener('change', () => this.change(() => {
