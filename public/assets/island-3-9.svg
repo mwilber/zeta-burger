@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 272 83" overflow="visible">
+  <defs><linearGradient id="hull" x2="0" y2="1"><stop stop-color="#666347"/><stop offset="1" stop-color="#252e28"/></linearGradient></defs>
+  <polygon points="0,0 272,0 254,33 168.64,73 81.6,54 15,29" fill="url(#hull)" stroke="#a4a383" stroke-width="1"/>
+  <path d="M3 3H269M17 26L81.6 51L168.64 69L251 31" fill="none" stroke="#ffd789" stroke-opacity=".65" stroke-width="2"/>
+  <path d="M81.6 3V50M168.64 3V68M217.60000000000002 3L209.60000000000002 42" fill="none" stroke="#8b8761" stroke-width="2"/>
+  <rect x="108.80000000000001" y="12" width="48.96" height="14" rx="3" fill="#172b27" stroke="#a6a275"/>
+  <path d="M114.24 19H152.32000000000002" stroke="#ffd789" stroke-width="3" stroke-dasharray="4 3"/>
+  <circle cx="48.96" cy="14" r="3" fill="#ffd789"/>
+  <circle cx="233.92" cy="14" r="3" fill="#ffd789"/>
+  <text x="122.4" y="42" fill="#d9d3ab" font-family="monospace" font-size="7" text-anchor="middle">DS / 03</text>
+</svg>

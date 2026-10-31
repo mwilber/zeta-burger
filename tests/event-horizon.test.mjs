@@ -18,7 +18,7 @@ function fly(game, seconds, controls = idle) {
 test('Event Horizon retains its central well and seven accessible peripheral stations', () => {
   assert.equal(level.number, 6);
   assert.equal(nextLevel(level).id, 'zero-g');
-  assert.deepEqual(LEVELS.map(level => level.number), [8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.deepEqual(LEVELS.map(level => level.number), [9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(level.blackHole.x, WORLD_WIDTH / 2); assert.equal(level.blackHole.y, WORLD_HEIGHT / 2);
   assert.equal(level.gravity, 0); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
@@ -131,7 +131,7 @@ test('malformed black-hole configurations fail with a level-specific error', () 
   }
 });
 
-test('a full restaurant–delivery–refuel–restaurant route works around the well without losing a life', () => {
+for (const level of LEVELS.filter(level => level.gravityWell)) test(`${level.name}: a full restaurant–delivery–refuel–restaurant route works without losing a life`, () => {
   const game = new Game(() => .999, level); game.start('casual'); game.step(START_DELAY, idle);
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   function navigate(x, y, landId = null) {

@@ -80,7 +80,7 @@ export class Game {
     this.pads = this.level.pads.map(pad => padAtTime(pad, this.time, this.level.current));
     this.solids = createSolids(this.pads, this.level.structures);
   }
-  get clinging(): boolean { return this.ship.landed !== null && (this.level.blackHole !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
+  get clinging(): boolean { return this.ship.landed !== null && (this.level.gravityWell !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
   get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
   start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean; designMode?: boolean } = {}) {
@@ -362,7 +362,7 @@ export class Game {
     if (current) s.vx += (currentVelocity(current, this.time) - s.vx) * (1 - Math.exp(-current.drag * dt));
     s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
     s.vx += direction * PHYSICS.sideThrust * thrust * dt;
-    const hole = this.level.blackHole;
+    const hole = this.level.gravityWell;
     if (hole) {
       const dx = hole.x - s.x, dy = hole.y - s.y, distance = Math.hypot(dx, dy);
       // Cap the acceleration near the horizon, including the exact center.
@@ -380,7 +380,7 @@ export class Game {
       const delta = { x: s.x - previous.x, y: s.y - previous.y };
       // Sweep the hull and feet so a fast crossing cannot skip the horizon.
       if ([shipBody(previous), ...(s.gear ? gearShapes(previous) : [])].some(shape => sweepContact(shape, horizon, delta) !== null)) {
-        this.crash('Event horizon crossed! Keep to the outer rim and brake against the pull.'); return;
+        this.crash(this.level.star ? 'Stellar surface impact! Keep clear of the star and brake against the pull.' : 'Event horizon crossed! Keep to the outer rim and brake against the pull.'); return;
       }
     }
     if (s.x - 24 <= 0 || s.x + 24 >= WORLD_WIDTH || s.y - 17 <= 0 || s.y + (s.gear ? PHYSICS.footY : 8) >= WORLD_HEIGHT - 12) {

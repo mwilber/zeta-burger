@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760">
+  <defs>
+    <radialGradient id="shell"><stop stop-color="#34483c"/><stop offset=".55" stop-color="#1e302b"/><stop offset="1" stop-color="#0c191b"/></radialGradient>
+    <radialGradient id="sunlight"><stop stop-color="#ffc77c" stop-opacity=".14"/><stop offset=".65" stop-color="#cbb570" stop-opacity=".035"/><stop offset="1" stop-color="#d4c48b" stop-opacity="0"/></radialGradient>
+    <pattern id="collectors" width="76" height="46" patternUnits="userSpaceOnUse" patternTransform="skewX(-12)">
+      <rect x="3" y="3" width="70" height="40" rx="2" fill="#243a32" fill-opacity=".45" stroke="#a4af7d" stroke-opacity=".12"/>
+      <path d="M8 12H68M8 33H68M25 5V41M50 5V41" stroke="#a4af7d" stroke-opacity=".07"/>
+      <path d="M7 7H17" stroke="#a8d1a4" stroke-opacity=".22"/>
+    </pattern>
+  </defs>
+  <g data-sky=""><path d="M0 0H1280V760H0Z" fill="url(#shell)"/></g>
+  <path d="M0 0H1280V760H0Z" fill="url(#collectors)"/>
+  <g fill="none" stroke="#bdd5a3" stroke-opacity=".13" stroke-width="2"><path d="M-860 -180 Q310.0 380 -860 940"/><path d="M-410 -180 Q409.0 380 -410 940"/><path d="M-60 -180 Q486.0 380 -60 940"/><path d="M210 -180 Q545.4 380 210 940"/><path d="M420 -180 Q591.6 380 420 940"/><path d="M640 -180 Q640.0 380 640 940"/><path d="M860 -180 Q688.4 380 860 940"/><path d="M1070 -180 Q734.6 380 1070 940"/><path d="M1340 -180 Q794.0 380 1340 940"/><path d="M1690 -180 Q871.0 380 1690 940"/><path d="M2140 -180 Q970.0 380 2140 940"/><ellipse cx="640" cy="380" rx="237.5" ry="125"/><ellipse cx="640" cy="380" rx="389.5" ry="205"/><ellipse cx="640" cy="380" rx="551.0" ry="290"/><ellipse cx="640" cy="380" rx="750.5" ry="395"/><ellipse cx="640" cy="380" rx="1026.0" ry="540"/><ellipse cx="640" cy="380" rx="1387.0" ry="730"/></g>
+  <g fill="none" stroke="#d2c595" stroke-opacity=".2">
+    <ellipse cx="640" cy="380" rx="850" ry="485" stroke-width="18"/>
+    <ellipse cx="640" cy="380" rx="850" ry="485" stroke="#172d29" stroke-width="12"/>
+    <ellipse cx="640" cy="380" rx="681" ry="361" stroke-width="3"/>
+    <ellipse cx="640" cy="380" rx="676" ry="356" stroke-dasharray="2 16" stroke-width="3"/>
+  </g>
+  <path d="M0 0H1280V760H0Z" fill="url(#sunlight)"/>
+  <g font-family="monospace" fill="#c9d5ac" opacity=".48" font-size="9" letter-spacing="3">
+    <text x="30" y="32">FREEMAN / DYSON SPHERE</text>
+    <text x="1250" y="32" text-anchor="end">INTERIOR · COLLECTOR SECTOR 09</text>
+    <text x="640" y="728" text-anchor="middle" font-size="8">HABITAT ARRAY / STELLAR ENERGY NETWORK</text>
+  </g>
+  <path d="M0 748H1280" stroke="#c9d5ac" stroke-opacity=".2" stroke-dasharray="2 12"/>
+</svg>

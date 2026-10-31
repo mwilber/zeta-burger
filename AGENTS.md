@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -41,3 +41,10 @@ collision rectangle. Only numbered pads allow landing; all tower faces and
 unmarked roof surfaces are fatal. Keep the upper flight lane and balcony
 approach corridors clear. Gravity is 100, with full thrust and no seekers or
 falling obstacles.
+
+Freeman (9), named for Freeman Dyson, takes place inside a Dyson sphere. Its
+central `star` shares Event Horizon’s inverse-square gravity and immediate free
+docking, with half the strength and acceleration cap. Seven stationary pads use
+the same peripheral layout. Gravity is 0 with full thrust, no seekers, and no
+falling obstacles. The star’s visible surface matches its fatal radius; its
+corona is decorative. Level-9 SVG assets show the sphere’s interior collectors.

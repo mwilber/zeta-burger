@@ -152,7 +152,7 @@ function updateHud() {
   text(get('level-name'), `LEVEL ${game.level.number} · ${game.level.name.toUpperCase()}`);
   text(get('world-name'), game.level.name.toUpperCase());
   const intro = document.querySelector<HTMLElement>('#intro-description');
-  if (intro) text(intro, `${game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
   text(get('help-gas'), `pad ${game.level.gasStation}`);
@@ -162,6 +162,7 @@ function updateHud() {
   get('current-help').hidden = !game.level.current;
   get('zero-g-help').hidden = game.level.id !== 'zero-g';
   get('black-hole-help').hidden = !game.level.blackHole;
+  get('star-help').hidden = !game.level.star;
   fuelMeter.value = game.fuel;
   fuelMeter.setAttribute('aria-valuetext', `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`);
   fuelMeter.title = `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`;

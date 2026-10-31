@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-208 -156 416 312">
+  <defs>
+    <radialGradient id="corona"><stop stop-color="#ffed9d" stop-opacity=".7"/><stop offset=".36" stop-color="#ffc266" stop-opacity=".24"/><stop offset=".7" stop-color="#e99042" stop-opacity=".06"/><stop offset="1" stop-color="#f0a04c" stop-opacity="0"/></radialGradient>
+    <radialGradient id="photosphere" cx=".42" cy=".38" r=".65"><stop stop-color="#fffde1"/><stop offset=".5" stop-color="#ffe994"/><stop offset=".85" stop-color="#ffc259"/><stop offset="1" stop-color="#ed8e39"/></radialGradient>
+    <clipPath id="surface"><circle r="52"/></clipPath>
+  </defs>
+  <ellipse rx="150" ry="140" fill="url(#corona)"/>
+  <g fill="none" stroke="#ffcc72" stroke-linecap="round">
+    <path d="M-43 -24C-85 -63-78 2-49 9M28 -42C54 -82 76 -32 48 -19M-17 46C-40 79 15 80 24 46" stroke-width="2" opacity=".65"/>
+    <path d="M-45 -21C-70 -45-63 -2-49 6M32 -40C52 -63 64 -33 48 -23M-12 48C-26 66 12 67 19 48" stroke-width="5" opacity=".2"/>
+  </g>
+  <!-- The visible photosphere matches the fatal radius of 52 world units. -->
+  <circle r="52" fill="url(#photosphere)"/>
+  <g clip-path="url(#surface)" fill="none" stroke="#eaa34b" stroke-width="2" opacity=".32">
+    <path d="M-54 -18Q-33 -31-12 -14T27 -15T60 -7M-59 10Q-37 -3-18 12T22 11T58 15M-49 35Q-24 20-2 34T49 30M-38 -43Q-13 -30 8 -42T49 -37"/>
+    <path d="M-25 -49Q-39 -27-23 -9T-24 29T-14 57M10 -56Q-5 -26 12 -7T9 31T20 54M38 -45Q24 -20 39 2T33 41" opacity=".5"/>
+  </g>
+  <circle r="51.5" fill="none" stroke="#fff0ba" stroke-width="1"/>
+  <g font-family="monospace" text-anchor="middle" fill="#ffe1a0">
+    <text y="109" font-size="10" letter-spacing="4">FREEMAN</text>
+    <text y="126" font-size="7" letter-spacing="2" opacity=".7">STELLAR SURFACE · KEEP CLEAR</text>
+  </g>
+</svg>

@@ -23,8 +23,8 @@ function touchdown(game, id) {
   assert.equal(game.ship.landed, id);
 }
 
-test('Megalopolis starts the stack with four street-level barriers, four roofs, and three balconies', () => {
-  assert.equal(new Game().level, level); assert.equal(LEVELS[0], level);
+test('Megalopolis retains four street-level barriers, four roofs, and three balconies', () => {
+  assert.equal(nextLevel(LEVELS.find(l => l.id === 'freeman')), level);
   assert.equal(level.number, 8); assert.equal(nextLevel(level).id, 'abyss');
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
