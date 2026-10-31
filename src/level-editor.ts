@@ -1,7 +1,9 @@
 import { LEVEL_CONFIG } from './level-config.js';
 import { createLevel } from './levels.js';
 import type { Level } from './levels.js';
-import { EditorDraft, PLATFORM_ASSETS, BARRIER_ASSETS } from './editor-config.js';
+import { EditorDraft, PLATFORM_ASSETS } from './editor-config.js';
+import { ArtworkPicker } from './artwork-picker.js';
+import { BACKGROUND_ARTWORK, PLATFORM_ARTWORK, BARRIER_ARTWORK } from './artwork-options.js';
 
 const get = <T extends HTMLElement>(id: string) => document.getElementById(`editor-${id}`) as T;
 interface EditorCallbacks {
@@ -23,10 +25,10 @@ export class LevelEditor {
   private button = document.getElementById('editor')!;
   constructor(private stage: SVGSVGElement, private callbacks: EditorCallbacks) {
     for (const level of LEVEL_CONFIG) this.picker.add(new Option(`${level.number} · ${level.name}`, level.id));
-    for (const level of LEVEL_CONFIG) get<HTMLSelectElement>('background').add(new Option(level.name, String(level.number)));
-    for (const asset of PLATFORM_ASSETS) get<HTMLSelectElement>('platform-asset').add(new Option(asset.label, asset.key));
-    get<HTMLSelectElement>('platform-asset').value = '1:0';
-    for (const asset of BARRIER_ASSETS) get<HTMLSelectElement>('barrier-asset').add(new Option(asset.label, asset.key));
+    get<ArtworkPicker>('background').options = BACKGROUND_ARTWORK;
+    get<ArtworkPicker>('platform-asset').options = PLATFORM_ARTWORK;
+    get<ArtworkPicker>('platform-asset').value = '1:0';
+    get<ArtworkPicker>('barrier-asset').options = BARRIER_ARTWORK;
     this.picker.addEventListener('change', () => this.open(this.picker.value));
     get('new').addEventListener('click', () => {
       const number = Math.max(...LEVEL_CONFIG.map(level => level.number), ...Array.from(this.drafts.values(), draft => draft.config.number)) + 1;
@@ -42,7 +44,7 @@ export class LevelEditor {
       this.draft.config.name = get<HTMLInputElement>('name').value.trim() || `Custom level ${this.draft.config.number}`;
       this.picker.selectedOptions[0].textContent = `${this.draft.config.number} · ${this.draft.config.name}`;
     }));
-    get('background').addEventListener('change', () => this.change(() => this.draft.setBackground(Number(get<HTMLSelectElement>('background').value))));
+    get('background').addEventListener('change', () => this.change(() => this.draft.setBackground(Number(get<ArtworkPicker>('background').value))));
     for (const [id, field] of [['gravity', 'gravity'], ['thrust', 'thrustScale']] as const) {
       get(id).addEventListener('change', () => this.change(() => {
         const input = get<HTMLInputElement>(id);
@@ -52,11 +54,11 @@ export class LevelEditor {
     }
     get('add-platform').addEventListener('click', () => this.change(() => {
       if (this.draft.config.pads.length >= 30) throw new Error('Use at most 30 platforms.');
-      const asset = PLATFORM_ASSETS.find(asset => asset.key === get<HTMLSelectElement>('platform-asset').value)!;
+      const asset = PLATFORM_ASSETS.find(asset => asset.key === get<ArtworkPicker>('platform-asset').value)!;
       this.selected = `pad:${this.draft.addPlatform(asset).id}`;
     }));
     get('add-barrier').addEventListener('click', () => this.change(() => {
-      this.selected = `structure:${this.draft.addBarrier(get<HTMLSelectElement>('barrier-asset').value).id}`;
+      this.selected = `structure:${this.draft.addBarrier(get<ArtworkPicker>('barrier-asset').value).id}`;
     }));
     get('meteors').addEventListener('change', () => this.change(() => {
       this.draft.config.fallingObstacleLimit = get<HTMLInputElement>('meteors').checked ? 4 : 0;
@@ -126,6 +128,7 @@ export class LevelEditor {
       if (!config) return;
       draft = new EditorDraft(config); this.drafts.set(id, draft);
     }
+    this.closeArtworkPickers();
     this.draft = draft; this.active = true; this.selected = '';
     this.picker.value = id; this.toolbar.hidden = false;
     this.button.setAttribute('aria-expanded', 'true');
@@ -133,7 +136,11 @@ export class LevelEditor {
     get('status').textContent = '';
     this.refresh(); void this.preview();
   }
+  private closeArtworkPickers() {
+    for (const picker of this.toolbar.querySelectorAll<ArtworkPicker>('artwork-picker')) picker.close();
+  }
   close() {
+    this.closeArtworkPickers();
     this.active = false; this.version++; this.drag = undefined;
     this.toolbar.hidden = true; this.button.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('editor-active'); this.stage.classList.remove('editing', 'dragging');
@@ -157,7 +164,7 @@ export class LevelEditor {
     get<HTMLInputElement>('fuel').checked = config.gasStation !== null;
     get('new-options').hidden = !this.draft.isNew;
     get<HTMLInputElement>('name').value = config.name;
-    get<HTMLSelectElement>('background').value = config.assets?.background?.match(/-(\d+)$/)?.[1] ?? '1';
+    get<ArtworkPicker>('background').value = config.assets?.background?.match(/-(\d+)$/)?.[1] ?? '1';
     get<HTMLInputElement>('gravity').value = String(config.gravity);
     get<HTMLInputElement>('thrust').value = String(config.thrustScale ?? 1);
     get<HTMLInputElement>('meteors').checked = config.fallingObstacleLimit > 0;
