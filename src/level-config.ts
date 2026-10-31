@@ -38,6 +38,9 @@ export interface LevelConfig {
   id: string;
   name: string;
   theme: string;
+  // Optional SVG basenames (without extension), keyed by logical asset name.
+  // Lets editor-created levels reuse artwork from any existing level.
+  assets?: Record<string, string>;
   // Uniform downward acceleration in world units/second², separate from a black hole.
   gravity: number;
   // Reversing horizontal flow: peak speed (units/s), period (s), and ship drag (1/s).
@@ -50,7 +53,7 @@ export interface LevelConfig {
   thrustScale?: number;
   start: Point;
   restaurant: number;
-  gasStation: number;
+  gasStation: number | null;
   // Maximum active falling obstacles. Set to 0 to disable them.
   fallingObstacleLimit: number;
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
