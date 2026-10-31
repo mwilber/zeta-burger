@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760">
+  <title>Grotto — daylight at the mountain’s edge</title>
+
+  <defs>
+    <linearGradient id="grotto-sky" x2="0" y2="1"><stop stop-color="#3e7391"/><stop offset="1" stop-color="#b6cfca"/></linearGradient>
+    <linearGradient id="grotto-depth" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#3e4b4b"/><stop offset=".4" stop-color="#273438"/><stop offset="1" stop-color="#101f27"/></linearGradient>
+    <radialGradient id="mouth-light" cx=".05" cy=".1" r=".8"><stop stop-color="#dcc8a0" stop-opacity=".2"/><stop offset="1" stop-color="#cbb99a" stop-opacity="0"/></radialGradient>
+    <pattern id="back-strata" width="250" height="170" patternUnits="userSpaceOnUse">
+      <path d="M0 18L60 12 109 26 174 9 250 20M0 83L47 91 115 72 182 84 250 75M0 151L83 143 140 162 214 143 250 150" fill="none" stroke="#81908c" stroke-width="1" opacity=".085"/>
+      <path d="M60 12L75 52 47 91M174 9L161 41 182 84 170 120 214 143M83 143L92 118 115 72" fill="none" stroke="#020f18" stroke-width="2" opacity=".18"/>
+      <path d="M22 42L42 38 52 49M120 132L139 127M200 49L215 54" fill="none" stroke="#bbac8d" opacity=".06"/>
+    </pattern>
+    <clipPath id="cavern-back"><path d="M0 306L240 305 310 266 365 218 510 180 760 180 868 58 895 0H1280V760H0Z"/></clipPath>
+    <linearGradient id="grotto-shaft" x2=".5" y2="1"><stop stop-color="#e9dfb7" stop-opacity=".1"/><stop offset="1" stop-color="#e9dfb7" stop-opacity="0"/></linearGradient>
+  </defs>
+  <g data-sky=""><path d="M0 0H1280V760H0Z" fill="url(#grotto-sky)"/></g>
+  <!-- An opaque daylight layer also covers the shared decorative star field. -->
+  <path d="M0 0H1280V760H0Z" fill="url(#grotto-sky)"/>
+  <circle cx="380" cy="59" r="27" fill="#f8e5b8" opacity=".8"/>
+  <g fill="#ebefdd" opacity=".28"><path d="M28 66Q60 42 96 61Q125 37 163 66Z"/><path d="M465 45Q503 22 538 44Q568 24 612 46Z"/></g>
+  <path d="M0 182L80 121 134 164 217 102 298 177 375 130 448 187 547 125 647 190V340H0Z" fill="#617e7e" opacity=".5"/>
+  <path d="M0 206L60 179 128 200 195 155 270 202 347 164 443 215 545 177 635 229V340H0Z" fill="#476967" opacity=".55"/>
+  <g clip-path="url(#cavern-back)">
+    <path d="M0 0H1280V760H0Z" fill="url(#grotto-depth)"/>
+    <path d="M0 0H1280V760H0Z" fill="url(#back-strata)"/>
+    <path d="M0 0H1280V760H0Z" fill="url(#mouth-light)"/>
+    <g fill="none" stroke-linejoin="bevel">
+      <path d="M91 589L86 409 352 313 861 297 974 345 969 565 866 637 450 593 278 551Z" stroke="#718079" stroke-width="32" opacity=".035"/>
+      <path d="M121 578L124 433 370 340 849 321 946 364 941 550 848 605 450 566 284 529Z" stroke="#071a24" stroke-width="24" opacity=".1"/>
+    </g>
+    <path d="M317 218L384 218 628 659 476 660Z" fill="url(#grotto-shaft)"/>
+    <g fill="#46524f" opacity=".34"><path d="M870 276L885 310 896 280 910 298 921 272Z"/><path d="M1260 536L1254 569 1244 540 1230 549 1226 530Z"/></g>
+    <g fill="#79b5a7" opacity=".45"><circle cx="106" cy="442" r="1.4"/><circle cx="225" cy="493" r="1"/><circle cx="424" cy="596" r="1.5"/><circle cx="985" cy="458" r="1.1"/><circle cx="912" cy="607" r="1.5"/><circle cx="1094" cy="584" r="1"/></g>
+    <g fill="none" stroke="#5c8f85" stroke-width="2" opacity=".4"><path d="M105 443L102 453M225 494L228 504M986 458L984 468M1094 584L1098 592"/></g>
+    <text x="340" y="322" fill="#b4b4a1" opacity=".45" font-family="monospace" font-size="9" letter-spacing="3">GROTTO</text>
+    <path d="M400 319H435L428 315M435 319L428 323" fill="none" stroke="#b4b4a1" stroke-width="1" opacity=".45"/>
+  </g>
+  <g fill="#557967"><path d="M18 209L24 202 30 209M40 210L43 202 48 210M236 209L240 201 245 210M558 180L563 172 568 180M774 180L779 173 784 180"/></g>
+  <path d="M0 748H1280V760H0Z" fill="#12232a"/>
+  <path d="M0 748H1280" stroke="#56625b" stroke-width="1"/>
+
+</svg>

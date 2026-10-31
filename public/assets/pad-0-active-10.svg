@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 126 160">
+  <title>Zeta Burger landing pad — active</title>
+
+  <path d="M0 -3L-3 -68H119L116 -3Z" fill="#ffc479" opacity=".05"/>
+  <path d="M2 -10V-48M114 -10V-48" stroke="#ffc479" stroke-dasharray="3 8" opacity=".38"/>
+  <text data-beacon="" x="58" y="-70" fill="#ffc479" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">PICKUP</text>
+  <rect y="0" width="116" height="10" rx="1" fill="#1a292c"/>
+  <path d="M1 1H115" stroke="#ffc479" stroke-width="3"/>
+  <path d="M6 6H110" stroke="#ffc479" opacity=".55" stroke-width="2" stroke-dasharray="4 7"/>
+  <path d="M0 0V-5M116 0V-5" stroke="#bcc6b6" stroke-width="2"/>
+  <circle cy="-6" r="2" fill="#ffc479"/><circle cx="116" cy="-6" r="2" fill="#ffc479"/>
+  <rect x="46" y="16" width="24" height="23" rx="2" fill="#17282d" stroke="#ffc479" stroke-opacity=".5"/>
+  <text x="58" y="33" fill="#ffc479" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle">0</text>
+  <text x="58" y="48" fill="#e1dac5" font-family="monospace" font-size="7" text-anchor="middle">ZETA BURGER</text>
+</svg>

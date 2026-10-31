@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 77">
+  <title>Trailhead Lodge mountain station</title>
+
+  <path d="M0 77V8L8 0H32L40 8V77Z" fill="#223438"/>
+  <path d="M1 77V9L8 1H32L39 9V77" fill="none" stroke="#81948a" stroke-width="1"/>
+  <path d="M3 11H37" stroke="#ffc479" stroke-width="2"/>
+  <rect x="4" y="16" width="32" height="15" rx="1" fill="#15282d" stroke="#ffc479" stroke-width=".6"/>
+  <text x="20" y="26.5" font-family="monospace" font-weight="bold" text-anchor="middle" font-size="6.5" fill="#ffc479">LODGE</text>
+  <path d="M5 70V37H35V70" fill="#344347" stroke="#63776f" stroke-width=".7"/>
+  <path d="M20 38V70" stroke="#162a2e"/>
+  <path d="M8 41H32" stroke="#ffc479" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="24" cy="58" r="1.2" fill="#ffc479"/>
+  
+  
+
+</svg>

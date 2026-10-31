@@ -18,7 +18,7 @@ function fly(game, seconds, controls = idle) {
 test('Event Horizon retains its central well and seven accessible peripheral stations', () => {
   assert.equal(level.number, 6);
   assert.equal(nextLevel(level).id, 'zero-g');
-  assert.deepEqual(LEVELS.map(level => level.number), [9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.deepEqual(LEVELS.map(level => level.number), [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(level.blackHole.x, WORLD_WIDTH / 2); assert.equal(level.blackHole.y, WORLD_HEIGHT / 2);
   assert.equal(level.gravity, 0); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);

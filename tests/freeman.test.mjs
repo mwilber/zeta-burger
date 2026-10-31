@@ -17,8 +17,8 @@ function fly(game, seconds) {
   for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, idle);
 }
 
-test('Freeman starts the stack and preserves Event Horizon’s peripheral layout with a gentler stellar well', () => {
-  assert.equal(new Game().level, level); assert.equal(LEVELS[0], level);
+test('Freeman follows Grotto and preserves Event Horizon’s peripheral layout with a gentler stellar well', () => {
+  assert.equal(nextLevel(LEVELS.find(l => l.id === 'grotto')), level);
   assert.equal(level.number, 9); assert.equal(level.name, 'Freeman');
   assert.equal(nextLevel(level).id, 'megalopolis');
   assert.equal(level.gravity, 0); assert.equal(level.thrustScale ?? 1, 1);

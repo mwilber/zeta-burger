@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 76">
+  <title>Echo Station mountain station</title>
+
+  <path d="M0 76V8L7 0H28L35 8V76Z" fill="#223438"/>
+  <path d="M1 76V9L7 1H28L34 9V76" fill="none" stroke="#81948a" stroke-width="1"/>
+  <path d="M3 11H32" stroke="#83d9c7" stroke-width="2"/>
+  <rect x="4" y="16" width="27" height="15" rx="1" fill="#15282d" stroke="#83d9c7" stroke-width=".6"/>
+  <text x="17.5" y="26.5" font-family="monospace" font-weight="bold" text-anchor="middle" font-size="6.5" fill="#83d9c7">ECHO</text>
+  <path d="M5 69V37H30V69" fill="#344347" stroke="#63776f" stroke-width=".7"/>
+  <path d="M17.5 38V69" stroke="#162a2e"/>
+  <path d="M8 41H27" stroke="#83d9c7" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="21.5" cy="57" r="1.2" fill="#83d9c7"/>
+  
+  
+
+</svg>
