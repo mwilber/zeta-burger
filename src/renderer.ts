@@ -1,6 +1,6 @@
 import { WORLD_WIDTH, WORLD_HEIGHT, padOffset, currentOffset, currentVelocity } from './world.js';
 import type { Pad } from './world.js';
-import { LEVELS, levelAssetNames, levelAssetPath } from './levels.js';
+import { LEVELS, levelAssetNames, levelAssetPath, padBuildingAssetName } from './levels.js';
 import type { Level } from './levels.js';
 import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
 import type { ArtBox } from './svg-art.js';
@@ -28,6 +28,7 @@ export class Renderer {
   private loading?: Promise<boolean>;
   private loadVersion = 0;
   private templates = new Map<string, Element>();
+  private assetCache = new Map<string, Promise<Element>>();
   private images = new Map<string, SVGImageElement[]>();
   private scene = this.group();
   private stationLayer = this.group();
@@ -83,9 +84,26 @@ export class Renderer {
     const instances = this.images.get(key) ?? []; instances.push(image); this.images.set(key, instances);
     return group;
   }
+  private artworkKey(level: Level): string {
+    return JSON.stringify({
+      number: level.number,
+      sources: levelAssetNames(level).map(name => [name, levelAssetPath(name, level)]),
+      structures: level.structures.map(({ id, kind, width, height }) => [id, kind, width, height]),
+      gravityWell: level.gravityWell
+    });
+  }
   setLevel(level: Level): Promise<boolean> {
     if (this.level === level && this.loading) return this.loading;
     if (this.level === level && this.loaded) return Promise.resolve(true);
+    if (this.loaded && this.level && this.artworkKey(this.level) === this.artworkKey(level)) {
+      this.level = level;
+      this.buildStations(level.pads);
+      for (const structure of level.structures) {
+        const node = this.scene.querySelector<SVGGElement>(`[data-structure="${structure.id}"]`);
+        if (node) move(node, structure.x, structure.y);
+      }
+      return Promise.resolve(true);
+    }
     this.level = level;
     this.loaded = false;
     const version = ++this.loadVersion;
@@ -98,11 +116,18 @@ export class Renderer {
     const templates = new Map<string, Element>();
     try {
       await Promise.all(levelAssetNames(level).map(async name => {
-        const response = await fetch(levelAssetPath(name, level));
-        if (!response.ok) throw new Error(`Could not load ${levelAssetPath(name, level)}`);
-        const document = new DOMParser().parseFromString(await response.text(), 'image/svg+xml');
-        if (document.querySelector('parsererror')) throw new Error(`Invalid SVG: ${levelAssetPath(name, level)}`);
-        templates.set(name, document.documentElement);
+        const path = levelAssetPath(name, level);
+        let artwork = this.assetCache.get(path);
+        if (!artwork) {
+          artwork = fetch(path).then(async response => {
+            if (!response.ok) throw new Error(`Could not load ${path}`);
+            const document = new DOMParser().parseFromString(await response.text(), 'image/svg+xml');
+            if (document.querySelector('parsererror')) throw new Error(`Invalid SVG: ${path}`);
+            return document.documentElement;
+          }).catch(error => { this.assetCache.delete(path); throw error; });
+          this.assetCache.set(path, artwork);
+        }
+        templates.set(name, await artwork);
       }));
       if (version !== this.loadVersion) return false;
       this.templates = templates;
@@ -153,7 +178,7 @@ export class Renderer {
       this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.seekerLayer, this.particleLayer, this.crash);
       this.buildStations(level.pads);
       this.loaded = true;
-      void this.loadOverrides(level, version);
+      if (LEVELS.some(existing => existing.number === level.number)) void this.loadOverrides(level, version);
       return true;
     } catch (error) {
       if (version !== this.loadVersion) return false;
@@ -198,11 +223,18 @@ export class Renderer {
       const root = this.group(), base = pad.island[0];
       const island = base ? this.asset(`island-${pad.id}`, [0, 0, pad.island[1].x - base.x, 83]) : this.group();
       if (base) move(island, base.x, base.y);
-      const building = this.image(pad.building.kind, this.asset(pad.building.kind, [0, 0, pad.building.width, pad.building.height]), 0, 0, pad.building.width, pad.building.height);
+      const building = this.image(pad.building.kind, this.asset(padBuildingAssetName(pad, this.level!), [0, 0, pad.building.width, pad.building.height]), 0, 0, pad.building.width, pad.building.height);
       move(building, pad.building.x, pad.building.y);
       const box: ArtBox = [-5, -90, pad.width + 10, 160];
       const idle = this.asset(`pad-${pad.id}`, box), active = this.asset(`pad-${pad.id}-active`, box);
-      move(idle, pad.x, pad.y); move(active, pad.x, pad.y); root.append(island, building, idle, active); this.stationLayer.append(root);
+      move(idle, pad.x, pad.y); move(active, pad.x, pad.y); root.append(island, building, idle, active); root.setAttribute('data-editor-pad', String(pad.id));
+      // Reused SVG templates keep their appearance, but labels reflect the actual pad.
+      for (const state of [idle, active]) {
+        const labels = Array.from(state.querySelectorAll('text'));
+        const number = labels.find(node => /^\d+$/.test(node.textContent?.trim() ?? ''));
+        if (number) number.textContent = String(pad.id);
+      }
+      this.stationLayer.append(root);
       this.applyOverride(pad.building.kind);
       return { pad, root, island, vines: Array.from(island.querySelectorAll<SVGPathElement>('[data-vine]')), idle, active, beacon: find<SVGTextElement>(active, '[data-beacon]') };
     });
@@ -296,7 +328,7 @@ export class Renderer {
     for (const station of this.stations) {
       const offset = padOffset(station.pad, game.time, game.level.current);
       move(station.root, offset.x, offset.y);
-      const active = station.pad.id === game.destination.id || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
+      const active = station.pad.id === (game.order?.target ?? game.level.restaurant) || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
       visible(station.idle, !active); visible(station.active, active);
       animateTranslation(station.beacon, 0, this.reducedMotion ? 0 : Math.sin(time * 3) * 3);
       for (const vine of station.vines) {
@@ -347,7 +379,7 @@ export class Renderer {
     const progress = find<SVGRectElement>(this.service, '[data-progress]');
     attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
-    visible(refuel, s.landed === game.level.gasStation || (game.level.gravity === 0 && s.landed !== null));
+    visible(refuel, s.landed !== null && (s.landed === game.level.gasStation || game.level.gravity === 0));
     setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }

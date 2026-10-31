@@ -557,3 +557,39 @@ dialog .primary-button {
   .brand>span { display:none; }
   .header-right { justify-content:flex-end; }
 }
+
+/* Level editor lives above the field so the complete world remains available. */
+.editor-toolbar { margin:0 0 18px; padding:16px 18px; border:1px solid #526245; border-radius:12px; background:#171e21; font:12px monospace; }
+.editor-toolbar[hidden],.editor-toolbar [hidden] { display:none; }
+.editor-row { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin-bottom:12px; }
+.editor-heading { align-items:center; justify-content:space-between; color:var(--lime); letter-spacing:1px; }
+.editor-heading span { color:#a9b7c5; font-size:10px; }
+.editor-toolbar label,.editor-artwork-field { display:flex; flex-direction:column; gap:6px; color:#adb7bd; font-size:11px; }
+.editor-toolbar input,.editor-toolbar select,.editor-toolbar button,#editor-export-dialog button { min-height:36px; border:1px solid #526245; border-radius:5px; color:#e1edda; background:#26322b; padding:8px 10px; font:12px monospace; }
+.editor-toolbar select { max-width:260px; }
+.editor-toolbar input[type=number] { width:112px; }
+.editor-toolbar .editor-check { flex-direction:row; align-items:center; min-height:36px; gap:8px; }
+.editor-check input { width:16px; height:16px; min-height:0; accent-color:var(--lime); }
+.editor-toolbar .editor-primary,#editor-export-dialog .editor-primary { color:#10141b; background:var(--lime); border-color:var(--lime); }
+.editor-toolbar button:disabled,.editor-toolbar input:disabled { opacity:.4; cursor:default; }
+.editor-selection { border-top:1px solid #384438; padding-top:12px; }
+.editor-hint { max-width:1000px; font-size:11px; line-height:1.6; color:#9ca9b0; margin:4px 0; }
+.editor-status { margin:8px 0 0; color:#ffcb79; line-height:1.5; }
+.editor-status:empty { display:none; }
+#editor[aria-expanded=true] { color:#10141b; background:var(--lime); border-color:var(--lime); }
+#game.editing [data-editor-pad],#game.editing [data-structure] { cursor:grab; }
+#game.editing [data-editor-selected] { filter:drop-shadow(0 0 4px #bdf77d); }
+#game.editing.dragging,#game.editing.dragging * { cursor:grabbing; }
+.editor-active .dashboard,.editor-active .sub-hud,.editor-active .touch-controls { display:none; }
+#editor-export-dialog { width:min(800px,94vw); max-width:800px; }
+#editor-code { display:block; width:100%; margin:10px 0 16px; padding:14px; resize:vertical; border:1px solid #526245; border-radius:6px; background:#10141b; color:#e1edda; font:12px/1.5 monospace; tab-size:2; }
+input:focus-visible,textarea:focus-visible { outline:2px solid var(--lime); outline-offset:3px; }
+@media(max-width:600px) {
+  .editor-toolbar { padding:12px; }
+  .editor-heading strong { font-size:11px; }
+  .editor-row { gap:10px; }
+  .editor-toolbar select { max-width:100%; min-width:0; width:100%; }
+  .editor-toolbar label,.editor-artwork-field { max-width:100%; }
+  .editor-toolbar input[type=number] { width:90px; }
+  .editor-toolbar input[type=text] { width:100%; }
+}
