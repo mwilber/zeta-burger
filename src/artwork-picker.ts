@@ -90,6 +90,8 @@ export class ArtworkPicker extends HTMLElement {
         const changed = this.value !== item.value;
         this.value = item.value; this.close(true);
         if (changed) this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        // Picking is an action, including when the current item is chosen again.
+        this.dispatchEvent(new CustomEvent('artwork-pick', { detail: item.value, bubbles: true, composed: true }));
       });
       return button;
     });
