@@ -31,13 +31,13 @@
         <div id="editor-new-options" hidden>
           <div class="editor-row">
             <label>Level name<input id="editor-name" type="text" maxlength="60"></label>
-            <label>Background<select id="editor-background"></select></label>
+            <div class="editor-artwork-field"><span>Background</span><artwork-picker id="editor-background" label="Background"></artwork-picker></div>
             <label>Gravity (units/s²)<input id="editor-gravity" type="number" min="0" max="2000" step="1"></label>
             <label>Thrust multiplier<input id="editor-thrust" type="number" min="0" max="10" step="0.05"></label>
           </div>
           <div class="editor-row">
-            <label>Platform artwork<select id="editor-platform-asset"></select></label><button id="editor-add-platform" type="button">Add platform</button>
-            <label>Barrier artwork<select id="editor-barrier-asset"></select></label><button id="editor-add-barrier" type="button">Add barrier</button>
+            <div class="editor-artwork-field"><span>Platform artwork</span><artwork-picker id="editor-platform-asset" label="Platform artwork"></artwork-picker></div><button id="editor-add-platform" type="button">Add platform</button>
+            <div class="editor-artwork-field"><span>Barrier artwork</span><artwork-picker id="editor-barrier-asset" label="Barrier artwork"></artwork-picker></div><button id="editor-add-barrier" type="button">Add barrier</button>
           </div>
           <div class="editor-row">
             <label class="editor-check"><input id="editor-meteors" type="checkbox"> Meteors</label>

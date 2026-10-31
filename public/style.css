@@ -564,7 +564,7 @@ dialog .primary-button {
 .editor-row { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin-bottom:12px; }
 .editor-heading { align-items:center; justify-content:space-between; color:var(--lime); letter-spacing:1px; }
 .editor-heading span { color:#a9b7c5; font-size:10px; }
-.editor-toolbar label { display:flex; flex-direction:column; gap:6px; color:#adb7bd; font-size:11px; }
+.editor-toolbar label,.editor-artwork-field { display:flex; flex-direction:column; gap:6px; color:#adb7bd; font-size:11px; }
 .editor-toolbar input,.editor-toolbar select,.editor-toolbar button,#editor-export-dialog button { min-height:36px; border:1px solid #526245; border-radius:5px; color:#e1edda; background:#26322b; padding:8px 10px; font:12px monospace; }
 .editor-toolbar select { max-width:260px; }
 .editor-toolbar input[type=number] { width:112px; }
@@ -589,7 +589,7 @@ input:focus-visible,textarea:focus-visible { outline:2px solid var(--lime); outl
   .editor-heading strong { font-size:11px; }
   .editor-row { gap:10px; }
   .editor-toolbar select { max-width:100%; min-width:0; width:100%; }
-  .editor-toolbar label { max-width:100%; }
+  .editor-toolbar label,.editor-artwork-field { max-width:100%; }
   .editor-toolbar input[type=number] { width:90px; }
   .editor-toolbar input[type=text] { width:100%; }
 }
