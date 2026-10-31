@@ -18,6 +18,8 @@ export interface Level {
   gravity: number;
   current?: LevelConfig['current'];
   blackHole?: LevelConfig['blackHole'];
+  star?: LevelConfig['star'];
+  gravityWell?: LevelConfig['star'];
   thrustScale?: number;
   padCount: number;
   pads: Pad[];
@@ -36,10 +38,12 @@ export function createLevel(config: LevelConfig): Level {
   if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
   if (config.current && (![config.current.speed, config.current.period, config.current.drag].every(Number.isFinite)
     || config.current.speed < 0 || config.current.period <= 0 || config.current.drag <= 0)) fail('invalid current');
-  if (config.blackHole) {
-    const hole = config.blackHole;
+  if (config.blackHole && config.star) fail('configure only one gravity well');
+  for (const kind of ['blackHole', 'star'] as const) {
+    const hole = config[kind];
+    if (!hole) continue;
     if (![hole.x, hole.y, hole.radius, hole.strength, hole.maxAcceleration].every(Number.isFinite)
-      || hole.radius <= 0 || hole.strength <= 0 || hole.maxAcceleration <= 0) fail('invalid blackHole');
+      || hole.radius <= 0 || hole.strength <= 0 || hole.maxAcceleration <= 0) fail(`invalid ${kind}`);
   }
   if (config.thrustScale !== undefined && (!Number.isFinite(config.thrustScale) || config.thrustScale < 0)) fail('thrustScale must be a finite nonnegative number');
   if (!Number.isInteger(config.fallingObstacleLimit) || config.fallingObstacleLimit < 0) fail('fallingObstacleLimit must be a nonnegative integer');
@@ -68,7 +72,7 @@ export function createLevel(config: LevelConfig): Level {
     if (!/^[a-z][a-z0-9-]*$/.test(structure.kind)) fail(`invalid structure asset name for ${structure.id}`);
   }
   const pads = config.pads.map(createPad);
-  return { ...config, structures, pads, padCount: pads.length, solids: createSolids(pads, structures), destinations };
+  return { ...config, gravityWell: config.blackHole ?? config.star, structures, pads, padCount: pads.length, solids: createSolids(pads, structures), destinations };
 }
 /** Configuration array order controls selection and progression; numbers stay stable for assets. */
 export function createLevels(configs: LevelConfig[]): Level[] {
@@ -88,8 +92,8 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
 export function levelAssetPath(name: string, level: Pick<Level, 'number'>, extension = 'svg'): string {
   return `./assets/${name}-${level.number}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole'>): string[] {
-  return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
+export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
     pad.building.kind, ...(pad.island.length ? [`island-${pad.id}`] : []), `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
 }

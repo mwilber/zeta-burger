@@ -133,10 +133,10 @@ export class Renderer {
         this.stars.push({ node, phase, x, y }); this.scene.append(node);
       }
       this.scene.append(this.image('background', background, 0, 0, WORLD_WIDTH, WORLD_HEIGHT));
-      if (level.blackHole) {
-        const { x, y, radius } = level.blackHole;
-        const hole = this.asset('black-hole', [-radius * 4, -radius * 3, radius * 8, radius * 6]);
-        move(hole, x, y); hole.setAttribute('data-black-hole', ''); this.scene.append(hole);
+      if (level.gravityWell) {
+        const { x, y, radius } = level.gravityWell;
+        const hole = this.asset(level.star ? 'star' : 'black-hole', [-radius * 4, -radius * 3, radius * 8, radius * 6]);
+        move(hole, x, y); hole.setAttribute(level.star ? 'data-star' : 'data-black-hole', ''); this.scene.append(hole);
       }
       for (const structure of level.structures) {
         const node = this.asset(structure.kind, [0, 0, structure.width, structure.height]);
@@ -348,6 +348,6 @@ export class Renderer {
     attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
     visible(refuel, s.landed === game.level.gasStation || (game.level.gravity === 0 && s.landed !== null));
-    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.blackHole ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
+    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }
