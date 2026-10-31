@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 70">
+  <title>Cavern Fuel mountain station</title>
+
+  <path d="M0 70V8L6.800000000000001 0H27.200000000000003L34 8V70Z" fill="#223438"/>
+  <path d="M1 70V9L6.800000000000001 1H27.200000000000003L33 9V70" fill="none" stroke="#81948a" stroke-width="1"/>
+  <path d="M3 11H31" stroke="#83d9c7" stroke-width="2"/>
+  <rect x="4" y="16" width="26" height="15" rx="1" fill="#15282d" stroke="#83d9c7" stroke-width=".6"/>
+  <text x="17" y="26.5" font-family="monospace" font-weight="bold" text-anchor="middle" font-size="6.5" fill="#83d9c7">FUEL</text>
+  <path d="M5 63V37H29V63" fill="#344347" stroke="#63776f" stroke-width=".7"/>
+  <path d="M17 38V63" stroke="#162a2e"/>
+  <path d="M8 41H26" stroke="#83d9c7" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="21" cy="51" r="1.2" fill="#83d9c7"/>
+  
+  <path d="M30 34Q33 46 30 51" fill="none" stroke="#83d9c7" stroke-width="2"/>
+
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 73">
+  <title>Deepstone Lab mountain station</title>
+
+  <path d="M0 73V8L7.6000000000000005 0H30.400000000000002L38 8V73Z" fill="#223438"/>
+  <path d="M1 73V9L7.6000000000000005 1H30.400000000000002L37 9V73" fill="none" stroke="#81948a" stroke-width="1"/>
+  <path d="M3 11H35" stroke="#bba5ec" stroke-width="2"/>
+  <rect x="4" y="16" width="30" height="15" rx="1" fill="#15282d" stroke="#bba5ec" stroke-width=".6"/>
+  <text x="19" y="26.5" font-family="monospace" font-weight="bold" text-anchor="middle" font-size="6.5" fill="#bba5ec">LAB</text>
+  <path d="M5 66V37H33V66" fill="#344347" stroke="#63776f" stroke-width=".7"/>
+  <path d="M19 38V66" stroke="#162a2e"/>
+  <path d="M8 41H30" stroke="#bba5ec" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="23" cy="54" r="1.2" fill="#bba5ec"/>
+  
+  
+
+</svg>

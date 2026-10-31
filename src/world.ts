@@ -49,7 +49,9 @@ export function createSolids(pads: Pad[], structures: StructureConfig[] = []): S
   { points: rectangle(pad.x, pad.y, pad.width, 10), kind: 'pad' as const, padId: pad.id },
   ...(pad.island.length ? [{ points: pad.island, kind: 'island' as const, padId: pad.id }] : []),
   { points: rectangle(pad.building.x, pad.building.y, pad.building.width, pad.building.height), kind: 'building' as const, padId: pad.id }
-]), ...structures.map(structure => ({ points: rectangle(structure.x, structure.y, structure.width, structure.height), kind: 'structure' as const, padId: null, structureId: structure.id }))]; }
+]), ...structures.map(structure => ({ points: structure.outline
+  ? structure.outline.map(p => ({ x: structure.x + p.x, y: structure.y + p.y }))
+  : rectangle(structure.x, structure.y, structure.width, structure.height), kind: 'structure' as const, padId: null, structureId: structure.id }))]; }
 export const SOLIDS = createSolids(PADS, LEVEL_CONFIG[0].structures);
 /** Continuous SAT: earliest contact in [0, 1] for two moving convex polygons. */
 export function sweepContact(a: Point[], b: Point[], deltaA: Point, deltaB: Point = { x: 0, y: 0 }): number | null {

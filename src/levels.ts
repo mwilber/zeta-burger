@@ -70,6 +70,19 @@ export function createLevel(config: LevelConfig): Level {
     if (![structure.x, structure.y, structure.width, structure.height].every(Number.isFinite)
       || structure.width <= 0 || structure.height <= 0) fail(`invalid geometry for structure ${structure.id}`);
     if (!/^[a-z][a-z0-9-]*$/.test(structure.kind)) fail(`invalid structure asset name for ${structure.id}`);
+    if (structure.outline) {
+      const points = structure.outline;
+      if (points.length < 3 || points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y)
+        || p.x < 0 || p.y < 0 || p.x > structure.width || p.y > structure.height)) fail(`invalid outline for structure ${structure.id}`);
+      // SAT requires convex polygons. Every other vertex must lie on the same
+      // side of every edge, with a nonzero area and no repeated vertices.
+      const area = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p.x * q.y - q.x * p.y; }, 0);
+      if (!area || new Set(points.map(p => `${p.x},${p.y}`)).size !== points.length
+        || points.some((p, i) => {
+          const q = points[(i + 1) % points.length];
+          return points.some(r => ((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)) * Math.sign(area) < -1e-8);
+        })) fail(`outline must be convex for structure ${structure.id}`);
+    }
   }
   const pads = config.pads.map(createPad);
   return { ...config, gravityWell: config.blackHole ?? config.star, structures, pads, padCount: pads.length, solids: createSolids(pads, structures), destinations };

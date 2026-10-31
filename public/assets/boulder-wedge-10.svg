@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Grotto wedge boulder — solid silhouette</title>
+
+  <defs>
+    <linearGradient id="rock-wedge" x1="0" y1="0" x2=".65" y2="1"><stop stop-color="#8d806f"/><stop offset=".4" stop-color="#655c52"/><stop offset="1" stop-color="#3c3d3a"/></linearGradient>
+    <clipPath id="clip-wedge"><polygon points="0,65 35,8 65,0 94,10 100,80 82,100 10,95"/></clipPath>
+  </defs>
+  <polygon data-rock-outline="" points="0,65 35,8 65,0 94,10 100,80 82,100 10,95" fill="url(#rock-wedge)"/>
+  <g clip-path="url(#clip-wedge)">
+    <path d="M0 65L35 8 48 43Z" fill="#8d806f" opacity=".42"/>
+<path d="M35 8L65 0 48 43Z" fill="#8d806f" opacity=".24"/>
+<path d="M65 0L94 10 48 43Z" fill="#3c3d3a" opacity=".42"/>
+<path d="M94 10L100 80 48 43Z" fill="#3c3d3a" opacity=".24"/>
+<path d="M100 80L82 100 48 43Z" fill="#3c3d3a" opacity=".42"/>
+<path d="M82 100L10 95 48 43Z" fill="#655c52" opacity=".24"/>
+<path d="M10 95L0 65 48 43Z" fill="#655c52" opacity=".42"/>
+    <g fill="none" stroke="#282e30" stroke-width=".55" opacity=".66">
+      <path d="M15 0L23 17 19 32 32 44 27 62M100 36L80 41 72 59 58 64 54 100M0 73L19 69 27 62 44 68"/>
+      <path d="M23 17L42 20 52 15M72 59L79 77 94 84M32 44L48 43 58 49"/>
+    </g>
+    <g fill="none" stroke="#e4ceb0" stroke-width=".35" opacity=".23">
+      <path d="M16 0L24 17 20 31M81 42L73 59 59 65M2 74L18 71M36 23L43 25M47 79L58 82M69 28L82 31M10 50L16 53"/>
+    </g>
+    <g fill="#e1c5a0" opacity=".15"><circle cx="32" cy="28" r=".65"/><circle cx="65" cy="37" r=".5"/><circle cx="49" cy="71" r=".7"/><circle cx="17" cy="58" r=".4"/><circle cx="83" cy="63" r=".6"/></g>
+    <polygon points="0,65 35,8 65,0 94,10 100,80 82,100 10,95" fill="none" stroke="#222d30" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M0 65L35 8L65 0" fill="none" stroke="#d8c6a5" stroke-width=".9" opacity=".6"/>
+  </g>
+</svg>

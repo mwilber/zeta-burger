@@ -1,4 +1,5 @@
 import type { Point } from './world.js';
+import { GROTTO_BOULDERS } from './grotto.js';
 
 export interface PadConfig {
   id: number;
@@ -21,6 +22,8 @@ export interface StructureConfig {
   width: number;
   height: number;
   kind: string;
+  // Optional convex silhouette in local world units; otherwise a rectangle.
+  outline?: Point[];
 }
 export interface GravityWellConfig {
   x: number;
@@ -64,6 +67,26 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 10,
+  id: 'grotto',
+  name: 'Grotto',
+  theme: 'From blue skies to the heart of a mountain. Follow the passages around the great central boulders.',
+  gravity: 100,
+  start: { x: 175, y: 90 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  structures: GROTTO_BOULDERS,
+  pads: [
+    { id: 0, name: 'Zeta Burger', x: 100, y: 210, width: 116, color: '#ffc479', building: { x: -78, width: 62, height: 72, kind: 'restaurant' } },
+    { id: 1, name: 'Trailhead Lodge', x: 595, y: 180, width: 110, color: '#ffc479', building: { x: 124, width: 40, height: 57, kind: 'lodge' } },
+    { id: 2, name: 'Echo Station', x: 1100, y: 355, width: 110, color: '#83d9c7', building: { x: 122, width: 35, height: 56, kind: 'echo' } },
+    { id: 6, name: 'Cavern Fuel', x: 80, y: 615, width: 110, color: '#83d9c7', building: { x: 124, width: 34, height: 50, kind: 'gas' } },
+    { id: 3, name: 'Deepstone Lab', x: 700, y: 710, width: 110, color: '#bba5ec', building: { x: -53, width: 38, height: 53, kind: 'lab' } },
+    { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } }
+  ]
+}, {
   number: 9,
   id: 'freeman',
   name: 'Freeman',

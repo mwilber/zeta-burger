@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 120 160">
+  <title>Crystal Refuge landing pad</title>
+
+  
+  <rect y="0" width="110" height="10" rx="1" fill="#1a292c"/>
+  <path d="M1 1H109" stroke="#ffc479" stroke-width="3"/>
+  <path d="M6 6H104" stroke="#ffc479" opacity=".55" stroke-width="2" stroke-dasharray="4 7"/>
+  <path d="M0 0V-5M110 0V-5" stroke="#bcc6b6" stroke-width="2"/>
+  <circle cy="-6" r="2" fill="#ffc479"/><circle cx="110" cy="-6" r="2" fill="#ffc479"/>
+  <rect x="43" y="16" width="24" height="23" rx="2" fill="#17282d" stroke="#ffc479" stroke-opacity=".5"/>
+  <text x="55" y="33" fill="#ffc479" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle">4</text>
+  <text x="55" y="48" fill="#e1dac5" font-family="monospace" font-size="7" text-anchor="middle">CRYSTAL REFUGE</text>
+</svg>

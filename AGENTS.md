@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -48,3 +48,14 @@ docking, with half the strength and acceleration cap. Seven stationary pads use
 the same peripheral layout. Gravity is 0 with full thrust, no seekers, and no
 falling obstacles. The star’s visible surface matches its fatal radius; its
 corona is decorative. Level-9 SVG assets show the sphere’s interior collectors.
+
+Grotto (10) follows the mountain-cavern sketch: six pads, with the restaurant
+outside in the upper left, a trailhead ledge above the entrance, and four pads
+inside. Six reusable convex boulder shapes overlap to form the cavern walls,
+central rock mass, and floor. Structure `outline` vertices use local world
+units and must match their SVG silhouettes. Keep the entrance, routes around
+both sides of the central mass, and lower passage navigable. Gravity is 100
+with full thrust and no seekers or falling obstacles. Level-10 art has a blue
+outdoor sky and recessed rocky cavern backdrop. Boulder geometry lives in
+`src/grotto.ts`; after building, `node scripts/generate-grotto-art.mjs` regenerates
+the matching SVG artwork.

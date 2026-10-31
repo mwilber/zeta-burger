@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 62 92">
+  <title>Zeta Burger mountain station</title>
+
+  <path d="M0 92V8L12.4 0H49.6L62 8V92Z" fill="#223438"/>
+  <path d="M1 92V9L12.4 1H49.6L61 9V92" fill="none" stroke="#81948a" stroke-width="1"/>
+  <path d="M3 11H59" stroke="#ffc479" stroke-width="2"/>
+  <rect x="4" y="16" width="54" height="15" rx="1" fill="#15282d" stroke="#ffc479" stroke-width=".6"/>
+  <text x="31" y="26.5" font-family="monospace" font-weight="bold" text-anchor="middle" font-size="11" fill="#ffc479">ZETA</text>
+  <path d="M5 85V37H57V85" fill="#344347" stroke="#63776f" stroke-width=".7"/>
+  <path d="M31 38V85" stroke="#162a2e"/>
+  <path d="M8 41H54" stroke="#ffc479" stroke-opacity=".6" stroke-width="2"/>
+  <circle cx="35" cy="73" r="1.2" fill="#ffc479"/>
+  <path d="M9 55Q31 38 53 55Z" fill="#e2ac68"/><path d="M9 59H53" stroke="#b5d68a" stroke-width="3"/><path d="M9 63H53" stroke="#d39960" stroke-width="4"/>
+  
+
+</svg>
