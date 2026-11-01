@@ -227,3 +227,17 @@ test('Zero G holding thrust is audible until the landing clamp engages', () => {
   sound.update(game, down);
   assert.ok(nodes.every(node => node.stops.length === 1));
 });
+
+test('lightning plays a distinct noise thunder cue that mute and pause can cancel', () => {
+  const { sound, nodes } = audio();
+  const game = playing(); sound.update(game, { ...idle, up: true });
+  const thrust = [...nodes];
+  sound.play({ type: 'lightning', message: '', x: 600, y: 748 });
+  const thunder = nodes.at(-1);
+  assert.equal(thunder.kind, 'noise');
+  assert.ok(thunder.stops[0] - thunder.starts[0] > 1.5);
+  assert.ok(thrust.every(n => n.stops.length === 0), 'thunder does not stop the thrusters');
+  sound.stopAll(); assert.equal(thunder.stops.at(-1), undefined);
+  sound.enabled = false; const count = nodes.length;
+  sound.play({ type: 'lightning', message: '', x: 600, y: 748 }); assert.equal(nodes.length, count);
+});

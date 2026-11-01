@@ -2,6 +2,8 @@ import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTi
 import type { Point, Pad, Solid } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
+import { LIGHTNING, createLightning, lightningBodies, windVelocity } from './storm.js';
+import type { LightningStrike } from './storm.js';
 export const PHYSICS = { upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
 export const ZERO_G = { clingDelay: .25, rebound: 8 };
@@ -25,7 +27,7 @@ export function verticalThrustDirection(controls: Controls): number { return (co
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'lightning' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'idle' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -55,6 +57,9 @@ export class Game {
   events: GameEvent[] = [];
   fallingObstacles: FallingObstacle[] = [];
   seekers: Seeker[] = [];
+  lightning: LightningStrike[] = [];
+  private lightningSpawnTime = LIGHTNING.spawnDelay;
+  private nextLightningId = 0;
   private fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay;
   private nextFallingObstacleId = 0;
   dwell = 0;
@@ -92,6 +97,7 @@ export class Game {
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
     this.pads = level.pads; this.solids = level.solids;
     this.fallingObstacles = []; this.fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay; this.nextFallingObstacleId = 0;
+    this.lightning = []; this.lightningSpawnTime = LIGHTNING.spawnDelay; this.nextLightningId = 0;
     this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;
     const setting = SKILLS[skill];
     // The first order always arrives five seconds into the shift.
@@ -165,6 +171,38 @@ export class Game {
     if ((previousPhase === 'playing' || previousPhase === 'idle' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
       this.stepFallingObstacles(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
       this.stepSeekers(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+      this.stepLightning(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+    }
+  }
+  private stepLightning(dt: number, previousShip: Ship, canHitShip: boolean) {
+    if (!this.level.storm || dt <= 0) return;
+    const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
+    const shapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
+    for (const strike of this.lightning) {
+      const previousAge = strike.age;
+      strike.age += dt;
+      if (previousAge < LIGHTNING.warningDuration && strike.age >= LIGHTNING.warningDuration) {
+        this.events.push({ type: 'lightning', message: '', x: strike.x, y: strike.y });
+      }
+      // Clip the ship sweep to the live portion of the flash. Warnings and
+      // expired bolts cannot kill a ship that crossed their location earlier.
+      const from = Math.max(0, (LIGHTNING.warningDuration - previousAge) / dt);
+      const to = Math.min(1, (LIGHTNING.warningDuration + LIGHTNING.strikeDuration - previousAge) / dt);
+      if (canHitShip && this.phase === 'playing' && from <= to && to >= 0 && from <= 1) {
+        const delta = { x: shipDelta.x * (to - from), y: shipDelta.y * (to - from) };
+        if (lightningBodies(strike).some(body => shapes.some(shape => sweepContact(
+          shape.map(p => ({ x: p.x + shipDelta.x * from, y: p.y + shipDelta.y * from })), body, delta) !== null))) {
+          this.crash('Lightning strike! Clear the glowing ground charge before the bolt flashes.');
+        }
+      }
+    }
+    this.lightning = this.lightning.filter(strike => strike.age < LIGHTNING.warningDuration + LIGHTNING.strikeDuration);
+    this.lightningSpawnTime -= dt;
+    if (this.lightningSpawnTime <= 0) {
+      // Sometimes threaten the ship's current column; never track it after warning.
+      const x = this.random() < .35 ? Math.max(35, Math.min(WORLD_WIDTH - 35, this.ship.x)) : 35 + this.random() * (WORLD_WIDTH - 70);
+      this.lightning.push(createLightning(this.nextLightningId++, x, this.random));
+      this.lightningSpawnTime = LIGHTNING.intervalMin + this.random() * (LIGHTNING.intervalMax - LIGHTNING.intervalMin);
     }
   }
   private spawnSeekers() {
@@ -364,6 +402,8 @@ export class Game {
     const current = this.level.current;
     // Water carries even an unpowered ship; sideways thrust can fight the flow.
     if (current) s.vx += (currentVelocity(current, this.time) - s.vx) * (1 - Math.exp(-current.drag * dt));
+    const storm = this.level.storm;
+    if (storm) s.vx += (windVelocity(storm, this.time) - s.vx) * (1 - Math.exp(-storm.drag * dt));
     s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
     s.vx += direction * PHYSICS.sideThrust * thrust * dt;
     const hole = this.level.gravityWell;

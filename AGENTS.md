@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -59,3 +59,13 @@ with full thrust and no seekers or falling obstacles. Level-10 art has a blue
 outdoor sky and recessed rocky cavern backdrop. Boulder geometry lives in
 `src/grotto.ts`; after building, `node scripts/generate-grotto-art.mjs` regenerates
 the matching SVG artwork.
+
+Srormfront (11) is a thunderstorm with gravity 100, full thrust, and stationary
+stations. Its `storm` config drives abrupt horizontal wind gusts using the same
+drag model as Abyss, including with empty fuel; docked ships resist the wind.
+Lightning locks its full jagged path when a ground charge appears, warns for
+one second, then flashes for 180 ms with thunder. Only the active path is fatal,
+including hull, landing gear, and docked ships. Sweep collisions along each bolt
+segment. Dense, harmless blue rain renders in front of the whole scene. Weather
+uses gameplay time, freezes on pause/countdown/end, and resets on restart.
+Storm tuning and shared bolt geometry live in `src/storm.ts`; artwork uses -11.

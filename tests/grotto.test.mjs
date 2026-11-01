@@ -18,8 +18,8 @@ function fly(game, seconds, controls = idle) {
   for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, controls);
 }
 
-test('Grotto starts the stack with six sketch stations and six reusable boulder shapes', () => {
-  assert.equal(new Game().level, level); assert.equal(LEVELS[0], level);
+test('Grotto follows Srormfront with six sketch stations and six reusable boulder shapes', () => {
+  assert.equal(nextLevel(LEVELS.find(l => l.id === 'srormfront')), level);
   assert.equal(level.number, 10); assert.equal(nextLevel(level).id, 'freeman');
   assert.equal(level.padCount, 6); assert.deepEqual(level.destinations, [1, 2, 3, 4]);
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);

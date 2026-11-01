@@ -6,6 +6,7 @@ import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art
 import type { ArtBox } from './svg-art.js';
 import { CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
+import { LIGHTNING, windVelocity, windOffset } from './storm.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: string; size: number; node?: SVGGElement }
@@ -37,6 +38,13 @@ export class Renderer {
   private fallingObstacleNodes = new Map<number, SVGGElement>();
   private seekerLayer = this.group();
   private seekerNodes = new Map<number, SVGGElement>();
+  private stormLayer = this.group();
+  private rainLayer = this.group();
+  private lightningNodes = new Map<number, { root: SVGGElement; warning: SVGGElement; bolt: SVGGElement }>();
+  private rainPaths: SVGPathElement[] = [];
+  private rainDrops: { x: number; y: number; speed: number; length: number }[] = [];
+  private lightningFlash?: SVGGElement;
+  private windLabel?: SVGTextElement;
   private stations: StationArt[] = [];
   private pads?: Pad[];
   private stars: { node: SVGGElement; phase: number; x: number; y: number }[] = [];
@@ -89,7 +97,7 @@ export class Renderer {
       number: level.number,
       sources: levelAssetNames(level).map(name => [name, levelAssetPath(name, level)]),
       structures: level.structures.map(({ id, kind, width, height }) => [id, kind, width, height]),
-      gravityWell: level.gravityWell
+      gravityWell: level.gravityWell, storm: level.storm
     });
   }
   setLevel(level: Level): Promise<boolean> {
@@ -134,6 +142,8 @@ export class Renderer {
       this.scene.replaceChildren(); this.stationLayer.replaceChildren(); this.particleLayer.replaceChildren();
       this.fallingObstacleLayer.replaceChildren(); this.fallingObstacleNodes.clear();
       this.seekerLayer.replaceChildren(); this.seekerNodes.clear();
+      this.stormLayer.replaceChildren(); this.rainLayer.replaceChildren(); this.lightningNodes.clear();
+      this.rainPaths = []; this.rainDrops = []; this.lightningFlash = undefined; this.windLabel = undefined;
       this.images.clear(); this.overrides.clear(); this.stars = []; this.stations = []; this.pads = undefined; this.particles = [];
       const effects = this.templates.get('effects')!;
       this.scene.append(effects.querySelector('defs')!.cloneNode(true), effects.querySelector('style')!.cloneNode(true));
@@ -149,10 +159,11 @@ export class Renderer {
       };
       retainSky(sky); find(background, '[data-sky]').remove(); this.scene.append(sky);
       this.currentLabel = background.querySelector<SVGTextElement>('[data-current-label]') ?? undefined;
+      this.windLabel = background.querySelector<SVGTextElement>('[data-wind-label]') ?? undefined;
       let seed = 4827;
       const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
       // Keep the original star positions and twinkle phases.
-      for (let i = 0; i < 145; i++) {
+      for (let i = 0; i < (level.storm ? 0 : 145); i++) {
         const x = random() * WORLD_WIDTH, y = random() * 650, large = random() > .9, phase = random() * 6.28;
         const node = this.asset(large ? 'star-large' : 'star-small'); move(node, x, y);
         this.stars.push({ node, phase, x, y }); this.scene.append(node);
@@ -176,6 +187,21 @@ export class Renderer {
       this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
       this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.seekerLayer, this.particleLayer, this.crash);
+      if (level.storm) {
+        this.rainDrops = Array.from({ length: level.storm.rainCount }, () => ({
+          x: random() * (WORLD_WIDTH + 50), y: random() * (WORLD_HEIGHT + 35),
+          speed: 460 + random() * 290, length: 10 + random() * 12
+        }));
+        this.lightningFlash = this.asset('lightning-flash');
+        this.stormLayer.append(this.lightningFlash);
+        for (let i = 0; i < 3; i++) {
+          const rain = this.asset('storm-rain');
+          attr(rain, { opacity: .32 + i * .16, 'data-rain-layer': i });
+          this.rainPaths.push(find<SVGPathElement>(rain, 'path')); this.rainLayer.append(rain);
+        }
+        this.stormLayer.setAttribute('data-storm', ''); this.rainLayer.setAttribute('data-rain', '');
+        this.scene.append(this.stormLayer, this.rainLayer);
+      }
       this.buildStations(level.pads);
       this.loaded = true;
       if (LEVELS.some(existing => existing.number === level.number)) void this.loadOverrides(level, version);
@@ -311,6 +337,49 @@ export class Renderer {
       }
     }
   }
+  private renderStorm(game: Game) {
+    const storm = game.level.storm;
+    if (!storm) return;
+    const wind = windVelocity(storm, game.time);
+    if (this.windLabel) setText(this.windLabel, `WIND ${wind > 0 ? '→ EAST' : '← WEST'} · ${Math.round(Math.abs(wind))}`);
+    const living = new Set(game.lightning.map(strike => strike.id));
+    for (const [id, nodes] of this.lightningNodes) {
+      if (!living.has(id)) { nodes.root.remove(); this.lightningNodes.delete(id); }
+    }
+    let flashing = false;
+    for (const strike of game.lightning) {
+      let nodes = this.lightningNodes.get(strike.id);
+      if (!nodes) {
+        const root = this.group(), warning = this.asset('lightning-warning'), bolt = this.asset('lightning-bolt');
+        root.setAttribute('data-lightning', String(strike.id));
+        move(warning, strike.x, strike.y);
+        for (const path of bolt.querySelectorAll('path')) {
+          const points = strike.points.map(p => artPoint(path, p.x, p.y));
+          path.setAttribute('d', points.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' '));
+        }
+        root.append(warning, bolt); this.stormLayer.append(root);
+        nodes = { root, warning, bolt }; this.lightningNodes.set(strike.id, nodes);
+      }
+      const active = strike.age >= LIGHTNING.warningDuration;
+      visible(nodes.warning, !active); visible(nodes.bolt, active); flashing ||= active;
+      const progress = Math.min(1, strike.age / LIGHTNING.warningDuration);
+      attr(nodes.warning, { opacity: .55 + progress * .45,
+        transform: `translate(${strike.x} ${strike.y}) scale(${.7 + progress * .5} ${.8 + progress * .3})` });
+    }
+    if (this.lightningFlash) visible(this.lightningFlash, flashing && !this.reducedMotion);
+    const paths = ['', '', ''];
+    const time = this.reducedMotion ? 0 : game.time;
+    const drift = windOffset(storm, time) * 1.8;
+    for (let i = 0; i < this.rainDrops.length; i++) {
+      const drop = this.rainDrops[i], { speed, length } = drop;
+      const x = ((drop.x + drift) % (WORLD_WIDTH + 50) + WORLD_WIDTH + 50) % (WORLD_WIDTH + 50) - 25;
+      const y = (drop.y + time * speed) % (WORLD_HEIGHT + 35) - 20;
+      const path = this.rainPaths[i % 3];
+      const from = artPoint(path, x, y), to = artPoint(path, x + wind * 1.8 / speed * length, y + length);
+      paths[i % 3] += `M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+    }
+    this.rainPaths.forEach((path, i) => path.setAttribute('d', paths[i]));
+  }
   draw(game: Game, controls: Controls, dt: number, time: number) {
     if (this.level !== game.level || !this.loaded) return;
     if (this.pads !== game.level.pads) this.buildStations(game.level.pads);
@@ -347,6 +416,7 @@ export class Renderer {
     this.saucer(game, controls, time);
     this.renderFallingObstacles(game);
     this.renderSeekers(game);
+    this.renderStorm(game);
     this.update(dt); this.renderParticles(); visible(this.crash, game.phase === 'crashed');
     setText(find(this.crash, '[data-message]'), game.lives > 0 ? 'DISPATCHING A REPLACEMENT…' : 'NO SAUCERS REMAINING');
   }

@@ -45,6 +45,8 @@ export interface LevelConfig {
   gravity: number;
   // Reversing horizontal flow: peak speed (units/s), period (s), and ship drag (1/s).
   current?: { speed: number; period: number; drag: number };
+  // Abrupt airborne gusts, foreground rain, and warned lightning strikes.
+  storm?: { windSpeed: number; gustDuration: number; drag: number; rainCount: number };
   // Inward inverse-square gravity; strength is world units³/second².
   blackHole?: GravityWellConfig;
   // A stellar surface uses the same gravity and docking rules as a black hole.
@@ -70,6 +72,27 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 11,
+  id: 'srormfront',
+  name: 'Srormfront',
+  theme: 'Deliver through the squall. Fight the gusts and clear the ground charge before lightning strikes.',
+  gravity: 100,
+  storm: { windSpeed: 85, gustDuration: 1.4, drag: 1.6, rainCount: 560 },
+  start: { x: 640, y: 80 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  pads: [
+    { id: 6, name: 'Storm Shelter Fuel', x: 82, y: 640, width: 110, color: '#8de4ef', island: { x: -48, width: 218 }, building: { x: 124, width: 28, height: 48, kind: 'gas' } },
+    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
+    { id: 1, name: 'Rainwatch', x: 116, y: 340, width: 102, color: '#8de4ef', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
+    { id: 2, name: 'Weather Observatory', x: 563, y: 253, width: 104, color: '#8de4ef', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
+    { id: 3, name: 'Thunderhead Lodge', x: 954, y: 363, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
+    { id: 4, name: 'Petrichor Gardens', x: 724, y: 558, width: 104, color: '#8de4ef', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
+    { id: 5, name: 'Gale Outpost', x: 1120, y: 633, width: 104, color: '#ffd789', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  ]
+}, {
   number: 10,
   id: 'grotto',
   name: 'Grotto',
