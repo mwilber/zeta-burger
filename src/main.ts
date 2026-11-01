@@ -4,6 +4,7 @@ import { LEVELS, SKILLS, nextLevel } from './levels.js';
 import type { Skill } from './levels.js';
 import { Renderer } from './renderer.js';
 import { Sound } from './audio.js';
+import { LevelEditor } from './level-editor.js';
 const get = <T extends Element = HTMLElement>(id: string) => document.querySelector<T>(`#${id}`)!;
 const stage = get<SVGSVGElement>('game');
 const game = new Game();
@@ -22,9 +23,10 @@ get('level-picker').hidden = LEVELS.length === 1;
 let starting = false;
 let advanceFailed = false;
 levelSelect.addEventListener('change', () => {
+  if (editor.active) { editor.open(levelSelect.value); return; }
   if (game.designMode && !starting) { void start(); return; }
   if (game.phase !== 'ready' || starting) return;
-  game.level = LEVELS.find(level => level.id === levelSelect.value)!;
+  game.level = editor.levelForPlay(levelSelect.value) ?? LEVELS.find(level => level.id === levelSelect.value)!;
   game.pads = game.level.pads; game.solids = game.level.solids; game.time = 0;
   game.ship = game.spawn();
   void renderer.setLevel(game.level);
@@ -55,9 +57,49 @@ function controls(): Controls {
   const held = new Set(pointers.values());
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up'), down: keys.has('ArrowDown') || keys.has('KeyS') || held.has('down') };
 }
+let designBeforeEditor = false;
+const editor = new LevelEditor(stage, {
+  preview: async level => {
+    sound.stopAll(); resetInputs();
+    if (game.editing && game.level.id === level.id && game.level.seekerCount === level.seekerCount
+      && game.level.assets?.seeker === level.assets?.seeker && game.level.fallingObstacleLimit === level.fallingObstacleLimit) {
+      game.level = level; game.pads = level.pads; game.solids = level.solids;
+    } else {
+      game.start(skillSelect.value as Skill, level, { designMode: true, editing: true });
+      // Static samples make enabled falling hazards visible in the frozen preview.
+      game.fallingObstacles = Array.from({ length: level.fallingObstacleLimit }, (_, id) => ({
+        id, x: 180 + id * 280, y: 115 + id % 2 * 45, vx: 35, vy: 170, radius: 16
+      }));
+    }
+    overlay.hidden = true; accumulator = 0;
+    get('toast').classList.remove('visible');
+    updateHud();
+    return renderer.setLevel(level);
+  },
+  select: (id, name, number) => {
+    let option = Array.from(levelSelect.options).find(option => option.value === id);
+    if (!option) { option = new Option('', id); levelSelect.add(option); }
+    option.textContent = `${number} · ${name}`; levelSelect.value = id;
+    get('level-picker').hidden = false;
+  },
+  close: () => {
+    // Incomplete blank drafts remain available in the editor while normal play
+    // returns to the first configured level.
+    try { editor.levelForPlay(levelSelect.value); }
+    catch { levelSelect.value = LEVELS[0].id; }
+    game.editing = false; game.designMode = designBeforeEditor;
+    void start(false, designBeforeEditor);
+  }
+});
+get('editor').addEventListener('click', () => {
+  if (editor.active) editor.close();
+  else { designBeforeEditor = game.designMode; editor.open(levelSelect.value); }
+});
 async function start(continuing = false, designMode = game.designMode) {
   if (starting) return;
-  const level = LEVELS.find(level => level.id === levelSelect.value)!;
+  let level;
+  try { level = editor.levelForPlay(levelSelect.value) ?? LEVELS.find(level => level.id === levelSelect.value)!; }
+  catch { toast('This draft needs a restaurant and a delivery platform. Open the editor to finish it.'); return; }
   const skill = continuing ? game.skill : skillSelect.value as Skill;
   advanceFailed = false;
   starting = true; updateHud();
@@ -84,7 +126,7 @@ function pause() {
 }
 function toggleGear() { game.toggleGear(); }
 function openHelp() {
-  helpPaused = game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed';
+  helpPaused = !editor.active && (game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed');
   if (helpPaused) pause();
   resetInputs(); dialog.showModal();
 }
@@ -112,7 +154,9 @@ overlay.addEventListener('click', event => {
 });
 const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
 window.addEventListener('keydown', event => {
-  if (dialog.open || event.target instanceof HTMLSelectElement || !handled.has(event.code)) return;
+  if (dialog.open || get<HTMLDialogElement>('editor-export-dialog').open || editor.active
+    || event.target instanceof HTMLSelectElement || event.target instanceof HTMLInputElement
+    || event.target instanceof HTMLTextAreaElement || !handled.has(event.code)) return;
   if (event.target instanceof HTMLButtonElement && (event.code === 'Enter' || event.code === 'Space')) return;
   if (event.code === 'Enter') {
     if (game.phase === 'ready' || game.phase === 'gameover') { event.preventDefault(); void start(advanceFailed); }
@@ -141,9 +185,11 @@ for (const button of touchButtons) {
   button.addEventListener('contextmenu', event => event.preventDefault());
 }
 function updateHud() {
-  skillSelect.disabled = starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
+  skillSelect.disabled = editor.active || starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
   levelSelect.disabled = skillSelect.disabled;
-  designButton.disabled = starting;
+  designButton.disabled = starting || editor.active;
+  get<HTMLButtonElement>('editor').disabled = starting;
+  hud.pause.disabled = editor.active;
   designButton.setAttribute('aria-pressed', String(game.designMode));
   text(designButton, game.designMode ? 'DESIGN MODE · ON' : 'DESIGN MODE');
   overlay.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = starting; });
@@ -153,10 +199,10 @@ function updateHud() {
   text(get('world-name'), game.level.name.toUpperCase());
   const intro = document.querySelector<HTMLElement>('#intro-description');
   const cavern = game.level.structures.some(structure => structure.outline);
-  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Refuel at pad ${game.level.gasStation}.${cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order.${game.level.gasStation === null ? ' No fuel station: conserve your fuel.' : ` Refuel at pad ${game.level.gasStation}.`}${cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
-  text(get('help-gas'), `pad ${game.level.gasStation}`);
+  text(get('help-gas'), game.level.gasStation === null ? 'This level has no fuel station; conserve fuel.' : `Land at pad ${game.level.gasStation} to refill at 25% per second for free.`);
   get('falling-obstacle-help').hidden = game.level.fallingObstacleLimit === 0;
   get('seeker-help').hidden = game.level.seekerCount === 0 || !!game.level.current;
   get('city-help').hidden = game.level.structures.length === 0;
@@ -165,8 +211,8 @@ function updateHud() {
   get('black-hole-help').hidden = !game.level.blackHole;
   get('star-help').hidden = !game.level.star;
   fuelMeter.value = game.fuel;
-  fuelMeter.setAttribute('aria-valuetext', `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`);
-  fuelMeter.title = `${Math.floor(game.fuel)}% · Refill at pad ${game.level.gasStation}`;
+  const fuelDescription = `${Math.floor(game.fuel)}% · ${game.level.gasStation === null ? 'No fuel station' : `Refill at pad ${game.level.gasStation}`}`;
+  fuelMeter.setAttribute('aria-valuetext', fuelDescription); fuelMeter.title = fuelDescription;
   fuelMeter.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
   text(hud.bank, money(game.bank)); text(hud.tip, game.order ? money(game.tip) : '—');
   hud.tip.parentElement!.classList.toggle('negative', !!game.order && game.tip < 0);
@@ -183,6 +229,7 @@ function updateHud() {
   text(hud.best, `BEST SHIFT ${money(best)}`);
   hud.pause.setAttribute('aria-label', game.phase === 'paused' ? 'Resume game' : 'Pause game');
   text(hud.pause, game.phase === 'paused' ? '▷' : 'Ⅱ');
+  if (editor.active) { overlay.hidden = true; previousPhase = game.phase; return; }
   if (game.phase !== previousPhase) {
     const next = game.phase === 'gameover' && game.endReason === 'delivered' ? nextLevel(game.level) : undefined;
     if (next && !advanceFailed) {
@@ -212,7 +259,7 @@ const fixedStep = 1 / 120;
 function frame(now: number) {
   const elapsed = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
   const input = controls();
-  const frozen = game.phase === 'paused' || game.phase === 'gameover';
+  const frozen = game.editing || game.phase === 'paused' || game.phase === 'gameover';
   if (!frozen) visualTime += elapsed;
   accumulator += frozen ? 0 : elapsed;
   while (accumulator >= fixedStep) { game.step(fixedStep, input); accumulator -= fixedStep; }
