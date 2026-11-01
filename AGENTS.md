@@ -63,9 +63,11 @@ the matching SVG artwork.
 Srormfront (11) is a thunderstorm with gravity 100, full thrust, and stationary
 stations. Its `storm` config drives abrupt horizontal wind gusts using the same
 drag model as Abyss, including with empty fuel; docked ships resist the wind.
-Lightning locks its full jagged path when a ground charge appears, warns for
-one second, then flashes for 180 ms with thunder. Only the active path is fatal,
-including hull, landing gear, and docked ships. Sweep collisions along each bolt
-segment. Dense, harmless blue rain renders in front of the whole scene. Weather
+Lightning always targets a landing pad and locks its jagged path at warning
+start. Electrical arcs zap outward from that pad for 3.5 seconds, at 1, 2, 4,
+then 8 sets/second, with a quiet zap for each set. Warning starts are 3.6–6.4
+seconds apart (half the original strike frequency). Bolts flash for 180 ms with
+thunder. Landed ships are immune; airborne hulls and gear are vulnerable. Sweep
+collisions along each bolt segment. Dense, harmless blue rain renders in front of the whole scene. Weather
 uses gameplay time, freezes on pause/countdown/end, and resets on restart.
 Storm tuning and shared bolt geometry live in `src/storm.ts`; artwork uses -11.

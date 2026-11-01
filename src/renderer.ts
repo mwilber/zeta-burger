@@ -6,7 +6,7 @@ import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art
 import type { ArtBox } from './svg-art.js';
 import { CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
-import { LIGHTNING, windVelocity, windOffset } from './storm.js';
+import { LIGHTNING, lightningArcPulse, windVelocity, windOffset } from './storm.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: string; size: number; node?: SVGGElement }
@@ -40,7 +40,7 @@ export class Renderer {
   private seekerNodes = new Map<number, SVGGElement>();
   private stormLayer = this.group();
   private rainLayer = this.group();
-  private lightningNodes = new Map<number, { root: SVGGElement; warning: SVGGElement; bolt: SVGGElement }>();
+  private lightningNodes = new Map<number, { root: SVGGElement; warning: SVGGElement; arcs: SVGGElement; bolt: SVGGElement }>();
   private rainPaths: SVGPathElement[] = [];
   private rainDrops: { x: number; y: number; speed: number; length: number }[] = [];
   private lightningFlash?: SVGGElement;
@@ -351,20 +351,27 @@ export class Renderer {
       let nodes = this.lightningNodes.get(strike.id);
       if (!nodes) {
         const root = this.group(), warning = this.asset('lightning-warning'), bolt = this.asset('lightning-bolt');
+        const arcs = this.asset('lightning-arcs');
         root.setAttribute('data-lightning', String(strike.id));
         move(warning, strike.x, strike.y);
+        setText(find(warning, '[data-warning-label]'), `PAD ${strike.padId} · LIGHTNING`);
         for (const path of bolt.querySelectorAll('path')) {
           const points = strike.points.map(p => artPoint(path, p.x, p.y));
           path.setAttribute('d', points.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' '));
         }
-        root.append(warning, bolt); this.stormLayer.append(root);
-        nodes = { root, warning, bolt }; this.lightningNodes.set(strike.id, nodes);
+        root.append(warning, arcs, bolt); this.stormLayer.append(root);
+        nodes = { root, warning, arcs, bolt }; this.lightningNodes.set(strike.id, nodes);
       }
       const active = strike.age >= LIGHTNING.warningDuration;
       visible(nodes.warning, !active); visible(nodes.bolt, active); flashing ||= active;
       const progress = Math.min(1, strike.age / LIGHTNING.warningDuration);
-      attr(nodes.warning, { opacity: .55 + progress * .45,
-        transform: `translate(${strike.x} ${strike.y}) scale(${.7 + progress * .5} ${.8 + progress * .3})` });
+      attr(nodes.warning, { opacity: .8 + progress * .2 });
+      const pulse = lightningArcPulse(strike.age);
+      visible(nodes.arcs, !active && (this.reducedMotion || pulse !== null));
+      const expansion = this.reducedMotion ? 1 : .25 + (pulse?.progress ?? 0) * 1.1;
+      const angle = this.reducedMotion ? 0 : ((pulse?.index ?? 0) * 37 + strike.id * 19) % 60;
+      attr(nodes.arcs, { transform: `translate(${strike.x} ${strike.y - 3}) rotate(${angle}) scale(${expansion})`,
+        opacity: this.reducedMotion ? .8 : 1 - (pulse?.progress ?? 0) * .65 });
     }
     if (this.lightningFlash) visible(this.lightningFlash, flashing && !this.reducedMotion);
     const paths = ['', '', ''];

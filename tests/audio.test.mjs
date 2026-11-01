@@ -241,3 +241,18 @@ test('lightning plays a distinct noise thunder cue that mute and pause can cance
   sound.enabled = false; const count = nodes.length;
   sound.play({ type: 'lightning', message: '', x: 600, y: 748 }); assert.equal(nodes.length, count);
 });
+
+test('each electrical arc plays a short quiet zap and mute or pause cancels it', () => {
+  const { sound, nodes } = audio();
+  sound.play({ type: 'lightning-arc', message: '', x: 428, y: 560 });
+  assert.equal(nodes.length, 1);
+  const zap = nodes[0], gain = zap.connections[0];
+  assert.equal(zap.type, 'sawtooth');
+  assert.ok(zap.stops[0] - zap.starts[0] < .1);
+  assert.ok(gain.gain.changes.some(change => change.value === .018));
+  assert.ok(zap.frequency.changes.some(change => change.kind === 'ramp' && change.value === 320));
+  sound.stopAll(); assert.equal(zap.stops.at(-1), undefined);
+  sound.enabled = false;
+  sound.play({ type: 'lightning-arc', message: '', x: 428, y: 560 });
+  assert.equal(nodes.length, 1);
+});

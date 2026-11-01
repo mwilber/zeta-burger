@@ -2,7 +2,7 @@ import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTi
 import type { Point, Pad, Solid } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
-import { LIGHTNING, createLightning, lightningBodies, windVelocity } from './storm.js';
+import { LIGHTNING, LIGHTNING_ARC_TIMES, createLightning, lightningBodies, windVelocity } from './storm.js';
 import type { LightningStrike } from './storm.js';
 export const PHYSICS = { upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
@@ -27,7 +27,7 @@ export function verticalThrustDirection(controls: Controls): number { return (co
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'lightning' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'lightning' | 'lightning-arc' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'idle' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -181,6 +181,11 @@ export class Game {
     for (const strike of this.lightning) {
       const previousAge = strike.age;
       strike.age += dt;
+      for (const time of LIGHTNING_ARC_TIMES) {
+        if (time > previousAge && time <= strike.age) {
+          this.events.push({ type: 'lightning-arc', message: '', x: strike.x, y: strike.y });
+        }
+      }
       if (previousAge < LIGHTNING.warningDuration && strike.age >= LIGHTNING.warningDuration) {
         this.events.push({ type: 'lightning', message: '', x: strike.x, y: strike.y });
       }
@@ -188,20 +193,21 @@ export class Game {
       // expired bolts cannot kill a ship that crossed their location earlier.
       const from = Math.max(0, (LIGHTNING.warningDuration - previousAge) / dt);
       const to = Math.min(1, (LIGHTNING.warningDuration + LIGHTNING.strikeDuration - previousAge) / dt);
-      if (canHitShip && this.phase === 'playing' && from <= to && to >= 0 && from <= 1) {
+      if (canHitShip && this.ship.landed === null && this.phase === 'playing' && from <= to && to >= 0 && from <= 1) {
         const delta = { x: shipDelta.x * (to - from), y: shipDelta.y * (to - from) };
         if (lightningBodies(strike).some(body => shapes.some(shape => sweepContact(
           shape.map(p => ({ x: p.x + shipDelta.x * from, y: p.y + shipDelta.y * from })), body, delta) !== null))) {
-          this.crash('Lightning strike! Clear the glowing ground charge before the bolt flashes.');
+          this.crash('Lightning strike! Watch for electrical arcs on pads; land for shelter or clear the bolt.');
         }
       }
     }
     this.lightning = this.lightning.filter(strike => strike.age < LIGHTNING.warningDuration + LIGHTNING.strikeDuration);
     this.lightningSpawnTime -= dt;
-    if (this.lightningSpawnTime <= 0) {
-      // Sometimes threaten the ship's current column; never track it after warning.
-      const x = this.random() < .35 ? Math.max(35, Math.min(WORLD_WIDTH - 35, this.ship.x)) : 35 + this.random() * (WORLD_WIDTH - 70);
-      this.lightning.push(createLightning(this.nextLightningId++, x, this.random));
+    if (this.lightningSpawnTime <= 0 && this.pads.length) {
+      const pad = this.pads[Math.min(this.pads.length - 1, Math.floor(this.random() * this.pads.length))];
+      const strike = createLightning(this.nextLightningId++, pad, this.random);
+      this.lightning.push(strike);
+      this.events.push({ type: 'lightning-arc', message: '', x: strike.x, y: strike.y });
       this.lightningSpawnTime = LIGHTNING.intervalMin + this.random() * (LIGHTNING.intervalMax - LIGHTNING.intervalMin);
     }
   }

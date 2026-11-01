@@ -4,7 +4,7 @@ import { accessSync } from 'node:fs';
 import { Game, PHYSICS, START_DELAY, CRASH_DURATION, FUEL } from '../dist/src/engine.js';
 import { LEVELS, createLevel, nextLevel, levelAssetNames, levelAssetPath } from '../dist/src/levels.js';
 import { LEVEL_CONFIG } from '../dist/src/level-config.js';
-import { LIGHTNING, createLightning, windVelocity, windOffset } from '../dist/src/storm.js';
+import { LIGHTNING, createLightning, lightningArcPulse, windVelocity, windOffset } from '../dist/src/storm.js';
 import { WORLD_HEIGHT } from '../dist/src/world.js';
 
 const level = LEVELS.find(l => l.id === 'srormfront');
@@ -21,7 +21,7 @@ function dock(game, id = 0) {
   game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: id };
 }
 function bolt(x, age = LIGHTNING.warningDuration) {
-  return { ...createLightning(99, x, () => .5), age };
+  return { ...createLightning(99, { id: 99, x: x - 55, y: WORLD_HEIGHT - 12, width: 110 }, () => .5), age };
 }
 
 test('Srormfront is the new starting level, preserves the old stack, and has complete artwork', () => {
@@ -84,20 +84,77 @@ test('station geometry stays fixed and docking blocks wind while normal service 
   game.step(dt, { ...idle, up: true }); assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false); assert.ok(game.ship.vx !== 0);
 });
 
-test('ground warnings fix their endpoint and path, are harmless, then flash once with thunder', () => {
-  const game = playing(); dock(game);
-  game.lightningSpawnTime = 0; game.random = () => .1;
-  game.step(dt, idle);
-  const strike = game.lightning[0];
-  assert.equal(strike.x, game.ship.x); assert.equal(strike.y, WORLD_HEIGHT - 12);
-  assert.equal(strike.points[0].y, 0); assert.deepEqual(strike.points.at(-1), { x: strike.x, y: strike.y });
-  const points = structuredClone(strike.points), x = strike.x;
-  fly(game, .9); assert.equal(game.lives, 3); assert.equal(game.events.some(e => e.type === 'lightning'), false);
-  assert.deepEqual(strike.points, points); assert.equal(strike.x, x);
-  fly(game, .3);
-  assert.equal(game.lives, 2); assert.match(game.events.find(e => e.type === 'crash').message, /Lightning/);
-  assert.equal(game.events.filter(e => e.type === 'lightning').length, 1);
-  assert.equal(game.lightning.length, 0);
+test('lightning targets only pad centers, locks its warning path, and strikes half as often', () => {
+  assert.equal(LIGHTNING.intervalMin, 1.8 * 2); assert.equal(LIGHTNING.intervalMax, 3.2 * 2);
+  for (let i = 0; i < level.pads.length; i++) {
+    const game = playing(); dock(game);
+    game.lightningSpawnTime = 0; game.random = () => (i + .5) / level.pads.length;
+    game.step(dt, idle);
+    const strike = game.lightning[0], pad = game.pads[i];
+    assert.equal(strike.padId, pad.id); assert.equal(strike.x, pad.x + pad.width / 2); assert.equal(strike.y, pad.y);
+    assert.equal(strike.points[0].y, 0); assert.deepEqual(strike.points.at(-1), { x: strike.x, y: pad.y });
+    const points = structuredClone(strike.points); fly(game, 3);
+    assert.deepEqual(strike.points, points); assert.equal(game.lives, 3);
+    assert.equal(game.events.some(e => e.type === 'lightning'), false);
+    fly(game, .7);
+    assert.equal(game.events.filter(e => e.type === 'lightning').length, 1);
+    assert.ok(!game.lightning.includes(strike)); assert.equal(game.lives, 3);
+  }
+  const game = new Game(() => .5, level); game.start('casual', level, { designMode: true });
+  const starts = []; let lastId = -1;
+  for (let i = 0; i < 30 * 120; i++) {
+    game.step(dt, idle);
+    const strike = game.lightning.at(-1);
+    if (strike && strike.id !== lastId) { starts.push(game.time); lastId = strike.id; }
+  }
+  assert.equal(starts.length, 6);
+  for (let i = 1; i < starts.length; i++) assert.ok(Math.abs(starts[i] - starts[i - 1] - 5) < dt * 2);
+});
+
+test('pad arc sets and zap events ramp from 1 to 2 to 4 to 8 Hz over a 3.5 second warning', () => {
+  const game = new Game(() => .5, level); game.start('casual', level, { designMode: true });
+  game.lightningSpawnTime = 0; game.step(dt, idle); game.lightningSpawnTime = 1000;
+  const strike = game.lightning[0], arcs = [0]; game.events = [];
+  const expected = [0, 1, 1.5, 2, 2.25, 2.5, 2.75, 3, 3.125, 3.25, 3.375];
+  while (strike.age < 3.5 + dt) {
+    game.step(dt, idle);
+    for (const event of game.events.splice(0)) {
+      if (event.type === 'lightning-arc') {
+        arcs.push(strike.age); assert.equal(event.x, strike.x); assert.equal(event.y, strike.y);
+      } else if (event.type === 'lightning') assert.ok(Math.abs(strike.age - 3.5) < dt * 2);
+    }
+  }
+  assert.equal(arcs.length, expected.length);
+  arcs.forEach((age, i) => assert.ok(Math.abs(age - expected[i]) < dt * 2, `zap ${i} at ${age}`));
+  for (const time of expected) {
+    assert.equal(lightningArcPulse(time).progress, 0);
+    assert.ok(lightningArcPulse(time + .06).progress > 0);
+  }
+  assert.equal(lightningArcPulse(.5), null); assert.equal(lightningArcPulse(3.5), null);
+});
+
+test('landed ships are immune on every pad, including the struck pad, until takeoff or gear retraction', () => {
+  for (const pad of level.pads) for (const release of ['up', 'gear']) {
+    const game = playing(); dock(game, pad.id);
+    const strike = createLightning(99, pad, () => .5); strike.age = LIGHTNING.warningDuration;
+    game.lightning = [strike]; game.step(dt, idle);
+    assert.equal(game.lives, 3); assert.equal(game.ship.landed, pad.id);
+    if (release === 'gear') game.toggleGear();
+    game.step(dt, release === 'up' ? { ...idle, up: true } : idle);
+    assert.equal(game.lives, 2); assert.match(game.events.at(-1).message, /Lightning strike/);
+  }
+});
+
+test('touching down during a flash grants immunity immediately and bolts stop at the target pad', () => {
+  const touchdown = playing(), pad = touchdown.pads.find(p => p.id === 0);
+  touchdown.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .05, vx: 0, vy: 20, gear: true, landed: null };
+  touchdown.lightning = [{ ...createLightning(99, pad, () => .5), age: LIGHTNING.warningDuration }];
+  touchdown.step(dt, idle);
+  assert.equal(touchdown.ship.landed, pad.id); assert.equal(touchdown.lives, 3);
+  const below = playing(), upperPad = below.pads.find(p => p.id === 2);
+  Object.assign(below.ship, { x: upperPad.x + upperPad.width / 2, y: upperPad.y + 140 });
+  below.lightning = [{ ...createLightning(99, upperPad, () => .5), age: LIGHTNING.warningDuration }];
+  below.step(dt, idle); assert.equal(below.lives, 3); assert.equal(below.phase, 'playing');
 });
 
 test('active lightning hits hulls, fast crossings, angled segments, and extended gear', () => {
@@ -113,10 +170,10 @@ test('active lightning hits hulls, fast crossings, angled segments, and extended
 });
 
 test('escaping a warning, a near miss, and crossing before activation or after expiry are safe', () => {
-  const escaped = playing(); dock(escaped); const warning = bolt(escaped.ship.x, .8);
+  const escaped = playing(); dock(escaped); const warning = bolt(escaped.ship.x, LIGHTNING.warningDuration - .2);
   escaped.lightning = [warning]; escaped.ship.x += 65; fly(escaped, .5); assert.equal(escaped.lives, 3);
   const near = playing(); near.lightning = [bolt(near.ship.x + 30)]; near.step(dt, idle); assert.equal(near.lives, 3);
-  const before = playing(); Object.assign(before.ship, { x: 450, y: 100, vx: 2500 }); before.lightning = [bolt(500, .95)]; before.step(.1, idle);
+  const before = playing(); Object.assign(before.ship, { x: 450, y: 100, vx: 2500 }); before.lightning = [bolt(500, LIGHTNING.warningDuration - .05)]; before.step(.1, idle);
   assert.equal(before.lives, 3, 'crossed before the warning completed');
   const after = playing(); Object.assign(after.ship, { x: 450, y: 100, vx: 2500 });
   after.lightning = [bolt(600, LIGHTNING.warningDuration + LIGHTNING.strikeDuration - .001)]; after.step(.1, idle);
@@ -127,7 +184,7 @@ test('weather freezes for countdown, pause, final crash, and game over; resets o
   const game = new Game(() => .5, level); game.start();
   const snapshot = () => JSON.stringify({ time: game.time, ship: game.ship, lightning: game.lightning, timer: game.lightningSpawnTime });
   const initial = snapshot(); fly(game, 2); assert.equal(snapshot(), initial); fly(game, 1);
-  dock(game); fly(game, 1.8); assert.equal(game.lightning.length, 1);
+  dock(game); fly(game, LIGHTNING.spawnDelay + .3); assert.equal(game.lightning.length, 1);
   game.pause(); const paused = snapshot(); fly(game, 2); assert.equal(snapshot(), paused);
   game.pause(); game.lives = 1; game.crash('test'); const final = snapshot();
   fly(game, CRASH_DURATION); assert.equal(game.phase, 'gameover'); assert.equal(snapshot(), final);
@@ -138,8 +195,8 @@ test('weather freezes for countdown, pause, final crash, and game over; resets o
 
 test('weather continues during design mode and replacement delay without killing the idle or new ship', () => {
   const design = new Game(() => .1, level); design.start('casual', level, { designMode: true });
-  fly(design, 4); assert.equal(design.lives, 3); assert.ok(design.events.some(e => e.type === 'lightning'));
-  const game = playing(); dock(game, level.gasStation); game.lightning = [bolt(game.ship.x, .9)]; game.crash('test');
+  fly(design, LIGHTNING.spawnDelay + LIGHTNING.warningDuration + .1); assert.equal(design.lives, 3); assert.ok(design.events.some(e => e.type === 'lightning'));
+  const game = playing(); dock(game, level.gasStation); game.lightning = [bolt(game.ship.x, LIGHTNING.warningDuration - .1)]; game.crash('test');
   fly(game, CRASH_DURATION); assert.equal(game.phase, 'playing'); assert.equal(game.lives, 2); assert.equal(game.ship.landed, level.gasStation);
 });
 

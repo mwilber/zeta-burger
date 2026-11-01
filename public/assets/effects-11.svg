@@ -63,11 +63,14 @@
     <path d="" stroke="#f0fbff" stroke-width="2"/>
   </g>
   <g id="lightning-warning">
-    <ellipse cy="-2" rx="32" ry="10" fill="#749dff" opacity=".24"/>
-    <ellipse cy="-2" rx="21" ry="6" fill="#afdbff" opacity=".65"/>
-    <path d="M-30 -3L-19 -9L-12 -2L-4 -14L3 -4L13 -11L20 -3L30 -7" fill="none" stroke="#d4edff" stroke-width="2"/>
-    <path d="M-40 0H40" stroke="#d4edff" stroke-width="2"/>
-    <text y="-24" fill="#e2f3ff" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">GROUND CHARGE</text>
+    <ellipse cy="-2" rx="48" ry="12" fill="#749dff" opacity=".32"/>
+    <ellipse cy="-2" rx="32" ry="6" fill="#afdbff" opacity=".7"/>
+    <path d="M-48 0H48" stroke="#dcf4ff" stroke-width="3"/>
+    <text data-warning-label="" y="-38" fill="#effaff" stroke="#152637" stroke-width="3" paint-order="stroke" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">LIGHTNING</text>
+  </g>
+  <g id="lightning-arcs" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M0 0L12 -9L18 -3L31 -20L40 -13L60 -35 M0 0L16 4L22 -4L37 8L43 1L72 6 M0 0L7 12L16 10L22 25L32 21L40 40 M0 0L-11 -5L-17 -17L-26 -11L-40 -29L-51 -24 M0 0L-15 5L-22 -2L-34 10L-44 5L-70 14 M0 0L-5 12L-15 16L-11 26L-28 35" stroke="#5f9bff" stroke-width="7" opacity=".45"/>
+    <path d="M0 0L12 -9L18 -3L31 -20L40 -13L60 -35 M0 0L16 4L22 -4L37 8L43 1L72 6 M0 0L7 12L16 10L22 25L32 21L40 40 M0 0L-11 -5L-17 -17L-26 -11L-40 -29L-51 -24 M0 0L-15 5L-22 -2L-34 10L-44 5L-70 14 M0 0L-5 12L-15 16L-11 26L-28 35" stroke="#d9f7ff" stroke-width="2.5"/>
   </g>
   <g id="lightning-flash"><rect x="0" y="0" width="1280" height="760" fill="#d2e8ff" opacity=".13"/></g>
 </svg>

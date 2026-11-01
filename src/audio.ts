@@ -161,6 +161,10 @@ export class Sound {
     if (event.type === 'gameover') { this.endJingle(event.endReason === 'delivered'); return; }
     if (event.type === 'crash') this.crash();
     if (event.type === 'lightning') this.thunder();
+    if (event.type === 'lightning-arc') {
+      const zap = this.tone(1800, .055, 'sawtooth', 0, .018);
+      if (zap && this.context) zap.frequency.exponentialRampToValueAtTime(320, this.context.currentTime + .055);
+    }
     if (event.type === 'falling-obstacle-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
