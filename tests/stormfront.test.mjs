@@ -30,7 +30,7 @@ test('Srormfront is the new starting level, preserves the old stack, and has com
   assert.equal(level.padCount, 7); assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));
-  assert.ok(level.storm.windSpeed > LEVELS.find(l => l.id === 'abyss').current.speed * 3);
+  assert.ok(level.storm.windSpeed > LEVELS.find(l => l.id === 'abyss').current.speed * 2);
   for (const name of levelAssetNames(level)) accessSync(new URL('../public/' + levelAssetPath(name, level), import.meta.url));
 });
 

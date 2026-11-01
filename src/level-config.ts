@@ -77,7 +77,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   name: 'Srormfront',
   theme: 'Deliver through the squall. Fight the gusts and clear the ground charge before lightning strikes.',
   gravity: 100,
-  storm: { windSpeed: 85, gustDuration: 1.4, drag: 1.6, rainCount: 560 },
+  storm: { windSpeed: 63.75, gustDuration: 1.4, drag: 1.6, rainCount: 560 },
   start: { x: 640, y: 80 },
   restaurant: 0,
   gasStation: 6,
