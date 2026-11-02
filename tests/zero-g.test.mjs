@@ -61,7 +61,9 @@ test('only Zero G reduces every thruster to 30% acceleration while keeping norma
   assert.equal(zeroG.thrustScale, .3);
   const config = LEVEL_CONFIG.find(level => level.id === 'zero-g');
   for (const thrustScale of [-1, NaN, Infinity]) assert.throws(() => createLevel({ ...config, thrustScale }), /thrustScale/);
-  for (const level of LEVELS.filter(level => !level.gravityWell && !level.current)) for (const sign of [-1, 1]) {
+  // Check raw thruster acceleration in levels without environmental drag.
+  // Srormfront's full thrust against wind is covered in stormfront.test.mjs.
+  for (const level of LEVELS.filter(level => !level.gravityWell && !level.current && !level.storm)) for (const sign of [-1, 1]) {
     const game = playing(level), scale = level === zeroG ? .3 : 1;
     fly(game, .1, { up: sign < 0, down: sign > 0, left: sign < 0, right: sign > 0 });
     assert.ok(Math.abs(game.ship.vx - sign * PHYSICS.sideThrust * scale * .1) < 1e-9, level.name);

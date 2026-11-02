@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" overflow="visible">
+<defs>
+  <linearGradient id="storm-sky" x2="0" y2="1"><stop stop-color="#101a2c"/><stop offset=".6" stop-color="#273e54"/><stop offset="1" stop-color="#466378"/></linearGradient>
+  <linearGradient id="storm-cloud" x2="0" y2="1"><stop stop-color="#0b1221"/><stop offset="1" stop-color="#233345" stop-opacity=".8"/></linearGradient>
+  <linearGradient id="storm-mist" x2="0" y2="1"><stop stop-color="#8bb6d0" stop-opacity="0"/><stop offset="1" stop-color="#8bb6d0" stop-opacity=".17"/></linearGradient>
+</defs>
+<g data-sky=""><rect width="1280" height="760" fill="url(#storm-sky)"/></g>
+<g data-storm-clouds="" fill="url(#storm-cloud)">
+  <path d="M0 0H1280V108Q1200 150 1120 108Q1030 162 926 103Q830 143 746 96Q630 157 545 105Q450 147 360 90Q260 142 176 94Q80 142 0 107Z"/>
+  <path d="M0 83Q80 48 165 88Q260 30 358 81Q472 24 566 80Q650 46 745 89Q860 34 958 82Q1070 36 1163 95Q1220 67 1280 85V0H0Z" opacity=".5"/>
+</g>
+<path d="M0 610L85 540L190 618L323 475L462 613L590 493L751 624L887 468L1034 615L1160 513L1280 598V760H0Z" fill="#273e50"/>
+<path d="M0 687L130 614L260 676L418 568L573 704L754 608L911 694L1093 596L1280 678V760H0Z" fill="#30495b"/>
+<rect y="300" width="1280" height="448" fill="url(#storm-mist)"/>
+<path d="M0 748H1280V760H0Z" fill="#132333"/><path d="M0 748H1280" stroke="#79a8c1" stroke-opacity=".6"/>
+<g font-family="monospace" font-size="11" letter-spacing="2" fill="#b7d9eb">
+  <text x="34" y="43">SRORMFRONT / SQUALL SECTOR</text>
+  <text data-wind-label="" x="1246" y="43" text-anchor="end">WIND → EAST</text>
+</g>
+</svg>

@@ -18,6 +18,7 @@ export interface Level {
   assets?: LevelConfig['assets'];
   gravity: number;
   current?: LevelConfig['current'];
+  storm?: LevelConfig['storm'];
   blackHole?: LevelConfig['blackHole'];
   star?: LevelConfig['star'];
   gravityWell?: LevelConfig['star'];
@@ -39,6 +40,9 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
   if (!Number.isFinite(config.gravity) || config.gravity < 0) fail('gravity must be a finite nonnegative number');
   if (config.current && (![config.current.speed, config.current.period, config.current.drag].every(Number.isFinite)
     || config.current.speed < 0 || config.current.period <= 0 || config.current.drag <= 0)) fail('invalid current');
+  if (config.storm && (![config.storm.windSpeed, config.storm.gustDuration, config.storm.drag, config.storm.rainCount].every(Number.isFinite)
+    || config.storm.windSpeed <= 0 || config.storm.gustDuration <= 0 || config.storm.drag <= 0
+    || !Number.isInteger(config.storm.rainCount) || config.storm.rainCount < 0 || config.storm.rainCount > 2000)) fail('invalid storm');
   if (config.blackHole && config.star) fail('configure only one gravity well');
   for (const kind of ['blackHole', 'star'] as const) {
     const hole = config[kind];

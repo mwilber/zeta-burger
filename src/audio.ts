@@ -139,9 +139,32 @@ export class Sound {
     const rumble = this.tone(160, 1.1, 'sawtooth', 0, .09);
     rumble?.frequency.exponentialRampToValueAtTime(30, now + 1.1);
   }
+  private thunder() {
+    if (!this.enabled || !this.context) return;
+    const context = this.context, now = context.currentTime, duration = 1.7;
+    const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
+    const samples = buffer.getChannelData(0);
+    let low = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const noise = Math.random() * 2 - 1;
+      low = low * .94 + noise * .06;
+      samples[i] = noise * Math.exp(-i / context.sampleRate * 24) * .45 + low * 3;
+    }
+    const noise = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
+    noise.buffer = buffer; filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1500, now); filter.frequency.exponentialRampToValueAtTime(90, now + duration);
+    gain.gain.setValueAtTime(.3, now); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    noise.connect(filter); filter.connect(gain); gain.connect(context.destination);
+    noise.start(now); noise.stop(now + duration); this.track(noise, [noise, filter, gain], 'effects');
+  }
   play(event: GameEvent) {
     if (event.type === 'gameover') { this.endJingle(event.endReason === 'delivered'); return; }
     if (event.type === 'crash') this.crash();
+    if (event.type === 'lightning') this.thunder();
+    if (event.type === 'lightning-arc') {
+      const zap = this.tone(1800, .055, 'sawtooth', 0, .018);
+      if (zap && this.context) zap.frequency.exponentialRampToValueAtTime(320, this.context.currentTime + .055);
+    }
     if (event.type === 'falling-obstacle-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
