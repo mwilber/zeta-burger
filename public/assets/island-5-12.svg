@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 233 83">
+<title>Snow-covered granite ledge</title>
+
+<defs><linearGradient id="frozen-rock" x2=".6" y2="1"><stop stop-color="#7292a3"/><stop offset="1" stop-color="#344d66"/></linearGradient></defs>
+<path d="M0 0H233L215 33 144.46 73 69.89999999999999 54 15 29Z" fill="url(#frozen-rock)" stroke="#90b6c8" stroke-width="1"/>
+<path d="M15 29L69.89999999999999 54 100.19 26 50 8Z" fill="#4a687e"/>
+<path d="M144.46 73L215 33 167.76 23Z" fill="#283f59" opacity=".65"/>
+<path d="M0 0H233L228 8Q186.4 13 158.44 7Q111.83999999999999 15 67.57 8Q24 14 4 7Z" fill="#f2fafc"/>
+<path d="M20 10L23 23 27 10M193 10L197 30 201 10M209 9L212 20 215 9" fill="#bbebfa"/>
+<path d="M81.55 28L109.50999999999999 36 100.19 48M167.76 16L153.78 32" fill="none" stroke="#b2cbd5" opacity=".35"/>
+</svg>

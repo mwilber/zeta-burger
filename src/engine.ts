@@ -175,7 +175,7 @@ export class Game {
     }
   }
   private stepLightning(dt: number, previousShip: Ship, canHitShip: boolean) {
-    if (!this.level.storm || dt <= 0) return;
+    if (!this.level.storm || this.level.storm.lightning === false || dt <= 0) return;
     const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
     const shapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
     for (const strike of this.lightning) {
@@ -272,9 +272,10 @@ export class Game {
     this.fallingObstacleSpawnTime -= dt;
     if (this.fallingObstacleSpawnTime <= 0) {
       if (this.fallingObstacles.length < this.level.fallingObstacleLimit) {
-        const radius = FALLING_OBSTACLES.radiusMin + this.random() * (FALLING_OBSTACLES.radiusMax - FALLING_OBSTACLES.radiusMin);
+        const settings = this.level.fallingObstacleConfig ?? FALLING_OBSTACLES;
+        const radius = settings.radiusMin + this.random() * (settings.radiusMax - settings.radiusMin);
         const angle = (this.random() * 2 - 1) * FALLING_OBSTACLES.angleMax;
-        const speed = FALLING_OBSTACLES.speedMin + this.random() * (FALLING_OBSTACLES.speedMax - FALLING_OBSTACLES.speedMin);
+        const speed = settings.speedMin + this.random() * (settings.speedMax - settings.speedMin);
         this.fallingObstacles.push({ id: this.nextFallingObstacleId++, x: radius + this.random() * (WORLD_WIDTH - radius * 2), y: -radius, vx: Math.sin(angle) * speed, vy: Math.cos(angle) * speed, radius });
       }
       this.fallingObstacleSpawnTime = FALLING_OBSTACLES.intervalMin + this.random() * (FALLING_OBSTACLES.intervalMax - FALLING_OBSTACLES.intervalMin);

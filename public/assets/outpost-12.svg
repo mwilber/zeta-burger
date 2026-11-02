@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 53 77">
+<title>Blizzard North Ridge Hut — alpine chalet</title>
+
+<rect x="38.69" y="9.24" width="6.359999999999999" height="19.25" fill="#657983"/>
+<rect x="37.099999999999994" y="8.47" width="9.54" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 24.64H51V77H2Z" fill="#7a5949"/>
+<path d="M2 43.120000000000005H51M2 55.44H51M2 67.76H51" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 33.11L26.5 4 52 33.11Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 31.11L26.5 2 52 31.11 48 35.11 26.5 10 5 35.11Z" fill="#eff9fc"/>
+<path d="M22.259999999999998 16.169999999999998H30.74V24.64H22.259999999999998Z" fill="#ffdc9a"/>
+<rect x="12.190000000000001" y="39.27" width="7.949999999999999" height="12.32" rx="1" fill="#ffd995"/><path d="M16.165 39.27V51.59" stroke="#785c49" stroke-width="1"/><rect x="34.45" y="39.27" width="7.949999999999999" height="12.32" rx="1" fill="#ffd995"/><path d="M38.425000000000004 39.27V51.59" stroke="#785c49" stroke-width="1"/>
+<rect x="22.79" y="57.75" width="10.07" height="19.25" fill="#304555"/>
+<circle cx="30.74" cy="68.53" r="1" fill="#ffdc9a"/>
+<path d="M1 75H52" stroke="#e7f5f8" stroke-width="4"/>
+
+
+</svg>

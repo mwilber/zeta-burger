@@ -68,7 +68,8 @@ const editor = new LevelEditor(stage, {
       game.start(skillSelect.value as Skill, level, { designMode: true, editing: true });
       // Static samples make enabled falling hazards visible in the frozen preview.
       game.fallingObstacles = Array.from({ length: level.fallingObstacleLimit }, (_, id) => ({
-        id, x: 180 + id * 280, y: 115 + id % 2 * 45, vx: 35, vy: 170, radius: 16
+        id, x: 100 + id * 1080 / Math.max(1, level.fallingObstacleLimit - 1), y: 115 + id % 2 * 45,
+        vx: 0, vy: level.fallingObstacleConfig?.speedMin ?? 170, radius: level.fallingObstacleConfig?.radiusMin ?? 16
       }));
     }
     overlay.hidden = true; accumulator = 0;
@@ -199,7 +200,7 @@ function updateHud() {
   text(get('world-name'), game.level.name.toUpperCase());
   const intro = document.querySelector<HTMLElement>('#intro-description');
   const cavern = game.level.structures.some(structure => structure.outline);
-  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order.${game.level.gasStation === null ? ' No fuel station: conserve your fuel.' : ` Refuel at pad ${game.level.gasStation}.`}${game.level.storm ? ' Abrupt gusts push your saucer through heavy rain. Watch for arcs and accelerating zaps on landing pads: they warn of lightning 3.5 seconds ahead. Stay landed for immunity, or clear the bolt before it strikes.' : cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order.${game.level.gasStation === null ? ' No fuel station: conserve your fuel.' : ` Refuel at pad ${game.level.gasStation}.`}${game.level.storm?.precipitation === 'sleet' ? ' Abrupt gusts sweep white sleet across the alpine stations. Dodge ship-sized snowflakes falling slowly from the sky; they can hit your hull or gear even while docked.' : game.level.storm ? ' Abrupt gusts push your saucer through heavy rain. Watch for arcs and accelerating zaps on landing pads: they warn of lightning 3.5 seconds ahead. Stay landed for immunity, or clear the bolt before it strikes.' : cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
   text(get('help-gas'), game.level.gasStation === null ? 'This level has no fuel station; conserve fuel.' : `Land at pad ${game.level.gasStation} to refill at 25% per second for free.`);
@@ -207,7 +208,8 @@ function updateHud() {
   get('seeker-help').hidden = game.level.seekerCount === 0 || !!game.level.current;
   get('city-help').hidden = game.level.structures.length === 0;
   get('current-help').hidden = !game.level.current;
-  get('storm-help').hidden = !game.level.storm;
+  get('storm-help').hidden = !game.level.storm || game.level.storm.lightning === false;
+  get('blizzard-help').hidden = game.level.storm?.precipitation !== 'sleet';
   get('zero-g-help').hidden = game.level.id !== 'zero-g';
   get('black-hole-help').hidden = !game.level.blackHole;
   get('star-help').hidden = !game.level.star;

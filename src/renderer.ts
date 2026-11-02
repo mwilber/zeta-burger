@@ -188,12 +188,15 @@ export class Renderer {
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
       this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.seekerLayer, this.particleLayer, this.crash);
       if (level.storm) {
+        const sleet = level.storm.precipitation === 'sleet';
         this.rainDrops = Array.from({ length: level.storm.rainCount }, () => ({
           x: random() * (WORLD_WIDTH + 50), y: random() * (WORLD_HEIGHT + 35),
-          speed: 460 + random() * 290, length: 10 + random() * 12
+          speed: 460 + random() * 290, length: sleet ? 4 + random() * 5 : 10 + random() * 12
         }));
-        this.lightningFlash = this.asset('lightning-flash');
-        this.stormLayer.append(this.lightningFlash);
+        if (level.storm.lightning !== false) {
+          this.lightningFlash = this.asset('lightning-flash');
+          this.stormLayer.append(this.lightningFlash);
+        }
         for (let i = 0; i < 3; i++) {
           const rain = this.asset('storm-rain');
           attr(rain, { opacity: .32 + i * .16, 'data-rain-layer': i });

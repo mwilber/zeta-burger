@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 58">
+<title>Blizzard Alpine Fuel — alpine chalet</title>
+
+<rect x="20.439999999999998" y="6.96" width="3.36" height="14.5" fill="#657983"/>
+<rect x="19.599999999999998" y="6.38" width="5.04" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 18.56H26V58H2Z" fill="#7a5949"/>
+<path d="M2 32.480000000000004H26M2 41.76H26M2 51.04H26" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 24.94L14 4 27 24.94Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 22.94L14 2 27 22.94 23 26.94 14 10 5 26.94Z" fill="#eff9fc"/>
+<path d="M11.76 12.18H16.24V18.56H11.76Z" fill="#ffdc9a"/>
+<rect x="6.44" y="29.580000000000002" width="4.2" height="9.28" rx="1" fill="#ffd995"/><path d="M8.540000000000001 29.580000000000002V38.86" stroke="#785c49" stroke-width="1"/><rect x="18.2" y="29.580000000000002" width="4.2" height="9.28" rx="1" fill="#ffd995"/><path d="M20.3 29.580000000000002V38.86" stroke="#785c49" stroke-width="1"/>
+<rect x="12.04" y="43.5" width="5.32" height="14.5" fill="#304555"/>
+<circle cx="16.24" cy="51.62" r="1" fill="#ffdc9a"/>
+<path d="M1 56H27" stroke="#e7f5f8" stroke-width="4"/>
+<rect x="2" y="40.599999999999994" width="24" height="7.54" rx="1" fill="#294653"/><text x="14" y="46.11" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="6" fill="#ffe1a0">FUEL</text>
+
+</svg>

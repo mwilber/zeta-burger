@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760">
+<title>Blizzard — alpine whiteout</title>
+
+<defs>
+  <linearGradient id="winter-sky" x2="0" y2="1"><stop stop-color="#243e59"/><stop offset=".65" stop-color="#7896aa"/><stop offset="1" stop-color="#c1d6df"/></linearGradient>
+  <linearGradient id="winter-mist" x2="0" y2="1"><stop stop-color="#d4e9ef" stop-opacity="0"/><stop offset="1" stop-color="#d4e9ef" stop-opacity=".3"/></linearGradient>
+  <linearGradient id="mountain-face" x2=".8" y2="1"><stop stop-color="#c6dce5"/><stop offset="1" stop-color="#647f99"/></linearGradient>
+</defs>
+<g data-sky=""><rect width="1280" height="760" fill="url(#winter-sky)"/></g>
+<g fill="#d5e6ed" opacity=".13">
+  <path d="M0 78Q120 34 243 85T512 78T810 65T1104 76L1280 62V133Q1130 162 994 127T730 139T420 122T163 142L0 119Z"/>
+  <path d="M0 167Q184 123 330 161T644 148T943 175T1280 146V198Q1090 220 910 208T562 211T233 204L0 219Z"/>
+</g>
+<!-- Distant serrated alpine ridges, snow caps, and shaded glacier faces. -->
+<path d="M0 431L94 326 174 377 324 196 466 368 563 282 703 406 891 215 1034 382 1151 271 1280 402V760H0Z" fill="#8fa9ba"/>
+<path d="M174 377L324 196 466 368 351 300 319 322 281 282Z M703 406L891 215 1034 382 947 319 912 345 882 292 843 315Z M1034 382L1151 271 1280 402 1198 346 1167 361 1145 324Z" fill="#e1edf2"/>
+<path d="M324 196L351 300 466 368 384 283Z M891 215L912 345 1034 382 947 319Z M1151 271L1167 361 1280 402Z" fill="#b5cbd8"/>
+<path d="M0 566L128 437 233 514 430 323 608 524 749 421 899 550 1069 361 1280 568V760H0Z" fill="url(#mountain-face)"/>
+<path d="M233 514L430 323 608 524 497 449 465 466 427 391 379 433 355 416Z M899 550L1069 361 1280 568 1156 480 1105 495 1066 427 1016 469Z" fill="#f0f6f8"/>
+<path d="M430 323L465 466 608 524 497 449Z M1069 361L1105 495 1280 568 1156 480Z" fill="#a1bacb"/>
+<path d="M0 663Q179 561 350 644T682 622T1009 651T1280 611V760H0Z" fill="#7898ad"/>
+<g transform="translate(-20 700) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(16 717.2165461815886) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(52 723.9897664729962) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(88 716.2111163332277) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(124 698.5990205577381) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(160 681.8367401126097) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(196 676.0920493879398) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(232 684.8496006910643) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(268 702.7971809164119) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(304 719.0480287323796) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(340 723.7445979189612) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(376 714.0380126294023) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(412 695.8161572506484) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(448 680.1321647419443) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(484 676.4997345003684) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(520 687.1222499679895) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(556 705.556235802437) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(592 720.6198835565559) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(628 723.1757866371827) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(664 711.6735685324911) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(700 693.0903204000384) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(736 678.6983911940439) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(772 677.227732049965) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(808 689.5704250702746) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(844 708.2395582916776) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(880 721.910686017463) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(916 722.2910856178538) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(952 709.1500117997185) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(988 690.4586636050856) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1024 677.5549620353311) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1060 678.2661193118411) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1096 692.1607569734866) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1132 710.8105742626093) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1168 722.9028422678248) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1204 721.1025534796173) scale(0.91)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1240 706.5017389193889) scale(1.04)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1276 687.9570567755062) scale(0.65)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<g transform="translate(1312 676.7174623910275) scale(0.78)"><path d="M-2 -6H2V3H-2Z" fill="#445d6b"/><path d="M0 -45L-10 -25H-6L-16 -10H-11L-22 0H22L11 -10H16L6 -25H10Z" fill="#587b8c"/><path d="M0 -45L-9 -27H1L-5 -14H10L0 -20H7Z" fill="#d7e9ee" opacity=".65"/></g>
+<rect y="250" width="1280" height="498" fill="url(#winter-mist)"/>
+<path d="M0 748H1280V760H0Z" fill="#e0edf2"/><path d="M0 748H1280" stroke="#f6fcff" stroke-width="2"/>
+<g font-family="monospace" font-size="11" letter-spacing="2" fill="#e3f2f7">
+  <text x="34" y="43">BLIZZARD / ALPINE SECTOR</text>
+  <text data-wind-label="" x="1246" y="43" text-anchor="end">WIND → EAST</text>
+</g>
+</svg>

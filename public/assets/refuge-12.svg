@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 74">
+<title>Blizzard Glacier Refuge — alpine chalet</title>
+
+<rect x="18.98" y="8.879999999999999" width="3.12" height="18.5" fill="#657983"/>
+<rect x="18.2" y="8.14" width="4.68" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 23.68H24V74H2Z" fill="#7a5949"/>
+<path d="M2 41.440000000000005H24M2 53.28H24M2 65.12H24" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 31.82L13 4 25 31.82Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 29.82L13 2 25 29.82 21 33.82 13 10 5 33.82Z" fill="#eff9fc"/>
+<path d="M10.92 15.54H15.079999999999998V23.68H10.92Z" fill="#ffdc9a"/>
+<rect x="5.98" y="37.74" width="3.9" height="11.84" rx="1" fill="#ffd995"/><path d="M7.930000000000001 37.74V49.580000000000005" stroke="#785c49" stroke-width="1"/><rect x="16.900000000000002" y="37.74" width="3.9" height="11.84" rx="1" fill="#ffd995"/><path d="M18.85 37.74V49.580000000000005" stroke="#785c49" stroke-width="1"/>
+<rect x="11.18" y="55.5" width="4.94" height="18.5" fill="#304555"/>
+<circle cx="15.079999999999998" cy="65.86" r="1" fill="#ffdc9a"/>
+<path d="M1 72H25" stroke="#e7f5f8" stroke-width="4"/>
+
+
+</svg>

@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Blizzard (12), Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -71,3 +71,12 @@ thunder. Landed ships are immune; airborne hulls and gear are vulnerable. Sweep
 collisions along each bolt segment. Dense, harmless blue rain renders in front of the whole scene. Weather
 uses gameplay time, freezes on pause/countdown/end, and resets on restart.
 Storm tuning and shared bolt geometry live in `src/storm.ts`; artwork uses -11.
+
+Blizzard (12) is alpine with gravity 100, full thrust, and Stormfront's stationary
+station layout and gusts. Its `storm` disables lightning and uses white sleet
+(short, harmless foreground streaks). Six falling snowflake hazards reuse the
+meteor collision and lifecycle rules, including vulnerability while docked.
+`fallingObstacleConfig` sets radius 24 (ship width) and speed 45–70 units/s;
+meteor defaults stay unchanged. Artwork uses -12 with six-branched snowflakes,
+snowy granite ledges, chalets, and distant alpine peaks/pines. After building,
+`node scripts/generate-blizzard-art.mjs` regenerates the matching SVGs.

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 43 83">
+<title>Blizzard Pinecrest Chalet — alpine chalet</title>
+
+<rect x="31.39" y="9.959999999999999" width="5.16" height="20.75" fill="#657983"/>
+<rect x="30.099999999999998" y="9.13" width="7.739999999999999" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 26.560000000000002H41V83H2Z" fill="#7a5949"/>
+<path d="M2 46.480000000000004H41M2 59.76H41M2 73.04H41" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 35.69L21.5 4 42 35.69Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 33.69L21.5 2 42 33.69 38 37.69 21.5 10 5 37.69Z" fill="#eff9fc"/>
+<path d="M18.06 17.43H24.939999999999998V26.560000000000002H18.06Z" fill="#ffdc9a"/>
+<rect x="9.89" y="42.33" width="6.45" height="13.280000000000001" rx="1" fill="#ffd995"/><path d="M13.115 42.33V55.61000000000001" stroke="#785c49" stroke-width="1"/><rect x="27.95" y="42.33" width="6.45" height="13.280000000000001" rx="1" fill="#ffd995"/><path d="M31.175 42.33V55.61000000000001" stroke="#785c49" stroke-width="1"/>
+<rect x="18.49" y="62.25" width="8.17" height="20.75" fill="#304555"/>
+<circle cx="24.939999999999998" cy="73.87" r="1" fill="#ffdc9a"/>
+<path d="M1 81H42" stroke="#e7f5f8" stroke-width="4"/>
+
+
+</svg>
