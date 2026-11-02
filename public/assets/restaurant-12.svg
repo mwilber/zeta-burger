@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 76 105">
+<title>Blizzard Zeta Burger — alpine chalet</title>
+
+<rect x="55.48" y="12.6" width="9.12" height="26.25" fill="#657983"/>
+<rect x="53.199999999999996" y="11.55" width="13.68" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 33.6H74V105H2Z" fill="#7a5949"/>
+<path d="M2 58.800000000000004H74M2 75.6H74M2 92.4H74" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 45.15L38 4 75 45.15Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 43.15L38 2 75 43.15 71 47.15 38 10 5 47.15Z" fill="#eff9fc"/>
+<path d="M31.919999999999998 22.05H44.08V33.6H31.919999999999998Z" fill="#ffdc9a"/>
+<rect x="17.48" y="53.550000000000004" width="11.4" height="16.8" rx="1" fill="#ffd995"/><path d="M23.18 53.550000000000004V70.35000000000001" stroke="#785c49" stroke-width="1"/><rect x="49.4" y="53.550000000000004" width="11.4" height="16.8" rx="1" fill="#ffd995"/><path d="M55.1 53.550000000000004V70.35000000000001" stroke="#785c49" stroke-width="1"/>
+<rect x="32.68" y="78.75" width="14.44" height="26.25" fill="#304555"/>
+<circle cx="44.08" cy="93.45" r="1" fill="#ffdc9a"/>
+<path d="M1 103H75" stroke="#e7f5f8" stroke-width="4"/>
+<rect x="2" y="73.5" width="72" height="13.65" rx="1" fill="#294653"/><text x="38" y="83.47500000000001" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="6.5" fill="#ffe1a0">ZETA BURGER</text>
+
+</svg>

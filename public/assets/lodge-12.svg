@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65 93">
+<title>Blizzard Edelweiss Lodge — alpine chalet</title>
+
+<rect x="47.449999999999996" y="11.16" width="7.8" height="23.25" fill="#657983"/>
+<rect x="45.5" y="10.23" width="11.7" height="3" rx="1" fill="#f4fbfd"/>
+<path d="M2 29.76H63V93H2Z" fill="#7a5949"/>
+<path d="M2 52.080000000000005H63M2 66.96H63M2 81.84H63" stroke="#4a4141" stroke-width="2"/>
+<path d="M1 39.99L32.5 4 64 39.99Z" fill="#425c70" stroke="#263e52" stroke-width="2" stroke-linejoin="round"/>
+<path d="M1 37.99L32.5 2 64 37.99 60 41.99 32.5 10 5 41.99Z" fill="#eff9fc"/>
+<path d="M27.3 19.529999999999998H37.699999999999996V29.76H27.3Z" fill="#ffdc9a"/>
+<rect x="14.950000000000001" y="47.43" width="9.75" height="14.88" rx="1" fill="#ffd995"/><path d="M19.825000000000003 47.43V62.31" stroke="#785c49" stroke-width="1"/><rect x="42.25" y="47.43" width="9.75" height="14.88" rx="1" fill="#ffd995"/><path d="M47.125 47.43V62.31" stroke="#785c49" stroke-width="1"/>
+<rect x="27.95" y="69.75" width="12.35" height="23.25" fill="#304555"/>
+<circle cx="37.699999999999996" cy="82.77" r="1" fill="#ffdc9a"/>
+<path d="M1 91H64" stroke="#e7f5f8" stroke-width="4"/>
+<rect x="2" y="65.1" width="61" height="12.09" rx="1" fill="#294653"/><text x="32.5" y="73.935" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="6" fill="#ffe1a0">LODGE</text>
+
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 112 160">
+<title>Pinecrest Chalet landing pad</title>
+
+<rect y="0" width="102" height="10" rx="2" fill="#304d63"/>
+<rect y="0" width="102" height="3" rx="1" fill="#a6e9f4"/>
+<path d="M5 6H97" stroke="#95b1c0"/>
+<path d="M8 9H94" stroke="#e6f4f9" stroke-width="2" stroke-dasharray="4 16"/>
+<path d="M-2 0V-6M104 0V-6" stroke="#526e81" stroke-width="3"/>
+<g fill="#a6e9f4"><circle cx="-2" cy="-7" r="2"/><circle cx="104" cy="-7" r="2"/></g>
+
+<rect x="39" y="18" width="24" height="23" rx="3" fill="#203c52" stroke="#a6e9f4" stroke-opacity=".75"/>
+<text x="51" y="35" text-anchor="middle" font-family="monospace" font-size="15" font-weight="bold" fill="#a6e9f4">1</text>
+<text x="51" y="62" text-anchor="middle" font-family="monospace" font-size="8" fill="#e2f0f6">PINECREST CHALET</text>
+</svg>

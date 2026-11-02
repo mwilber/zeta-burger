@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -76 48 100">
+<title>Six-branched snowflake</title>
+
+<g data-snowflake="" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g data-snowflake-arm="" transform="rotate(0)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<g data-snowflake-arm="" transform="rotate(60)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<g data-snowflake-arm="" transform="rotate(120)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<g data-snowflake-arm="" transform="rotate(180)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<g data-snowflake-arm="" transform="rotate(240)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<g data-snowflake-arm="" transform="rotate(300)"><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#629cbd" stroke-width="2.8"/><path d="M0 0H15M7 0L11 -4M7 0L11 4M11 0L14 -3M11 0L14 3" stroke="#f5fdff" stroke-width="1.6"/></g>
+<path d="M4 0L2 3.46H-2L-4 0 -2 -3.46H2Z" stroke="#d5f3ff" stroke-width="1"/>
+</g>
+</svg>

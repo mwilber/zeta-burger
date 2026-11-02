@@ -45,8 +45,8 @@ export interface LevelConfig {
   gravity: number;
   // Reversing horizontal flow: peak speed (units/s), period (s), and ship drag (1/s).
   current?: { speed: number; period: number; drag: number };
-  // Abrupt airborne gusts, foreground rain, and warned lightning strikes.
-  storm?: { windSpeed: number; gustDuration: number; drag: number; rainCount: number };
+  // Abrupt airborne gusts and foreground precipitation; lightning defaults on.
+  storm?: { windSpeed: number; gustDuration: number; drag: number; rainCount: number; lightning?: boolean; precipitation?: 'rain' | 'sleet' };
   // Inward inverse-square gravity; strength is world units³/second².
   blackHole?: GravityWellConfig;
   // A stellar surface uses the same gravity and docking rules as a black hole.
@@ -58,6 +58,8 @@ export interface LevelConfig {
   gasStation: number | null;
   // Maximum active falling obstacles. Set to 0 to disable them.
   fallingObstacleLimit: number;
+  // Optional speed (units/s) and collision radius overrides for falling hazards.
+  fallingObstacleConfig?: { speedMin: number; speedMax: number; radiusMin: number; radiusMax: number };
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
   seekerCount: number;
   // Stationary solid barriers, independent of individual landing pads.
@@ -72,6 +74,28 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 12,
+  id: 'blizzard',
+  name: 'Blizzard',
+  theme: 'Alpine deliveries in whiteout winds. Dodge the giant snowflakes and brake before landing.',
+  gravity: 100,
+  storm: { windSpeed: 63.75, gustDuration: 1.4, drag: 1.6, rainCount: 560, lightning: false, precipitation: 'sleet' },
+  start: { x: 640, y: 80 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 6,
+  fallingObstacleConfig: { speedMin: 45, speedMax: 70, radiusMin: 24, radiusMax: 24 },
+  seekerCount: 0,
+  pads: [
+    { id: 6, name: 'Alpine Fuel', x: 82, y: 640, width: 110, color: '#a6e9f4', island: { x: -48, width: 218 }, building: { x: 124, width: 28, height: 48, kind: 'gas' } },
+    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd397', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
+    { id: 1, name: 'Pinecrest Chalet', x: 116, y: 340, width: 102, color: '#a6e9f4', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'chalet' } },
+    { id: 2, name: 'Summit Observatory', x: 563, y: 253, width: 104, color: '#a6e9f4', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
+    { id: 3, name: 'Edelweiss Lodge', x: 954, y: 363, width: 104, color: '#ffd397', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'lodge' } },
+    { id: 4, name: 'Glacier Refuge', x: 724, y: 558, width: 104, color: '#a6e9f4', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'refuge' } },
+    { id: 5, name: 'North Ridge Hut', x: 1120, y: 633, width: 104, color: '#ffd397', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  ]
+}, {
   number: 11,
   id: 'srormfront',
   name: 'Srormfront',

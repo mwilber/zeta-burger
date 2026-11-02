@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 114 160">
+<title>North Ridge Hut landing pad — delivery beacon</title>
+
+<rect y="0" width="104" height="10" rx="2" fill="#304d63"/>
+<rect y="0" width="104" height="3" rx="1" fill="#ffe0a0"/>
+<path d="M5 6H99" stroke="#95b1c0"/>
+<path d="M8 9H96" stroke="#e6f4f9" stroke-width="2" stroke-dasharray="4 16"/>
+<path d="M-2 0V-6M106 0V-6" stroke="#526e81" stroke-width="3"/>
+<g fill="#ffe0a0"><circle cx="-2" cy="-7" r="2"/><circle cx="106" cy="-7" r="2"/></g>
+<path d="M0 -2L-11 -55H115L104 -2Z" fill="#ffe0a0" opacity=".08"/><path data-beacon="" d="M46 -78L52 -70 58 -78" fill="none" stroke="#ffe0a0" stroke-width="2"/>
+<rect x="40" y="18" width="24" height="23" rx="3" fill="#203c52" stroke="#ffe0a0" stroke-opacity=".75"/>
+<text x="52" y="35" text-anchor="middle" font-family="monospace" font-size="15" font-weight="bold" fill="#ffe0a0">5</text>
+<text x="52" y="62" text-anchor="middle" font-family="monospace" font-size="8" fill="#e2f0f6">NORTH RIDGE HUT</text>
+</svg>

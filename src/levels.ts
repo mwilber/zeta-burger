@@ -30,6 +30,7 @@ export interface Level {
   restaurant: number;
   gasStation: number | null;
   fallingObstacleLimit: number;
+  fallingObstacleConfig?: LevelConfig['fallingObstacleConfig'];
   seekerCount: number;
   structures: NonNullable<LevelConfig['structures']>;
   destinations: number[];
@@ -42,7 +43,9 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
     || config.current.speed < 0 || config.current.period <= 0 || config.current.drag <= 0)) fail('invalid current');
   if (config.storm && (![config.storm.windSpeed, config.storm.gustDuration, config.storm.drag, config.storm.rainCount].every(Number.isFinite)
     || config.storm.windSpeed <= 0 || config.storm.gustDuration <= 0 || config.storm.drag <= 0
-    || !Number.isInteger(config.storm.rainCount) || config.storm.rainCount < 0 || config.storm.rainCount > 2000)) fail('invalid storm');
+    || !Number.isInteger(config.storm.rainCount) || config.storm.rainCount < 0 || config.storm.rainCount > 2000
+    || (config.storm.lightning !== undefined && typeof config.storm.lightning !== 'boolean')
+    || (config.storm.precipitation !== undefined && !['rain', 'sleet'].includes(config.storm.precipitation)))) fail('invalid storm');
   if (config.blackHole && config.star) fail('configure only one gravity well');
   for (const kind of ['blackHole', 'star'] as const) {
     const hole = config[kind];
@@ -52,6 +55,10 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
   }
   if (config.thrustScale !== undefined && (!Number.isFinite(config.thrustScale) || config.thrustScale < 0)) fail('thrustScale must be a finite nonnegative number');
   if (!Number.isInteger(config.fallingObstacleLimit) || config.fallingObstacleLimit < 0) fail('fallingObstacleLimit must be a nonnegative integer');
+  const falling = config.fallingObstacleConfig;
+  if (falling && (![falling.speedMin, falling.speedMax, falling.radiusMin, falling.radiusMax].every(Number.isFinite)
+    || falling.speedMin <= 0 || falling.speedMax < falling.speedMin
+    || falling.radiusMin <= 0 || falling.radiusMax < falling.radiusMin)) fail('invalid fallingObstacleConfig');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
   const ids = new Set<number>();
   for (const pad of config.pads) {

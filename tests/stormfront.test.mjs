@@ -24,8 +24,8 @@ function bolt(x, age = LIGHTNING.warningDuration) {
   return { ...createLightning(99, { id: 99, x: x - 55, y: WORLD_HEIGHT - 12, width: 110 }, () => .5), age };
 }
 
-test('Srormfront is the new starting level, preserves the old stack, and has complete artwork', () => {
-  assert.equal(new Game().level, level); assert.equal(LEVELS[0], level);
+test('Srormfront follows Blizzard, preserves the old stack, and has complete artwork', () => {
+  assert.equal(nextLevel(LEVELS.find(l => l.id === 'blizzard')), level);
   assert.equal(level.number, 11); assert.equal(level.name, 'Srormfront'); assert.equal(nextLevel(level).id, 'grotto');
   assert.equal(level.padCount, 7); assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
