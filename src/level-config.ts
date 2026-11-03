@@ -87,7 +87,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   gasStation: 6,
   fallingObstacleLimit: 0,
   seekerCount: 0,
-  boulders: { spawnIntervalMax: 5 },
+  boulders: { spawnIntervalMax: 10 },
   structures: AVALANCHE_MOUNTAINS,
   pads: [
     { id: 0, name: 'Zeta Burger', x: 200, y: 260, width: 116, color: '#ffd397', island: { x: -28, width: 154 }, building: { x: -46, width: 38, height: 62, kind: 'restaurant' } },
