@@ -1,5 +1,6 @@
 import type { Point } from './world.js';
 import { GROTTO_BOULDERS } from './grotto.js';
+import { AVALANCHE_MOUNTAINS } from './avalanche.js';
 
 export interface PadConfig {
   id: number;
@@ -60,6 +61,8 @@ export interface LevelConfig {
   fallingObstacleLimit: number;
   // Optional speed (units/s) and collision radius overrides for falling hazards.
   fallingObstacleConfig?: { speedMin: number; speedMax: number; radiusMin: number; radiusMax: number };
+  // Rolling mountain hazards: each spawn waits a random 1–spawnIntervalMax seconds.
+  boulders?: { spawnIntervalMax: number };
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
   seekerCount: number;
   // Stationary solid barriers, independent of individual landing pads.
@@ -74,6 +77,27 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
+  number: 13,
+  id: 'avalanche',
+  name: 'Avalanche',
+  theme: 'A delivery route between two mountains. Land to halt new boulders on your side; watch for rocks already rolling.',
+  gravity: 100,
+  start: { x: 640, y: 80 },
+  restaurant: 0,
+  gasStation: 6,
+  fallingObstacleLimit: 0,
+  seekerCount: 0,
+  boulders: { spawnIntervalMax: 5 },
+  structures: AVALANCHE_MOUNTAINS,
+  pads: [
+    { id: 0, name: 'Zeta Burger', x: 200, y: 260, width: 116, color: '#ffd397', island: { x: -28, width: 154 }, building: { x: -46, width: 38, height: 62, kind: 'restaurant' } },
+    { id: 1, name: 'West Ridge Lodge', x: 307, y: 450, width: 108, color: '#a6e9d8', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 58, kind: 'lodge' } },
+    { id: 2, name: 'Talus Refuge', x: 413, y: 640, width: 108, color: '#ffd397', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 52, kind: 'refuge' } },
+    { id: 3, name: 'Summit Observatory', x: 964, y: 260, width: 116, color: '#a6e9d8', island: { x: -10, width: 154 }, building: { x: 124, width: 38, height: 62, kind: 'observatory' } },
+    { id: 4, name: 'East Ridge Chalet', x: 865, y: 450, width: 108, color: '#ffd397', island: { x: -10, width: 146 }, building: { x: 116, width: 38, height: 58, kind: 'chalet' } },
+    { id: 6, name: 'Valley Fuel', x: 759, y: 640, width: 108, color: '#a6e9d8', island: { x: -10, width: 146 }, building: { x: 116, width: 38, height: 52, kind: 'gas' } }
+  ]
+}, {
   number: 12,
   id: 'blizzard',
   name: 'Blizzard',

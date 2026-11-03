@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 62">
+<title>Valley Fuel alpine station</title>
+
+<path d="M2 22H36V62H2Z" fill="#795f49" stroke="#364847"/>
+<path d="M2 32H36M2 43H36M2 54H36" stroke="#4b4c40" stroke-width="2"/>
+<path d="M0 25L19 2 38 25Z" fill="#314d4e" stroke="#a8b9a5"/>
+<path d="M19 2L36 23H31L19 9 6 23H0Z" fill="#c9ceba"/>
+<rect x="7" y="29" width="8" height="9" fill="#f0cd88"/><rect x="23" y="29" width="8" height="9" fill="#f0cd88"/>
+<rect x="14" y="44" width="10" height="18" fill="#304849"/>
+<rect x="3" y="33" width="32" height="10" rx="1" fill="#2e4644"/>
+<text x="19" y="41" fill="#a6e9d8" font-family="monospace" font-size="7" font-weight="bold" text-anchor="middle">FUEL</text>
+<path d="M1 61H37" stroke="#d4cbb0" stroke-width="2"/>
+</svg>

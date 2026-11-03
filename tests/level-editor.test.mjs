@@ -89,7 +89,7 @@ test('mixed platform themes use separate building slots and export all assets wi
   const draft = new EditorDraft();
   draft.addPlatform(asset(1, 0)); draft.addPlatform(asset(4, 0)); draft.addPlatform(asset(7, 0));
   draft.setBackground(8);
-  const barrier = draft.addBarrier(BARRIER_ASSETS[0].key);
+  const barrier = draft.addBarrier(BARRIER_ASSETS.find(asset => asset.level.number === 8).key);
   draft.moveBarrier(barrier.id, 400, 400);
   draft.config.fallingObstacleLimit = 4; draft.config.assets['falling-obstacle'] = 'falling-obstacle-2';
   draft.config.seekerCount = 4; draft.config.assets.seeker = 'seeker-4';

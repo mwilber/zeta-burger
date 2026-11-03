@@ -15,11 +15,11 @@ function playing() {
   return game;
 }
 
-test('Blizzard starts the stack with complete alpine artwork and preserves all older level identities', () => {
-  assert.equal(new Game().level, level); assert.equal(LEVELS[0], level);
+test('Blizzard follows Avalanche with complete alpine artwork and preserves all older level identities', () => {
+  assert.equal(nextLevel(LEVELS[0]), level);
   assert.equal(level.number, 12); assert.equal(level.name, 'Blizzard');
   assert.equal(nextLevel(level), stormfront);
-  assert.deepEqual(LEVELS.map(l => l.number), [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.deepEqual(LEVELS.map(l => l.number), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));

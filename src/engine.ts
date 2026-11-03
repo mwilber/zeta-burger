@@ -4,6 +4,9 @@ import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
 import { LIGHTNING, LIGHTNING_ARC_TIMES, createLightning, lightningBodies, windVelocity } from './storm.js';
 import type { LightningStrike } from './storm.js';
+import { AVALANCHE } from './avalanche.js';
+import { BOULDERS, boulderBody, bounceBoulder } from './boulders.js';
+import type { Boulder } from './boulders.js';
 export const PHYSICS = { upThrust: 285, downThrust: 285, sideThrust: 180, footY: 22, footX: 16, safeVertical: 120, safeHorizontal: 100, dwell: .8 };
 export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRatio: .75 };
 export const ZERO_G = { clingDelay: .25, rebound: 8 };
@@ -27,7 +30,7 @@ export function verticalThrustDirection(controls: Controls): number { return (co
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'lightning' | 'lightning-arc' | 'falling-obstacle-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'lightning' | 'lightning-arc' | 'falling-obstacle-impact' | 'boulder-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'idle' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -56,12 +59,15 @@ export class Game {
   lowFuelWarned = false;
   events: GameEvent[] = [];
   fallingObstacles: FallingObstacle[] = [];
+  boulders: Boulder[] = [];
   seekers: Seeker[] = [];
   lightning: LightningStrike[] = [];
   private lightningSpawnTime = LIGHTNING.spawnDelay;
   private nextLightningId = 0;
   private fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay;
   private nextFallingObstacleId = 0;
+  private boulderSpawnTime = 0;
+  private nextBoulderId = 0;
   dwell = 0;
   crashTime = 0;
   countdownTime = 0;
@@ -97,6 +103,8 @@ export class Game {
     this.orders = []; this.events = []; this.dwell = 0; this.crashTime = 0; this.time = 0;
     this.pads = level.pads; this.solids = level.solids;
     this.fallingObstacles = []; this.fallingObstacleSpawnTime = FALLING_OBSTACLES.spawnDelay; this.nextFallingObstacleId = 0;
+    this.boulders = []; this.nextBoulderId = 0;
+    this.boulderSpawnTime = level.boulders ? this.nextBoulderDelay() : 0;
     this.lightning = []; this.lightningSpawnTime = LIGHTNING.spawnDelay; this.nextLightningId = 0;
     this.fuel = FUEL.capacity; this.tilt = 0; this.landingBounceTime = 0; this.lowFuelWarned = false; this.endReason = null;
     const setting = SKILLS[skill];
@@ -170,9 +178,58 @@ export class Game {
     // delay they keep moving, but cannot hit the absent ship or its new spawn.
     if ((previousPhase === 'playing' || previousPhase === 'idle' || previousPhase === 'crashed') && this.endReason === null && this.lives > 0) {
       this.stepFallingObstacles(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
+      this.stepBoulders(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
       this.stepSeekers(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
       this.stepLightning(dt, previousShip, previousPhase === 'playing' && this.phase === 'playing');
     }
+  }
+  private nextBoulderDelay(): number {
+    return 1 + this.random() * (this.level.boulders!.spawnIntervalMax - 1);
+  }
+  private stepBoulders(dt: number, previousShip: Ship, canHitShip: boolean) {
+    if (!this.level.boulders || dt <= 0) return;
+    this.boulderSpawnTime -= dt;
+    if (this.boulderSpawnTime <= 1e-9) {
+      const pad = this.pads.find(pad => pad.id === this.ship.landed);
+      const side = pad ? pad.x + pad.width / 2 < WORLD_WIDTH / 2 ? 'right' : 'left' : this.random() < .5 ? 'left' : 'right';
+      const direction = side === 'left' ? 1 : -1;
+      const radius = BOULDERS.radiusMin + this.random() * (BOULDERS.radiusMax - BOULDERS.radiusMin);
+      const x = AVALANCHE.summitX + 45 + this.random() * 20;
+      this.boulders.push({ id: this.nextBoulderId++, side, x: side === 'left' ? x : WORLD_WIDTH - x,
+        y: AVALANCHE.summitY - radius - 45, vx: direction * (25 + this.random() * 20), vy: 15, radius, angle: this.random() * Math.PI * 2 });
+      this.boulderSpawnTime = this.nextBoulderDelay();
+    }
+    const shipDelta = { x: this.ship.x - previousShip.x, y: this.ship.y - previousShip.y };
+    const shipShapes = [shipBody(previousShip), ...(this.ship.gear ? gearShapes(previousShip) : [])];
+    const destroyed = new Set<Boulder>();
+    for (const boulder of this.boulders) {
+      // Bound both elapsed time and distance per substep to avoid crossing thin
+      // platforms. Sweep the hull and gear over every piece of the bouncing path.
+      const steps = Math.max(1, Math.ceil(dt * 240), Math.ceil((Math.hypot(boulder.vx, boulder.vy) + BOULDERS.gravity * dt) * dt / (boulder.radius / 4)));
+      const step = dt / steps;
+      for (let i = 0; i < steps; i++) {
+        const before = { ...boulder };
+        boulder.vy += BOULDERS.gravity * step;
+        boulder.x += boulder.vx * step; boulder.y += boulder.vy * step;
+        for (let pass = 0; pass < 3; pass++) {
+          let contact = false;
+          for (const solid of this.solids) contact = bounceBoulder(boulder, solid, pass === 0 ? step : 0) || contact;
+          if (!contact) break;
+        }
+        boulder.angle += (boulder.x - before.x) / boulder.radius;
+        const delta = { x: boulder.x - before.x, y: boulder.y - before.y };
+        const hit = canHitShip && this.phase === 'playing' && shipShapes.some(shape => sweepContact(boulderBody(before),
+          shape.map(p => ({ x: p.x + shipDelta.x * i / steps, y: p.y + shipDelta.y * i / steps })), delta,
+          { x: shipDelta.x / steps, y: shipDelta.y / steps }) !== null);
+        if (hit || boulder.y + boulder.radius >= AVALANCHE.bottomY) {
+          destroyed.add(boulder);
+          this.events.push({ type: 'boulder-impact', message: '', x: boulder.x, y: boulder.y });
+          if (hit) this.crash('Boulder impact! Landing stops new rocks on your mountainside; watch for those already rolling.');
+          break;
+        }
+      }
+    }
+    this.boulders = this.boulders.filter(boulder => !destroyed.has(boulder));
   }
   private stepLightning(dt: number, previousShip: Ship, canHitShip: boolean) {
     if (!this.level.storm || this.level.storm.lightning === false || dt <= 0) return;
@@ -441,7 +498,8 @@ export class Game {
     for (const solid of this.solids) {
       if (solid.padId === null) {
         if (sweepContact(shipBody(previous), solid.points, { x: s.x - previous.x, y: s.y - previous.y }) !== null) {
-          this.crash(this.level.structures.find(structure => structure.id === solid.structureId)?.outline
+          this.crash(this.level.boulders ? 'Mountain impact. Keep to the valley and land on numbered ledges.'
+            : this.level.structures.find(structure => structure.id === solid.structureId)?.outline
             ? 'Cavern wall impact. Follow the open passages and land on numbered pads.'
             : 'Tower impact. Clear the rooftops before crossing the city.'); return;
         }

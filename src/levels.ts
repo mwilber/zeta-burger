@@ -31,6 +31,7 @@ export interface Level {
   gasStation: number | null;
   fallingObstacleLimit: number;
   fallingObstacleConfig?: LevelConfig['fallingObstacleConfig'];
+  boulders?: LevelConfig['boulders'];
   seekerCount: number;
   structures: NonNullable<LevelConfig['structures']>;
   destinations: number[];
@@ -60,6 +61,7 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
     || falling.speedMin <= 0 || falling.speedMax < falling.speedMin
     || falling.radiusMin <= 0 || falling.radiusMax < falling.radiusMin)) fail('invalid fallingObstacleConfig');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
+  if (config.boulders && (!Number.isFinite(config.boulders.spawnIntervalMax) || config.boulders.spawnIntervalMax < 1)) fail('boulders.spawnIntervalMax must be finite and at least 1 second');
   const ids = new Set<number>();
   for (const pad of config.pads) {
     if (!Number.isInteger(pad.id) || pad.id < 0 || ids.has(pad.id)) fail('pad IDs must be unique nonnegative integers');
@@ -118,8 +120,8 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
 export function levelAssetPath(name: string, level: Pick<Level, 'number' | 'assets'>, extension = 'svg'): string {
   return `./assets/${level.assets?.[name] ?? `${name}-${level.number}`}.${extension}`;
 }
-export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star' | 'assets'>): string[] {
-  return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
+export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star' | 'assets' | 'boulders'>): string[] {
+  return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.boulders ? ['boulder'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [
     padBuildingAssetName(pad, level), ...(pad.island.length ? [`island-${pad.id}`] : []), `pad-${pad.id}`, `pad-${pad.id}-active`
   ])])];
 }

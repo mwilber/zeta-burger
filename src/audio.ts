@@ -165,7 +165,7 @@ export class Sound {
       const zap = this.tone(1800, .055, 'sawtooth', 0, .018);
       if (zap && this.context) zap.frequency.exponentialRampToValueAtTime(320, this.context.currentTime + .055);
     }
-    if (event.type === 'falling-obstacle-impact') this.crash(false);
+    if (event.type === 'falling-obstacle-impact' || event.type === 'boulder-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
     if (event.type === 'arrival') [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));
