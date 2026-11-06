@@ -5,6 +5,7 @@ import type { Skill } from './levels.js';
 import { Renderer } from './renderer.js';
 import { Sound } from './audio.js';
 import { LevelEditor } from './level-editor.js';
+import { TouchControls } from './touch-controls.js';
 const get = <T extends Element = HTMLElement>(id: string) => document.querySelector<T>(`#${id}`)!;
 const stage = get<SVGSVGElement>('game');
 const game = new Game();
@@ -13,8 +14,16 @@ const sound = new Sound();
 const overlay = get<HTMLDivElement>('overlay');
 const dialog = get<HTMLDialogElement>('help-dialog');
 const keys = new Set<string>();
-const pointers = new Map<number, keyof Controls>();
-const touchButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-control]'));
+const mobileTouch = window.matchMedia('(pointer: coarse)');
+const app = document.querySelector<HTMLElement>('.app')!;
+const touchSurface = get('touch-controls');
+const touch = new TouchControls(touchSurface, get('touch-joystick'), get('touch-knob'), toggleGear);
+const world = get('world-wrap');
+// The flight UI uses the same 1280 × 760 coordinate space as the SVG on mobile.
+new ResizeObserver(([entry]) => {
+  world.style.setProperty('--flight-ui-scale', String(entry.contentRect.width / 1280));
+}).observe(world);
+mobileTouch.addEventListener('change', () => { resetInputs(); updateHud(); });
 const skillSelect = get<HTMLSelectElement>('skill');
 const levelSelect = get<HTMLSelectElement>('level');
 const designButton = get<HTMLButtonElement>('design');
@@ -52,10 +61,13 @@ function toast(message: string, order = false) {
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => element.classList.remove('visible'), order ? 6400 : 4800);
 }
-function resetInputs() { keys.clear(); pointers.clear(); touchButtons.forEach(button => button.classList.remove('held')); }
+function resetInputs() { keys.clear(); touch.reset(); }
 function controls(): Controls {
-  const held = new Set(pointers.values());
-  return { left: keys.has('ArrowLeft') || keys.has('KeyA') || held.has('left'), right: keys.has('ArrowRight') || keys.has('KeyD') || held.has('right'), up: keys.has('ArrowUp') || keys.has('KeyW') || held.has('up'), down: keys.has('ArrowDown') || keys.has('KeyS') || held.has('down') };
+  const swipe = touch.controls();
+  return { left: keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : swipe.left,
+    right: keys.has('ArrowRight') || keys.has('KeyD') ? 1 : swipe.right,
+    up: keys.has('ArrowUp') || keys.has('KeyW') ? 1 : swipe.up,
+    down: keys.has('ArrowDown') || keys.has('KeyS') ? 1 : swipe.down };
 }
 let designBeforeEditor = false;
 const editor = new LevelEditor(stage, {
@@ -124,6 +136,7 @@ function pause() {
   game.pause(); resetInputs();
   if (game.phase === 'paused') sound.stopAll();
   else if (game.phase === 'countdown') playStartJingle();
+  updateHud();
 }
 function toggleGear() { game.toggleGear(); }
 function openHelp() {
@@ -146,7 +159,6 @@ get('sound').addEventListener('click', () => {
     if (enabled && game.phase === 'countdown') playStartJingle();
   } catch { toast('Audio is unavailable in this browser.'); sound.enabled = false; }
 });
-get('touch-gear').addEventListener('click', toggleGear);
 hud.pause.addEventListener('click', pause);
 overlay.addEventListener('click', event => {
   const button = (event.target as HTMLElement).closest('button');
@@ -172,20 +184,13 @@ window.addEventListener('keydown', event => {
 window.addEventListener('keyup', event => keys.delete(event.code));
 window.addEventListener('blur', () => { resetInputs(); if (game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed') pause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInputs(); if (game.phase === 'playing' || game.phase === 'idle' || game.phase === 'countdown' || game.phase === 'crashed') pause(); } });
-for (const button of touchButtons) {
-  const control = button.dataset.control as keyof Controls;
-  button.addEventListener('pointerdown', event => {
-    if (game.phase !== 'playing' || button.disabled) return;
-    event.preventDefault(); button.setPointerCapture(event.pointerId); pointers.set(event.pointerId, control); button.classList.add('held');
-  });
-  const release = (event: PointerEvent) => {
-    pointers.delete(event.pointerId);
-    if (!Array.from(pointers.values()).includes(control)) button.classList.remove('held');
-  };
-  button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
-  button.addEventListener('contextmenu', event => event.preventDefault());
-}
+window.addEventListener('resize', resetInputs);
 function updateHud() {
+  const touchActive = mobileTouch.matches && !editor.active && !game.designMode && !dialog.open
+    && (game.phase === 'countdown' || game.phase === 'playing' || game.phase === 'crashed');
+  touch.setActive(touchActive, game.phase === 'playing');
+  app.inert = touchActive;
+  document.body.classList.toggle('touch-playing', touchActive);
   skillSelect.disabled = editor.active || starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
   levelSelect.disabled = skillSelect.disabled;
   designButton.disabled = starting || editor.active;
@@ -222,8 +227,6 @@ function updateHud() {
   hud.tip.parentElement!.classList.toggle('negative', !!game.order && game.tip < 0);
   text(hud.deliveries, String(game.delivered).padStart(2, '0'));
   text(hud.lives, Array.from({ length: 3 }, (_, i) => i < game.lives ? '◒' : '◌').join(' ')); hud.lives.setAttribute('aria-label', `${game.lives} lives`);
-  get<HTMLButtonElement>('touch-gear').disabled = game.designMode;
-  for (const button of touchButtons) button.disabled = game.phase !== 'playing' || ((button.dataset.control === 'left' || button.dataset.control === 'right') && game.ship.gear);
   text(hud.velocity, `${game.ship.vy < 0 ? '↑' : '↓'} ${Math.round(Math.abs(game.ship.vy))}  ·  ↔ ${Math.round(Math.abs(game.ship.vx))}`);
   hud.velocity.classList.toggle('unsafe', game.ship.vy > PHYSICS.safeVertical || Math.abs(game.ship.vx) > PHYSICS.safeHorizontal);
   if (game.bank > best) {
@@ -270,7 +273,7 @@ function frame(now: number) {
   if (frozen) accumulator = 0;
   for (const event of game.events.splice(0)) {
     if (event.type === 'gameover' && event.endReason === 'delivered' && nextLevel(game.level)) continue;
-    if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact' && event.type !== 'lightning' && event.type !== 'lightning-arc') toast(event.message, event.type === 'arrival' || event.type === 'pickup' || event.type === 'delivery');
+    if (event.type !== 'gear' && event.type !== 'gameover' && event.type !== 'falling-obstacle-impact' && event.type !== 'lightning' && event.type !== 'lightning-arc') toast(event.message, event.type === 'arrival' || event.type === 'pickup' || event.type === 'delivery');
     renderer.burst(event); sound.play(event);
   }
   sound.update(game, input);

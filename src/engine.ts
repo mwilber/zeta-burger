@@ -25,8 +25,9 @@ export function seekerBody(seeker: Seeker): Point[] {
 export function fallingObstacleBody(obstacle: FallingObstacle): Point[] {
   return Array.from({ length: 8 }, (_, i) => ({ x: obstacle.x + Math.cos(i * Math.PI / 4) * obstacle.radius, y: obstacle.y + Math.sin(i * Math.PI / 4) * obstacle.radius }));
 }
-export interface Controls { left: boolean; right: boolean; up: boolean; down: boolean }
-export function verticalThrustDirection(controls: Controls): number { return (controls.up ? 1 : 0) - (controls.down ? 1 : 0); }
+// Keyboard inputs remain binary; touch inputs supply a fraction of full thrust.
+export interface Controls { left: boolean | number; right: boolean | number; up: boolean | number; down: boolean | number }
+export function verticalThrustDirection(controls: Controls): number { return Number(controls.up) - Number(controls.down); }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
@@ -435,8 +436,9 @@ export class Game {
       const velocity = this.stationVelocity(pad);
       const wasClinging = this.clinging;
       if (!up && (wasClinging || down)) {
-        const heldTime = this.needsLandingThrust ? Math.min(dt, this.fuel / FUEL.downRate) : dt;
-        if (this.needsLandingThrust) this.burnFuel(FUEL.downRate * heldTime);
+        const rate = FUEL.downRate * Math.abs(vertical);
+        const heldTime = this.needsLandingThrust ? Math.min(dt, this.fuel / rate) : dt;
+        if (this.needsLandingThrust) this.burnFuel(rate * heldTime);
         s.vx = velocity.vx; s.vy = velocity.vy;
         this.landingBounceTime = Math.max(0, this.landingBounceTime - dt);
         if (this.landingBounceTime < 1e-9) this.landingBounceTime = 0;
@@ -459,7 +461,7 @@ export class Game {
     }
     const previous = { ...s };
     const direction = !s.gear && this.fuel > 0 ? Number(controls.right) - Number(controls.left) : 0;
-    const cost = ((up ? FUEL.upRate : down ? FUEL.downRate : 0) + Math.abs(direction) * FUEL.sideRate) * dt;
+    const cost = (Math.abs(vertical) * (up ? FUEL.upRate : FUEL.downRate) + Math.abs(direction) * FUEL.sideRate) * dt;
     const power = cost > 0 ? Math.min(1, this.fuel / cost) : 0;
     const thrust = power * (this.level.thrustScale ?? 1);
     this.burnFuel(cost);
@@ -468,7 +470,7 @@ export class Game {
     if (current) s.vx += (currentVelocity(current, this.time) - s.vx) * (1 - Math.exp(-current.drag * dt));
     const storm = this.level.storm;
     if (storm) s.vx += (windVelocity(storm, this.time) - s.vx) * (1 - Math.exp(-storm.drag * dt));
-    s.vy += (this.level.gravity - (up ? PHYSICS.upThrust * thrust : 0) + (down ? PHYSICS.downThrust * thrust : 0)) * dt;
+    s.vy += (this.level.gravity - vertical * (up ? PHYSICS.upThrust : PHYSICS.downThrust) * thrust) * dt;
     s.vx += direction * PHYSICS.sideThrust * thrust * dt;
     const hole = this.level.gravityWell;
     if (hole) {
