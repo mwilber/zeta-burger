@@ -102,6 +102,8 @@ main { padding-top:12px; }
   touch-action:none;
 }
 
+.flight-ui { position:absolute; inset:0; pointer-events:none; }
+
 .sub-hud {
   position:absolute;
   bottom:12px;
@@ -345,28 +347,6 @@ kbd {
 }
 .touch-controls[hidden],.touch-joystick[hidden] { display:none; }
 body.touch-playing { overflow:hidden; overscroll-behavior:none; touch-action:none; }
-.touch-controls::before {
-  content:'';
-  position:absolute;
-  left:50%;
-  top:0;
-  bottom:0;
-  border-left:1px solid #dcead118;
-  pointer-events:none;
-}
-.touch-hint {
-  position:absolute;
-  bottom:calc(14px + env(safe-area-inset-bottom, 0px));
-  width:50%;
-  text-align:center;
-  color:#dcead1a6;
-  text-shadow:0 1px 4px #000;
-  font:9px monospace;
-  letter-spacing:1px;
-  pointer-events:none;
-}
-.touch-hint-left { left:0; }
-.touch-hint-right { right:0; }
 .touch-joystick {
   position:absolute;
   width:140px;
@@ -449,9 +429,9 @@ dialog .primary-button {
 }
 @media(max-width:1150px) {
   .app { padding:0 28px; }
-  .hud-center { gap:24px; }
-  .hud-center .stat,.fuel-readout { gap:8px; }
-  .hud-center .stat { flex-direction:column; gap:4px; }
+  body:not(.touch-playing) .hud-center { gap:24px; }
+  body:not(.touch-playing) .hud-center .stat,body:not(.touch-playing) .fuel-readout { gap:8px; }
+  body:not(.touch-playing) .hud-center .stat { flex-direction:column; gap:4px; }
   .footer-note { display:none; }
   .control-guide { gap:16px; }
 }
@@ -461,12 +441,12 @@ dialog .primary-button {
   .header-controls { justify-self:end; }
   .dev-controls { grid-column:1 / -1; }
   .sector,.header-controls>.live-dot { display:none; }
-  .dashboard { inset:14px 16px auto; gap:10px; }
-  .hud-center { gap:18px; }
-  .stat-label { font-size:8px; letter-spacing:.6px; }
-  .hud-center .stat strong { font-size:16px; }
-  .fuel-readout { flex-direction:column; gap:4px; }
-  .fuel-readout meter { width:60px; height:12px; }
+  body:not(.touch-playing) .dashboard { inset:14px 16px auto; gap:10px; }
+  body:not(.touch-playing) .hud-center { gap:18px; }
+  body:not(.touch-playing) .stat-label { font-size:8px; letter-spacing:.6px; }
+  body:not(.touch-playing) .hud-center .stat strong { font-size:16px; }
+  body:not(.touch-playing) .fuel-readout { flex-direction:column; gap:4px; }
+  body:not(.touch-playing) .fuel-readout meter { width:60px; height:12px; }
 }
 @media(pointer:coarse) {
   .touch-guide { display:block; }
@@ -484,19 +464,19 @@ dialog .primary-button {
   main { padding-top:4px; }
   .level-heading { margin:0 10px 10px; font-size:8px; }
   .arcade { border-radius:8px; }
-  .dashboard { inset:10px 10px auto; grid-template-columns:auto minmax(0,1fr) auto; gap:8px; }
-  .bank-stat strong { font-size:18px; }
-  .bank-stat .stat-label { font-size:7px; }
-  .hud-center { gap:8px 14px; flex-wrap:wrap; }
-  .hud-center .stat strong { font-size:13px; }
-  .stat-label { font-size:6px; letter-spacing:.3px; }
-  .stat-unit { font-size:11px; }
-  .fuel-readout meter { width:44px; height:9px; }
-  .pause-button { width:28px; height:28px; }
-  .sub-hud { left:8px; bottom:8px; gap:12px; padding:5px 7px; }
-  .landing-readout { font-size:5px; }
-  #velocity { font-size:10px; }
-  .world-label { gap:5px; font-size:6px; letter-spacing:.4px; }
+  body:not(.touch-playing) .dashboard { inset:10px 10px auto; grid-template-columns:auto minmax(0,1fr) auto; gap:8px; }
+  body:not(.touch-playing) .bank-stat strong { font-size:18px; }
+  body:not(.touch-playing) .bank-stat .stat-label { font-size:7px; }
+  body:not(.touch-playing) .hud-center { gap:8px 14px; flex-wrap:wrap; }
+  body:not(.touch-playing) .hud-center .stat strong { font-size:13px; }
+  body:not(.touch-playing) .stat-label { font-size:6px; letter-spacing:.3px; }
+  body:not(.touch-playing) .stat-unit { font-size:11px; }
+  body:not(.touch-playing) .fuel-readout meter { width:44px; height:9px; }
+  body:not(.touch-playing) .pause-button { width:28px; height:28px; }
+  body:not(.touch-playing) .sub-hud { left:8px; bottom:8px; gap:12px; padding:5px 7px; }
+  body:not(.touch-playing) .landing-readout { font-size:5px; }
+  body:not(.touch-playing) #velocity { font-size:10px; }
+  body:not(.touch-playing) .world-label { gap:5px; font-size:6px; letter-spacing:.4px; }
   .overlay-card { padding:12px 14px; }
   .card-tag { font-size:7px; margin-bottom:7px; }
   h2 { font-size:21px; margin-bottom:8px; }
@@ -504,7 +484,7 @@ dialog .primary-button {
   .primary-button { padding:10px 13px; min-width:205px; font-size:9px; }
   .intro-controls { display:none; }
   .intro-note { font-size:6px; margin-top:8px; }
-  .toast { font-size:9px; padding:9px 12px; bottom:50px; }
+  body:not(.touch-playing) .toast { font-size:9px; padding:9px 12px; bottom:50px; }
   .flight-manual { padding:14px 0; }
   .control-guide { gap:8px; }
   .footer-label { display:none; }
@@ -529,19 +509,19 @@ dialog .primary-button {
   main { padding:0; }
   .level-heading { margin:2px 12px 6px; font-size:7px; }
   .arcade { width:min(100%,calc((100dvh - 75px) * 1280 / 760)); margin:auto; }
-  .dashboard { inset:8px 12px auto; gap:8px; }
-  .bank-stat strong { font-size:18px; }
-  .stat-label { font-size:6px; letter-spacing:.4px; }
-  .hud-center { gap:16px; }
-  .hud-center .stat { flex-direction:column; gap:3px; }
-  .hud-center .stat strong { font-size:13px; }
-  .fuel-readout { flex-direction:column; gap:3px; }
-  .fuel-readout meter { width:44px; height:9px; }
-  .pause-button { width:28px; height:28px; }
-  .sub-hud { bottom:8px; left:8px; }
-  .landing-readout { font-size:6px; }
-  #velocity { font-size:11px; }
-  .world-label { font-size:7px; }
+  body:not(.touch-playing) .dashboard { inset:8px 12px auto; gap:8px; }
+  body:not(.touch-playing) .bank-stat strong { font-size:18px; }
+  body:not(.touch-playing) .stat-label { font-size:6px; letter-spacing:.4px; }
+  body:not(.touch-playing) .hud-center { gap:16px; }
+  body:not(.touch-playing) .hud-center .stat { flex-direction:column; gap:3px; }
+  body:not(.touch-playing) .hud-center .stat strong { font-size:13px; }
+  body:not(.touch-playing) .fuel-readout { flex-direction:column; gap:3px; }
+  body:not(.touch-playing) .fuel-readout meter { width:44px; height:9px; }
+  body:not(.touch-playing) .pause-button { width:28px; height:28px; }
+  body:not(.touch-playing) .sub-hud { bottom:8px; left:8px; }
+  body:not(.touch-playing) .landing-readout { font-size:6px; }
+  body:not(.touch-playing) #velocity { font-size:11px; }
+  body:not(.touch-playing) .world-label { font-size:7px; }
   .flight-manual,.bottom-line,main>.touch-guide { display:none; }
   .overlay { padding:8px; overflow-y:auto; z-index:4; }
   .overlay-card { padding:14px 18px; max-height:100%; overflow-y:auto; }
@@ -556,6 +536,32 @@ dialog .primary-button {
   .brand>span { display:none; }
   .header-right { justify-content:flex-end; }
 }
+
+/* During mobile shifts, fit the entire world into the available viewport.
+   The logical-size UI shares the SVG's scale instead of mobile page font sizes. */
+.touch-playing .app {
+  position:fixed;
+  inset:0;
+  max-width:none;
+  padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.touch-playing .header,.touch-playing main > :not(.arcade) { display:none; }
+.touch-playing main { display:grid; place-items:center; width:100%; height:100%; padding:0; }
+.touch-playing .arcade {
+  width:min(100%,calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 1280 / 760));
+  margin:0;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.touch-playing .flight-ui {
+  inset:0 auto auto 0;
+  width:1280px;
+  height:760px;
+  transform-origin:top left;
+  transform:scale(var(--flight-ui-scale, 1));
+}
+.touch-playing .pause-button { display:none; }
 
 /* Level editor lives above the field so the complete world remains available. */
 .editor-toolbar { margin:0 0 18px; padding:16px 18px; border:1px solid #526245; border-radius:12px; background:#171e21; font:12px monospace; }

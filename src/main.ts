@@ -18,6 +18,11 @@ const mobileTouch = window.matchMedia('(pointer: coarse)');
 const app = document.querySelector<HTMLElement>('.app')!;
 const touchSurface = get('touch-controls');
 const touch = new TouchControls(touchSurface, get('touch-joystick'), get('touch-knob'), toggleGear);
+const world = get('world-wrap');
+// The flight UI uses the same 1280 × 760 coordinate space as the SVG on mobile.
+new ResizeObserver(([entry]) => {
+  world.style.setProperty('--flight-ui-scale', String(entry.contentRect.width / 1280));
+}).observe(world);
 mobileTouch.addEventListener('change', () => { resetInputs(); updateHud(); });
 const skillSelect = get<HTMLSelectElement>('skill');
 const levelSelect = get<HTMLSelectElement>('level');
@@ -186,7 +191,6 @@ function updateHud() {
   touch.setActive(touchActive, game.phase === 'playing');
   app.inert = touchActive;
   document.body.classList.toggle('touch-playing', touchActive);
-  text(get('touch-gear-state'), game.ship.gear ? 'GEAR DOWN' : 'GEAR UP');
   skillSelect.disabled = editor.active || starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
   levelSelect.disabled = skillSelect.disabled;
   designButton.disabled = starting || editor.active;
@@ -268,7 +272,7 @@ function frame(now: number) {
   if (frozen) accumulator = 0;
   for (const event of game.events.splice(0)) {
     if (event.type === 'gameover' && event.endReason === 'delivered' && nextLevel(game.level)) continue;
-    if (event.type !== 'gameover' && event.type !== 'falling-obstacle-impact' && event.type !== 'lightning' && event.type !== 'lightning-arc') toast(event.message, event.type === 'arrival' || event.type === 'pickup' || event.type === 'delivery');
+    if (event.type !== 'gear' && event.type !== 'gameover' && event.type !== 'falling-obstacle-impact' && event.type !== 'lightning' && event.type !== 'lightning-arc') toast(event.message, event.type === 'arrival' || event.type === 'pickup' || event.type === 'delivery');
     renderer.burst(event); sound.play(event);
   }
   sound.update(game, input);

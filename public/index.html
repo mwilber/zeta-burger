@@ -60,24 +60,26 @@
       <section class="arcade" aria-label="Zeta Burger arcade game">
         <div class="world-wrap" id="world-wrap">
           <svg id="game" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" role="img" tabindex="0" aria-label="Side-view alien delivery game. Use arrow keys or WASD to thrust, G or Space to toggle landing gear, and P to pause."></svg>
-          <div class="dashboard" role="group" aria-label="Flight HUD">
-            <div class="stat bank-stat"><span class="stat-label">YOUR BANK</span><strong id="bank">$0.00</strong></div>
-            <div class="hud-center">
-              <div class="stat tip-stat"><span class="stat-label">DELIVERY TIP</span><strong id="tip">—</strong></div>
-              <div class="stat delivery-stat"><span class="stat-label">DELIVERIES</span><strong><span id="deliveries">00</span><span class="stat-unit"> / <span id="order-total">6</span></span></strong></div>
-              <div class="stat lives-stat"><span class="stat-label">SAUCERS LEFT</span><strong id="lives" aria-label="3 lives">◒ ◒ ◒</strong></div>
-              <div class="fuel-readout"><label class="stat-label" for="fuel-meter">FUEL</label><meter id="fuel-meter" min="0" max="100" low="25" optimum="100" value="100" aria-label="Fuel remaining"></meter></div>
+          <div class="flight-ui">
+            <div class="dashboard" role="group" aria-label="Flight HUD">
+              <div class="stat bank-stat"><span class="stat-label">YOUR BANK</span><strong id="bank">$0.00</strong></div>
+              <div class="hud-center">
+                <div class="stat tip-stat"><span class="stat-label">DELIVERY TIP</span><strong id="tip">—</strong></div>
+                <div class="stat delivery-stat"><span class="stat-label">DELIVERIES</span><strong><span id="deliveries">00</span><span class="stat-unit"> / <span id="order-total">6</span></span></strong></div>
+                <div class="stat lives-stat"><span class="stat-label">SAUCERS LEFT</span><strong id="lives" aria-label="3 lives">◒ ◒ ◒</strong></div>
+                <div class="fuel-readout"><label class="stat-label" for="fuel-meter">FUEL</label><meter id="fuel-meter" min="0" max="100" low="25" optimum="100" value="100" aria-label="Fuel remaining"></meter></div>
+              </div>
+              <button class="pause-button" id="pause" aria-label="Pause game" title="Pause (P)">Ⅱ</button>
             </div>
-            <button class="pause-button" id="pause" aria-label="Pause game" title="Pause (P)">Ⅱ</button>
-          </div>
-          <div class="sub-hud" role="group" aria-label="Sub HUD">
-            <div class="landing-readout" id="landing-readout"><span id="velocity">↓ 0 · ↔ 0</span><span>LANDING LIMIT ≤ 93.5</span></div>
-            <div class="world-label"><span class="world-coordinates">23° N · 07° E</span><span id="world-name">MEGALOPOLIS</span><span class="live-dot"></span></div>
+            <div class="sub-hud" role="group" aria-label="Sub HUD">
+              <div class="landing-readout" id="landing-readout"><span id="velocity">↓ 0 · ↔ 0</span><span>LANDING LIMIT ≤ 93.5</span></div>
+              <div class="world-label"><span class="world-coordinates">23° N · 07° E</span><span id="world-name">MEGALOPOLIS</span><span class="live-dot"></span></div>
+            </div>
+            <div class="toast" id="toast" role="status" aria-live="polite"></div>
           </div>
           <div class="overlay" id="overlay">
             <div class="overlay-card" id="intro-card"><div class="card-tag">YOUR SAUCER IS READY</div><h2>Special delivery.<br><em>Extra terrestrial.</em></h2><p id="intro-description">Start above Luna. Your first order arrives in 5 seconds.<br>Deliver every order. Refuel at pad 6.</p><button class="primary-button" id="start">START YOUR SHIFT <span>→</span></button><div class="intro-controls"><span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> THRUST</span><span><kbd>G</kbd> GEAR</span></div><small class="intro-note">Lift-off auto-retracts gear. Lower it for a soft landing.</small><p class="touch-guide">Swipe on the left to thrust. Tap on the right for gear. Page controls lock during play.</p></div>
           </div>
-          <div class="toast" id="toast" role="status" aria-live="polite"></div>
         </div>
       </section>
       <p class="touch-guide">Touch and swipe on the left to thrust. Tap anywhere on the right to toggle gear. Diagonals share thrust equally. Page controls lock during flight.</p>
@@ -86,8 +88,6 @@
     </main>
   </div>
   <div id="touch-controls" class="touch-controls" aria-label="Touch flight controls" hidden>
-    <span class="touch-hint touch-hint-left" aria-hidden="true">SWIPE TO THRUST</span>
-    <span class="touch-hint touch-hint-right" aria-hidden="true">TAP FOR GEAR · <span id="touch-gear-state">GEAR UP</span></span>
     <div id="touch-joystick" class="touch-joystick" aria-hidden="true" hidden><div id="touch-knob" class="touch-knob"></div></div>
   </div>
   <dialog id="editor-export-dialog" aria-labelledby="editor-export-title">
