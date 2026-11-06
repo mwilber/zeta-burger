@@ -436,6 +436,7 @@ export class Renderer {
     const vertical = verticalThrustDirection(controls);
     visible(this.vertical, showShip && vertical !== 0 && game.fuel > 0 && game.phase === 'playing' && (vertical > 0 || s.landed === null || game.needsLandingThrust));
     const side = vertical > 0 ? 1 : -1;
+    this.vertical.style.opacity = String(Math.abs(vertical));
     this.vertical.setAttribute('transform', `translate(${s.x} ${s.y}) scale(1 ${side})`);
     this.verticalWaves.forEach((wave, i) => {
       const progress = this.reducedMotion ? (i + .5) / 4 : (time * 2 + i / 4) % 1;
@@ -443,11 +444,12 @@ export class Renderer {
       attr(wave, { cx: center.x, cy: center.y, rx: artLength(wave, 12 + progress * 25, 'x'), ry: artLength(wave, 3 + progress * 5, 'y'), opacity: (1 - progress) * .8, 'stroke-width': artLength(wave, 2 - progress, 'x') });
     });
     const direction = Number(controls.right) - Number(controls.left);
+    this.horizontal.style.opacity = String(Math.abs(direction));
     visible(this.horizontal, showShip && !s.gear && game.fuel > 0 && game.phase === 'playing' && direction !== 0);
     move(this.horizontal, s.x, s.y);
     this.horizontalWaves.forEach((wave, i) => {
       const progress = this.reducedMotion ? (i + .5) / 3 : (time * 3 + i / 3) % 1;
-      const center = artPoint(wave, -direction * (25 + progress * 18), 1);
+      const center = artPoint(wave, -Math.sign(direction) * (25 + progress * 18), 1);
       attr(wave, { cx: center.x, cy: center.y, rx: artLength(wave, 2 + progress * 3, 'x'), ry: artLength(wave, 5 + progress * 5, 'y'), opacity: (1 - progress) * .7 });
     });
     this.ship.setAttribute('transform', `translate(${s.x} ${s.y + game.landingBounceOffset}) rotate(${game.tilt * 180 / Math.PI})`);
