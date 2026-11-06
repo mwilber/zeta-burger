@@ -332,60 +332,65 @@ kbd {
   padding-left:4px;
 }
 
+/* The mobile flight surface covers the viewport, including page chrome. */
 .touch-controls {
-  display:none;
-  align-items:center;
-  justify-content:space-between;
-  padding:15px 0;
-  gap:14px;
-  touch-action:none;
-}
-
-.touch-direction {
-  display:grid;
-  grid-template-columns:repeat(3, 65px);
-  grid-template-rows:repeat(2, 61px);
-  align-items:center;
-  gap:10px;
-}
-.touch-direction button[data-control=left] { grid-column:1; grid-row:1 / 3; }
-.touch-direction button[data-control=up] { grid-column:2; grid-row:1; }
-.touch-direction button[data-control=down] { grid-column:2; grid-row:2; }
-.touch-direction button[data-control=right] { grid-column:3; grid-row:1 / 3; }
-
-.touch-controls button {
-  width:65px;
-  height:61px;
-  color:#dcead1;
-  border:1px solid #526245;
-  background:#26322b;
-  border-radius:10px;
-  font-size:27px;
+  position:fixed;
+  inset:0;
+  z-index:1000;
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  overflow:hidden;
 }
-
-.touch-controls button:active,.touch-controls button.held {
-  background:#5f7e45;
-  border-color:var(--lime);
+.touch-controls[hidden],.touch-joystick[hidden] { display:none; }
+body.touch-playing { overflow:hidden; overscroll-behavior:none; touch-action:none; }
+.touch-controls::before {
+  content:'';
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  border-left:1px solid #dcead118;
+  pointer-events:none;
 }
-
-.touch-controls button small {
-  display:block;
-  font:8px monospace;
+.touch-hint {
+  position:absolute;
+  bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+  width:50%;
+  text-align:center;
+  color:#dcead1a6;
+  text-shadow:0 1px 4px #000;
+  font:9px monospace;
   letter-spacing:1px;
-  margin-top:1px;
+  pointer-events:none;
 }
-
-.touch-gear {
-  background:#302b3c!important;
-  border-color:#665178!important;
+.touch-hint-left { left:0; }
+.touch-hint-right { right:0; }
+.touch-joystick {
+  position:absolute;
+  width:140px;
+  height:140px;
+  margin:-70px;
+  border:1px solid #bdf77d99;
+  border-radius:50%;
+  background:#26322b55;
+  box-shadow:0 0 0 6px #10141b33;
+  pointer-events:none;
 }
-
-.touch-controls button:disabled {
-  opacity:.35;
+.touch-knob {
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:36px;
+  height:36px;
+  margin:-18px;
+  border:1px solid var(--lime);
+  border-radius:50%;
+  background:#bdf77d88;
 }
+.touch-guide { display:none; color:#a9b7c5; font:11px/1.6 monospace; text-align:center; margin:14px 8px; }
+.overlay-card .touch-guide { font-size:9px; margin:12px 0 0; }
 
 dialog {
   background:#1b2130;
@@ -464,7 +469,7 @@ dialog .primary-button {
   .fuel-readout meter { width:60px; height:12px; }
 }
 @media(pointer:coarse) {
-  .touch-controls { display:flex; }
+  .touch-guide { display:block; }
 }
 @media(max-width:600px) {
   .app { padding:0 14px; }
@@ -505,9 +510,8 @@ dialog .primary-button {
   .footer-label { display:none; }
   .control-guide b { font-size:9px; }
   .bottom-line { font-size:6px; letter-spacing:.7px; }
-  .touch-controls { display:flex; }
 }
-/* Compact landscape screens retain the full game view with flight controls overlaid. */
+/* Compact landscape screens retain the full game view. */
 @media(max-height:600px) and (orientation:landscape) {
   .app { padding:0 env(safe-area-inset-right, 8px) 0 env(safe-area-inset-left, 8px); }
   .header { min-height:0; padding:6px 12px; }
@@ -538,12 +542,7 @@ dialog .primary-button {
   .landing-readout { font-size:6px; }
   #velocity { font-size:11px; }
   .world-label { font-size:7px; }
-  .flight-manual,.bottom-line { display:none; }
-  .touch-controls { position:fixed; inset:auto 12px 8px; display:flex; padding:0; pointer-events:none; z-index:3; }
-  .touch-direction { grid-template-columns:repeat(3,44px); grid-template-rows:repeat(2,44px); gap:6px; }
-  .touch-controls button { width:44px; height:44px; font-size:22px; pointer-events:auto; background:#26322bbd; }
-  .touch-controls button small { font-size:6px; }
-  .touch-gear { align-self:flex-end; }
+  .flight-manual,.bottom-line,main>.touch-guide { display:none; }
   .overlay { padding:8px; overflow-y:auto; z-index:4; }
   .overlay-card { padding:14px 18px; max-height:100%; overflow-y:auto; }
   .overlay-card h2 { font-size:24px; margin-bottom:8px; }
@@ -580,7 +579,7 @@ dialog .primary-button {
 #game.editing [data-editor-pad],#game.editing [data-structure] { cursor:grab; }
 #game.editing [data-editor-selected] { filter:drop-shadow(0 0 4px #bdf77d); }
 #game.editing.dragging,#game.editing.dragging * { cursor:grabbing; }
-.editor-active .dashboard,.editor-active .sub-hud,.editor-active .touch-controls { display:none; }
+.editor-active .dashboard,.editor-active .sub-hud,.editor-active .touch-guide { display:none; }
 #editor-export-dialog { width:min(800px,94vw); max-width:800px; }
 #editor-code { display:block; width:100%; margin:10px 0 16px; padding:14px; resize:vertical; border:1px solid #526245; border-radius:6px; background:#10141b; color:#e1edda; font:12px/1.5 monospace; tab-size:2; }
 input:focus-visible,textarea:focus-visible { outline:2px solid var(--lime); outline-offset:3px; }

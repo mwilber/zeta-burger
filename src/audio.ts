@@ -114,7 +114,7 @@ export class Sound {
     const powered = running && game.fuel > 0;
     const vertical = verticalThrustDirection(controls);
     if (powered && vertical !== 0 && (vertical > 0 || game.ship.landed === null || game.needsLandingThrust)) this.startThrust('vertical'); else this.stopThrust('vertical');
-    if (powered && !game.ship.gear && controls.left !== controls.right) this.startThrust('side'); else this.stopThrust('side');
+    if (powered && !game.ship.gear && Number(controls.left) !== Number(controls.right)) this.startThrust('side'); else this.stopThrust('side');
     if (running && game.ship.landed !== null && game.landingBounceTime > 0) {
       if (!this.landingCueActive) this.landingStutter(LANDING_BOUNCE.duration - game.landingBounceTime);
       this.landingCueActive = true;
