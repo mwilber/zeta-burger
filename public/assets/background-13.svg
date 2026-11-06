@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760">
+<title>Avalanche — the mountain valley</title>
+
+<defs>
+ <linearGradient id="valley-sky" x2="0" y2="1"><stop stop-color="#294a60"/><stop offset=".6" stop-color="#8caaa9"/><stop offset="1" stop-color="#d6d3b9"/></linearGradient>
+ <linearGradient id="valley-haze" x2="0" y2="1"><stop stop-color="#c6d9d2" stop-opacity="0"/><stop offset="1" stop-color="#d5dfca" stop-opacity=".55"/></linearGradient>
+</defs>
+<g data-sky=""><rect width="1280" height="760" fill="url(#valley-sky)"/></g>
+<circle cx="695" cy="139" r="39" fill="#f5dfaa" opacity=".75"/>
+<g fill="#e3e7d4" opacity=".12"><path d="M240 104Q350 65 440 95T660 77Q750 85 820 110L790 121H250Z"/><path d="M720 218Q820 175 960 207T1220 188L1280 224V238H730Z"/></g>
+<path d="M0 420L190 219 309 386 481 167 650 384 811 221 970 389 1118 170 1280 367V748H0Z" fill="#718f92"/>
+<path d="M309 386L481 167 650 384 545 307 516 324 480 245 441 298 420 279Z M970 389L1118 170 1280 367 1191 300 1160 319 1117 244 1074 301Z" fill="#dae1d7"/>
+<path d="M481 167L516 324 650 384 545 307Z M1118 170L1160 319 1280 367 1191 300Z" fill="#a5beb7"/>
+<path d="M0 589L171 419 331 563 508 371 689 583 862 402 1015 577 1178 391 1280 510V748H0Z" fill="#5d7c79"/>
+<path d="M331 563L508 371 689 583 553 492 516 513 488 452 454 490Z M689 583L862 402 1015 577 925 510 886 531 858 474 822 503Z" fill="#a7beb0" opacity=".65"/>
+<path d="M362 748Q465 617 587 651Q678 610 788 661L948 748Z" fill="#6b8b73"/>
+<g transform="translate(360 712) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(387 719.9049946275305) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(414 725.0485472035411) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(441 725.6338668322948) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(468 721.4564845277162) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(495 713.9756801128382) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(522 705.8047137938721) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(549 699.7979391862098) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(576 698.0536954762982) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(603 701.1812971742162) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(630 708.088183025215) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(657 716.3615790891873) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(684 723.1113500938882) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(711 725.9796068352445) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(738 723.964384713236) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(765 717.7696587933846) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(792 709.5594250628783) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(819 702.2017543736904) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(846 698.2668927790692) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(873 699.1294006406945) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(900 704.4879791479939) scale(0.81)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(927 712.4707226610959) scale(0.55)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<g transform="translate(954 720.2890292059011) scale(0.68)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+<rect y="470" width="1280" height="278" fill="url(#valley-haze)"/>
+<path d="M550 748Q599 699 635 728T730 748" fill="#d8cbb0"/><path d="M641 748Q606 736 647 722T658 704" fill="none" stroke="#bddfd6" stroke-width="6"/>
+<path d="M0 748H1280V760H0Z" fill="#484c40"/><path d="M0 748H1280" stroke="#a7ac88"/>
+<g font-family="monospace" font-size="11" letter-spacing="2" fill="#ecedda"><text x="34" y="43">AVALANCHE / TALUS VALLEY</text><text x="1246" y="43" text-anchor="end">LAND TO HALT ROCKFALL ON YOUR SIDE</text></g>
+</svg>

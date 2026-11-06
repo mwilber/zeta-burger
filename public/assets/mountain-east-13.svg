@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 628">
+<title>Avalanche east mountain — solid granite</title>
+
+<defs>
+ <linearGradient id="granite" x1="1" x2="0" y2=".7"><stop stop-color="#3a4a4b"/><stop offset=".55" stop-color="#68716b"/><stop offset="1" stop-color="#aca48c"/></linearGradient>
+ <pattern id="strata" width="86" height="72" patternUnits="userSpaceOnUse"><path d="M-20 25L35 3 85 22 105 10M-10 64L27 49 66 61 95 44" fill="none" stroke="#ded3b6" stroke-opacity=".14" stroke-width="2"/><path d="M35 3L26 36 39 53M66 61L58 72" fill="none" stroke="#243c3c" stroke-opacity=".4" stroke-width="2"/></pattern>
+ <clipPath id="mountain-clip"><polygon points="350,0 450,0 450,628 0,628"/></clipPath>
+</defs>
+<polygon data-mountain-outline="" points="350,0 450,0 450,628 0,628" fill="url(#granite)"/>
+<g clip-path="url(#mountain-clip)">
+ <g transform="scale(0.8181818181818182 1)"><g transform="translate(550 0) scale(-1 1)">
+  <path d="M0 0H100L550 628 394 520 307 326 196 232 143 85 95 36 0 43Z" fill="#b9b49c" opacity=".22"/>
+  <path d="M0 175L155 121 231 251 127 230 176 359 0 420Z" fill="#354b4b" opacity=".38"/>
+  <path d="M100 0L160 83 142 82 119 39 102 50 84 22H0V0Z" fill="#e1e5d5"/>
+  <path d="M102 74L155 156 184 168 230 269M188 283L243 356 277 363 323 452M313 475L365 520 391 569 441 598" fill="none" stroke="#e6dcc0" opacity=".4" stroke-width="3"/>
+  <path d="M85 93L113 161 99 184 137 244M212 278L204 319 239 354M290 421L277 464 319 507M393 564L378 604" fill="none" stroke="#243c3c" opacity=".6" stroke-width="3"/>
+  <g transform="translate(34 120) scale(0.8)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g><g transform="translate(47 293) scale(0.9)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g><g transform="translate(183 415) scale(0.85)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g><g transform="translate(225 584) scale(1.1)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g><g transform="translate(57 552) scale(1.4)"><path d="M-2 -4H2V4H-2Z" fill="#354b4a"/><path d="M0 -38L-12 -18H-7L-19 0H19L7 -18H12Z" fill="#45675e"/><path d="M0 -38L-9 -22H2L-6 -7H10" fill="#b0c7bd" opacity=".45"/></g>
+ </g></g>
+ <rect width="450" height="628" fill="url(#strata)"/>
+</g>
+</svg>

@@ -36,6 +36,8 @@ export class Renderer {
   private particleLayer = this.group();
   private fallingObstacleLayer = this.group();
   private fallingObstacleNodes = new Map<number, SVGGElement>();
+  private boulderLayer = this.group();
+  private boulderNodes = new Map<number, SVGGElement>();
   private seekerLayer = this.group();
   private seekerNodes = new Map<number, SVGGElement>();
   private stormLayer = this.group();
@@ -141,6 +143,7 @@ export class Renderer {
       this.templates = templates;
       this.scene.replaceChildren(); this.stationLayer.replaceChildren(); this.particleLayer.replaceChildren();
       this.fallingObstacleLayer.replaceChildren(); this.fallingObstacleNodes.clear();
+      this.boulderLayer.replaceChildren(); this.boulderNodes.clear();
       this.seekerLayer.replaceChildren(); this.seekerNodes.clear();
       this.stormLayer.replaceChildren(); this.rainLayer.replaceChildren(); this.lightningNodes.clear();
       this.rainPaths = []; this.rainDrops = []; this.lightningFlash = undefined; this.windLabel = undefined;
@@ -163,7 +166,7 @@ export class Renderer {
       let seed = 4827;
       const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
       // Keep the original star positions and twinkle phases.
-      for (let i = 0; i < (level.storm ? 0 : 145); i++) {
+      for (let i = 0; i < (level.storm || level.boulders ? 0 : 145); i++) {
         const x = random() * WORLD_WIDTH, y = random() * 650, large = random() > .9, phase = random() * 6.28;
         const node = this.asset(large ? 'star-large' : 'star-small'); move(node, x, y);
         this.stars.push({ node, phase, x, y }); this.scene.append(node);
@@ -186,7 +189,7 @@ export class Renderer {
       this.ship = this.group(); this.gear = this.asset('gear');
       this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
-      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.seekerLayer, this.particleLayer, this.crash);
+      this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.boulderLayer, this.seekerLayer, this.particleLayer, this.crash);
       if (level.storm) {
         const sleet = level.storm.precipitation === 'sleet';
         this.rainDrops = Array.from({ length: level.storm.rainCount }, () => ({
@@ -269,14 +272,15 @@ export class Renderer {
     });
   }
   burst(event: GameEvent) {
-    const crash = event.type === 'crash' || event.type === 'falling-obstacle-impact';
+    const rock = event.type === 'boulder-impact';
+    const crash = event.type === 'crash' || event.type === 'falling-obstacle-impact' || rock;
     if (!crash && event.type !== 'delivery' && event.type !== 'pickup') return;
     const template = this.templates.get('particle');
     const colors = (template?.getAttribute('data-crash-colors') ?? '').split(',');
     const serviceColor = template?.getAttribute('data-service-color') ?? '';
     for (let i = 0; i < (crash ? 65 : 24); i++) {
       const angle = Math.random() * Math.PI * 2, speed = 25 + Math.random() * (crash ? 155 : 65);
-      this.particles.push({ x: event.x, y: event.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, age: 0, life: .5 + Math.random() * (CRASH_DURATION - .5), color: crash ? colors[i % colors.length] : serviceColor, size: 2 + Math.random() * 3 });
+      this.particles.push({ x: event.x, y: event.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, age: 0, life: .5 + Math.random() * (CRASH_DURATION - .5), color: rock ? ['#c6baa2', '#877c6c', '#554e48'][i % 3] : crash ? colors[i % colors.length] : serviceColor, size: 2 + Math.random() * (rock ? 7 : 3) });
     }
   }
   update(dt: number) {
@@ -338,6 +342,21 @@ export class Renderer {
         const phase = Number(wisp.dataset.wisp);
         animateTranslation(wisp, this.reducedMotion ? 0 : Math.sin(beat + phase) * 2, this.reducedMotion ? 0 : Math.cos(beat * .7 + phase) * 2);
       }
+    }
+  }
+  private renderBoulders(game: Game) {
+    const living = new Set(game.boulders.map(boulder => boulder.id));
+    for (const [id, node] of this.boulderNodes) {
+      if (!living.has(id)) { node.remove(); this.boulderNodes.delete(id); }
+    }
+    for (const boulder of game.boulders) {
+      let node = this.boulderNodes.get(boulder.id);
+      if (!node) {
+        node = this.asset('boulder', [-40, -40, 80, 80]);
+        node.setAttribute('data-boulder', String(boulder.id));
+        this.boulderLayer.append(node); this.boulderNodes.set(boulder.id, node);
+      }
+      node.setAttribute('transform', `translate(${boulder.x} ${boulder.y}) rotate(${boulder.angle * 180 / Math.PI}) scale(${boulder.radius / 40})`);
     }
   }
   private renderStorm(game: Game) {
@@ -425,6 +444,7 @@ export class Renderer {
     }
     this.saucer(game, controls, time);
     this.renderFallingObstacles(game);
+    this.renderBoulders(game);
     this.renderSeekers(game);
     this.renderStorm(game);
     this.update(dt); this.renderParticles(); visible(this.crash, game.phase === 'crashed');

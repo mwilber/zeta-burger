@@ -4,7 +4,7 @@ During development, level order behaves like a LIFO stack: the newest level is
 played first. Prepend new levels to `LEVEL_CONFIG` in `src/level-config.ts`.
 The array controls the starting level, selector order, and automatic progression.
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
-The current order is Blizzard (12), Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
+The current order is Avalanche (13), Blizzard (12), Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
@@ -80,3 +80,14 @@ meteor collision and lifecycle rules, including vulnerability while docked.
 meteor defaults stay unchanged. Artwork uses -12 with six-branched snowflakes,
 snowy granite ledges, chalets, and distant alpine peaks/pines. After building,
 `node scripts/generate-blizzard-art.mjs` regenerates the matching SVGs.
+
+Avalanche (13) is a valley between two solid convex mountain slopes, with three
+station ledges on each side. Gravity is 100 with full thrust, no wind, seekers,
+or falling obstacles. Its `boulders.spawnIntervalMax` config sets the upper
+limit of the random 1–N second spawn delay (initially 5). Spawn side is random
+in flight; while landed, new rocks spawn only on the opposite mountainside.
+Existing rocks keep moving and remain dangerous to landed ships. Giant boulders
+bounce and roll against slopes and stations, rotate with travel, and disintegrate
+at the valley bottom. Geometry lives in `src/avalanche.ts`, and boulder physics
+in `src/boulders.ts`. After building, `node scripts/generate-avalanche-art.mjs`
+regenerates the matching level-13 SVGs.

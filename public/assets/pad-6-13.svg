@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -90 118 160">
+<title>Valley Fuel landing pad</title>
+
+<rect width="108" height="10" rx="1" fill="#2e4546"/><path d="M1 1H107" stroke="#a6e9d8" stroke-width="3"/>
+<path d="M6 6H102" stroke="#c7c9af" stroke-dasharray="5 8"/>
+<path d="M0 -2V-6M108 -2V-6" stroke="#9fafa3" stroke-width="2"/><circle cy="-7" r="2" fill="#a6e9d8"/><circle cx="108" cy="-7" r="2" fill="#a6e9d8"/>
+
+<rect x="42" y="17" width="24" height="23" rx="2" fill="#263f40" stroke="#a6e9d8" stroke-opacity=".6"/>
+<text x="54" y="34" fill="#a6e9d8" font-family="monospace" font-size="16" text-anchor="middle" font-weight="bold">6</text>
+<text x="54" y="57" fill="#e4e4ca" font-family="monospace" font-size="7" text-anchor="middle">VALLEY FUEL</text>
+</svg>
