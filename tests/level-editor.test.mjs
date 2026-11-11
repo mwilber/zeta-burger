@@ -34,54 +34,35 @@ test('existing drafts isolate configuration and move the complete station and co
 test('platform counts preserve mandatory roles and exports reuse real assets beyond original IDs', () => {
   for (const original of LEVEL_CONFIG) {
     const draft = new EditorDraft(original);
-    draft.setPlatformCount(3);
+    draft.setPlatformCount(2);
     assert.equal(draft.preview().destinations.length, 1);
-    assert.throws(() => draft.setPlatformCount(2), /Choose/);
+    assert.throws(() => draft.setPlatformCount(1), /Choose/);
     draft.setPlatformCount(15);
     const level = exported(draft);
-    assert.equal(level.padCount, 15); assert.equal(level.destinations.length, 13);
+    assert.equal(level.padCount, 15); assert.equal(level.destinations.length, 14);
     assertAssetsExist(level);
     assert.equal(new Set(level.pads.map(pad => pad.id)).size, 15);
     assert.equal(draft.removePlatform(original.restaurant), false);
-    assert.equal(draft.removePlatform(original.gasStation), false);
   }
 });
 
-test('fuel toggle removes the entire station, restores its location and assets, and keeps no-fuel gameplay usable', () => {
-  const draft = new EditorDraft(LEVEL_CONFIG[0]);
-  const fuel = structuredClone(draft.config.pads.find(pad => pad.id === draft.config.gasStation));
-  draft.setFuel(false);
-  const level = exported(draft), game = new Game(() => .5, level);
-  assert.equal(level.gasStation, null); assert.equal(level.padCount, LEVEL_CONFIG[0].pads.length - 1);
-  assert.ok(!level.solids.some(solid => solid.padId === fuel.id));
-  assert.ok(!levelAssetNames(level).includes(`pad-${fuel.id}`));
-  game.start('tester', level, { designMode: false });
-  game.step(START_DELAY, noInput);
-  game.crash('test'); game.step(1.6, noInput);
-  assert.equal(game.phase, 'playing'); assert.equal(game.ship.landed, level.restaurant);
-  const fuelBefore = 42; game.fuel = fuelBefore; game.step(1, noInput);
-  assert.equal(game.fuel, fuelBefore, 'restaurant does not become a fuel station');
-  game.fuel = 24; game.ship.landed = null; game.step(.01, { ...noInput, up: true });
-  assert.ok(game.events.some(event => event.message.includes('no fuel station')));
-  draft.setFuel(true);
-  assert.deepEqual(draft.config.pads.find(pad => pad.id === draft.config.gasStation), fuel);
-  assertAssetsExist(exported(draft));
-});
-
-test('blank drafts preview empty or fuel-only worlds, but export requires a restaurant and delivery platform', () => {
+test('blank drafts require a restaurant and delivery platform and support paid restaurant fuel', () => {
   const draft = new EditorDraft();
   assert.equal(draft.preview().pads.length, 0);
   assert.throws(() => draft.exportJavaScript(), /restaurant/);
-  draft.setFuel(true);
-  assert.equal(draft.preview().pads.length, 1);
-  assert.throws(() => draft.exportJavaScript(), /restaurant/);
-  draft.setFuel(false); draft.addPlatform();
+  draft.addPlatform();
   assert.throws(() => draft.exportJavaScript(), /delivery pad/);
   draft.addPlatform(asset(4, 1));
-  const level = exported(draft);
-  assert.equal(level.number, Math.max(...LEVEL_CONFIG.map(level => level.number)) + 1); assert.equal(level.padCount, 2);
-  assert.equal(level.gasStation, null);
+  draft.config.refueling = { pricePerUnit: .2, refillRate: 4 };
+  const level = exported(draft), game = new Game(() => .5, level);
+  assert.equal(level.number, Math.max(...LEVEL_CONFIG.map(level => level.number)) + 1);
+  assert.equal(level.padCount, 2);
   assertAssetsExist(level);
+  game.start('casual'); game.step(START_DELAY, noInput);
+  game.ship = game.spawnAtStation(); game.bank = 1; game.fuel = 40;
+  game.step(1, noInput); assert.equal(game.fuel, 40);
+  game.step(1, { ...noInput, refuel: true });
+  assert.equal(game.fuel, 44); assert.ok(Math.abs(game.bank - .2) < 1e-9);
   assert.deepEqual(createLevels([draft.config, ...LEVEL_CONFIG]).map(level => level.number), [level.number, ...LEVEL_CONFIG.map(level => level.number)]);
 });
 
@@ -146,7 +127,6 @@ test('Freeman drafts retain stellar gravity, assets, and docking after editing a
   const original = LEVEL_CONFIG.find(level => level.id === 'freeman');
   const draft = new EditorDraft(original);
   draft.movePlatform(1, 1060, 450);
-  draft.setFuel(false);
   draft.setPlatformCount(10);
   const level = exported(draft);
   assert.equal(level.number, 9);
@@ -162,11 +142,11 @@ test('Freeman drafts retain stellar gravity, assets, and docking after editing a
   assert.ok(game.ship.vy > 0, 'the star still pulls an airborne ship');
   game.ship = game.spawnAtStation();
   assert.equal(game.ship.landed, level.restaurant);
-  assert.equal(game.clinging, true, 'no-fuel respawn docks immediately at the restaurant');
+  assert.equal(game.clinging, true, 'respawn docks immediately at the restaurant');
   game.fuel = 0;
   game.step(.5, noInput);
   assert.equal(game.ship.landed, level.restaurant);
-  assert.equal(game.fuel, 0, 'docking provides shelter without creating a fuel station');
+  assert.equal(game.fuel, 0, 'docking provides shelter without automatically buying fuel');
 });
 
 
@@ -174,7 +154,6 @@ test('Grotto drafts and reused boulders preserve their convex collision outlines
   const original = LEVEL_CONFIG.find(level => level.id === 'grotto');
   const draft = new EditorDraft(original);
   draft.movePlatform(1, 570, 150);
-  draft.setFuel(false);
   const edited = exported(draft), baseline = createLevel(original);
   assert.equal(edited.number, 10);
   assert.equal(edited.id, 'grotto');

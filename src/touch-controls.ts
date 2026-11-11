@@ -18,10 +18,26 @@ export class TouchControls {
   private active = false;
   private flying = false;
   private pointer: number | null = null;
+  private fuelPointer: number | null = null;
   private origin = { x: 0, y: 0 };
   private thrust = neutral();
 
-  constructor(private surface: HTMLElement, private joystick: HTMLElement, knob: HTMLElement, toggleGear: () => void) {
+  constructor(private surface: HTMLElement, private joystick: HTMLElement, knob: HTMLElement, toggleGear: () => void, private fuelButton: HTMLButtonElement) {
+    fuelButton.addEventListener('pointerdown', event => {
+      event.preventDefault(); event.stopPropagation();
+      if (!this.active || !this.flying || fuelButton.hidden || this.fuelPointer !== null) return;
+      this.fuelPointer = event.pointerId;
+      fuelButton.setPointerCapture(event.pointerId);
+      fuelButton.setAttribute('aria-pressed', 'true');
+    });
+    const releaseFuel = (event: PointerEvent) => {
+      event.preventDefault(); event.stopPropagation();
+      if (event.pointerId === this.fuelPointer) this.resetFuel();
+    };
+    fuelButton.addEventListener('pointerup', releaseFuel);
+    fuelButton.addEventListener('pointercancel', releaseFuel);
+    fuelButton.addEventListener('lostpointercapture', releaseFuel);
+    fuelButton.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); });
     surface.addEventListener('pointerdown', event => {
       if (!this.active) return;
       event.preventDefault();
@@ -51,7 +67,7 @@ export class TouchControls {
     });
     const release = (event: PointerEvent) => {
       if (this.active) event.preventDefault();
-      if (event.pointerId === this.pointer) this.reset();
+      if (event.pointerId === this.pointer) this.resetThrust();
     };
     surface.addEventListener('pointerup', release);
     surface.addEventListener('pointercancel', release);
@@ -60,16 +76,30 @@ export class TouchControls {
     surface.addEventListener('contextmenu', event => event.preventDefault());
   }
 
-  setActive(active: boolean, flying: boolean) {
+  setActive(active: boolean, flying: boolean, atRestaurant = false) {
     if (active !== this.active || flying !== this.flying) this.reset();
     this.active = active;
     this.flying = flying;
     this.surface.hidden = !active;
+    this.fuelButton.hidden = !active || !flying || !atRestaurant;
+    if (this.fuelButton.hidden) this.resetFuel();
   }
 
-  controls(): Controls { return { ...this.thrust }; }
+  controls(): Controls { return { ...this.thrust, ...(this.fuelPointer !== null ? { refuel: true } : {}) }; }
 
   reset() {
+    this.resetThrust();
+    this.resetFuel();
+  }
+
+  private resetFuel() {
+    const pointer = this.fuelPointer;
+    this.fuelPointer = null;
+    this.fuelButton.setAttribute('aria-pressed', 'false');
+    if (pointer !== null && this.fuelButton.hasPointerCapture(pointer)) this.fuelButton.releasePointerCapture(pointer);
+  }
+
+  private resetThrust() {
     const pointer = this.pointer;
     this.pointer = null;
     this.thrust = neutral();

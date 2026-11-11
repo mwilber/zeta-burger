@@ -345,7 +345,22 @@ kbd {
   -webkit-touch-callout:none;
   overflow:hidden;
 }
-.touch-controls[hidden],.touch-joystick[hidden] { display:none; }
+.touch-controls[hidden],.touch-joystick[hidden],.touch-fuel[hidden] { display:none; }
+.touch-fuel {
+  position:absolute;
+  right:max(24px, env(safe-area-inset-right));
+  bottom:max(48px, env(safe-area-inset-bottom));
+  width:min(220px, 42vw);
+  min-height:68px;
+  padding:14px 18px;
+  border:2px solid var(--lime);
+  border-radius:18px;
+  background:#15251fef;
+  color:var(--lime);
+  font:700 13px/1.5 monospace;
+  touch-action:none;
+}
+.touch-fuel[aria-pressed="true"] { background:var(--lime); color:#101b15; }
 body.touch-playing { overflow:hidden; overscroll-behavior:none; touch-action:none; }
 .touch-joystick {
   position:absolute;

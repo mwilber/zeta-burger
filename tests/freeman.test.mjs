@@ -22,7 +22,7 @@ test('Freeman follows Grotto and preserves Event Horizon’s peripheral layout w
   assert.equal(level.number, 9); assert.equal(level.name, 'Freeman');
   assert.equal(nextLevel(level).id, 'megalopolis');
   assert.equal(level.gravity, 0); assert.equal(level.thrustScale ?? 1, 1);
-  assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
+  assert.equal(level.padCount, 6); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   assert.equal(level.blackHole, undefined); assert.equal(level.gravityWell, level.star);
   assert.deepEqual(level.start, horizon.start);
   assert.deepEqual(level.solids, horizon.solids);
@@ -64,8 +64,7 @@ test('every station immediately shelters the ship, services in 250 ms, and relea
     if (pad.id === level.restaurant) assert.ok(game.order);
     if (level.destinations.includes(pad.id)) assert.equal(game.delivered, 1);
     fly(game, 1); assert.deepEqual(game.ship, docked);
-    if (pad.id === level.gasStation) assert.ok(game.fuel > 25);
-    else assert.equal(game.fuel, 0);
+    assert.equal(game.fuel, 0);
     game.fuel = 40;
     if (release === 'gear') game.toggleGear();
     game.step(dt, release === 'up' ? { ...idle, up: true } : idle);
@@ -88,7 +87,7 @@ test('the stellar surface catches hull, gear, center spawns, and fast crossings;
     assert.match(game.events.at(-1).message, /Stellar surface/);
     assert.ok([game.ship.x, game.ship.y, game.ship.vx, game.ship.vy].every(Number.isFinite));
     game.step(dt, idle); assert.equal(game.lives, 2);
-    fly(game, CRASH_DURATION); assert.equal(game.ship.landed, level.gasStation);
+    fly(game, CRASH_DURATION); assert.equal(game.ship.landed, level.restaurant);
     const docked = { ...game.ship }; fly(game, 1); assert.deepEqual(game.ship, docked);
   }
 });

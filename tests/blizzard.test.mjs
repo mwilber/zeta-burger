@@ -21,7 +21,7 @@ test('Blizzard follows Avalanche with complete alpine artwork and preserves all 
   assert.equal(nextLevel(level), stormfront);
   assert.deepEqual(LEVELS.map(l => l.number), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
-  assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0);
+  assert.equal(level.padCount, 6); assert.equal(level.seekerCount, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));
   for (const name of levelAssetNames(level)) accessSync(new URL('../public/' + levelAssetPath(name, level), import.meta.url));
   const snowflake = readFileSync(new URL('../public/assets/falling-obstacle-12.svg', import.meta.url), 'utf8');

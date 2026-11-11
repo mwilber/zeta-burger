@@ -4,7 +4,7 @@ import { LEVELS, levelAssetNames, levelAssetPath, padBuildingAssetName } from '.
 import type { Level } from './levels.js';
 import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
 import type { ArtBox } from './svg-art.js';
-import { CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
+import { CRASH_DURATION, FUEL, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 import { LIGHTNING, lightningArcPulse, windVelocity, windOffset } from './storm.js';
 
@@ -426,7 +426,7 @@ export class Renderer {
     for (const station of this.stations) {
       const offset = padOffset(station.pad, game.time, game.level.current);
       move(station.root, offset.x, offset.y);
-      const active = station.pad.id === (game.order?.target ?? game.level.restaurant) || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
+      const active = station.pad.id === (game.order?.target ?? game.level.restaurant) || (game.fuel <= 25 && station.pad.id === game.level.restaurant);
       visible(station.idle, !active); visible(station.active, active);
       animateTranslation(station.beacon, 0, this.reducedMotion ? 0 : Math.sin(time * 3) * 3);
       for (const vine of station.vines) {
@@ -481,7 +481,7 @@ export class Renderer {
     const progress = find<SVGRectElement>(this.service, '[data-progress]');
     attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
-    visible(refuel, s.landed !== null && (s.landed === game.level.gasStation || game.level.gravity === 0));
-    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
+    visible(refuel, s.landed !== null && (s.landed === game.level.restaurant || game.level.gravity === 0));
+    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.restaurant ? game.fuel >= FUEL.capacity ? 'TANK FULL' : game.bank <= 0 ? 'NO FUNDS FOR FUEL' : controls.refuel ? `FUELING ${Math.floor(game.fuel)}%` : 'HOLD F / FUEL TO REFILL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }

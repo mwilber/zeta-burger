@@ -46,7 +46,7 @@ test('pause resumes the remaining countdown and replay starts a fresh three-seco
   assert.equal(game.phase, 'paused'); assert.equal(game.countdownTime, remaining); assert.equal(game.time, 0);
   game.pause(); assert.equal(game.phase, 'countdown'); fly(game, 2);
   assert.equal(game.phase, 'playing'); assert.equal(game.time, 0);
-  game.ship = game.spawnAtStation(); fly(game, 4.9);
+  approach(game, 1); game.step(dt, idle); fly(game, 4.9 - dt);
   assert.equal(game.orders[0].status, 'scheduled');
   fly(game, .2); assert.equal(game.orders[0].status, 'waiting', 'first order arrives five gameplay seconds after the countdown');
   game.finish('lives'); game.start('casual');
@@ -243,7 +243,7 @@ test('pause freezes physics and the tip countdown', () => {
   const ship = { ...game.ship }; game.pause(); fly(game, 5, { ...idle, up: true });
   assert.deepEqual(game.ship, ship); assert.equal(game.tip, 10); game.pause(); game.step(dt, idle); assert.ok(game.tip < 10);
 });
-test('crashes keep the order timer running, respawn at the gas station, and end after three lives', () => {
+test('crashes keep the order timer running, respawn at the restaurant, and end after three lives', () => {
   const game = airborne(); setOrder(game, { target: 1, initialTip: 7, elapsed: 0 });
   game.crash('test'); fly(game, 1.6); assert.equal(game.phase, 'playing'); assert.equal(game.ship.landed, PADS[0].id);
   assert.equal(game.order.target, 1); assert.ok(game.tip < 7); game.crash('test'); fly(game, 1.6);
@@ -427,13 +427,6 @@ test('a partial tank supplies only the remaining fraction of a thrust step', () 
   assert.equal(game.fuel, 0);
   assert.ok(Math.abs(game.ship.vy - (luna.gravity - PHYSICS.upThrust / 2) * dt) < .00001);
 });
-test('gas station refills for free up to capacity; other pads do not refill', () => {
-  const game = createGame(); startPlaying(game); game.ship = game.spawnAtStation(); game.fuel = 0;
-  fly(game, 2); assert.ok(Math.abs(game.fuel - 50) < .00001); assert.equal(game.bank, 0);
-  fly(game, 3); assert.equal(game.fuel, 100);
-  approach(game, 1); game.step(dt, idle); game.fuel = 40; fly(game, 1);
-  assert.equal(game.fuel, 40);
-});
 test('first upward movement retracts gear after every landing and keeps momentum', () => {
   for (const pad of PADS) {
     const game = airborne(); approach(game, pad.id); game.step(dt, idle);
@@ -487,10 +480,10 @@ test('locked or balanced side controls return upright and tilt never changes phy
   assert.deepEqual(other.ship, flat.ship, 'tilt does not affect physics');
 });
 test('level configuration selects spawn, restaurant, destinations, and collision geometry', () => {
-  const level = { ...luna, id: 'test-level', gasStation: 1, restaurant: 4, destinations: [2], solids: [] };
+  const level = { ...luna, id: 'test-level', restaurant: 4, destinations: [2], solids: [] };
   const game = createGame(() => .5, level); startPlaying(game, 'expert');
   assert.deepEqual({ x: game.ship.x, y: game.ship.y }, level.start); assert.equal(game.ship.landed, null);
-  assert.equal(game.spawnAtStation().landed, 1); assert.equal(game.destination.id, 4);
+  assert.equal(game.spawnAtStation().landed, 4); assert.equal(game.destination.id, 4);
   assert.ok(game.orders.every(order => order.target === 2));
   game.orders[0].availableAt = 0; approach(game, 4); game.step(dt, idle); fly(game, 1);
   assert.equal(game.order.target, 2); assert.equal(game.destination.id, 2);
@@ -506,7 +499,7 @@ test('first order arrives five seconds after start, with its tip clock beginning
       const order = game.orders[0];
       assert.equal(order.id, 1); assert.equal(order.availableAt, 5); assert.equal(order.elapsed, 0);
       assert.equal(order.status, 'scheduled'); assert.equal(game.tipFor(order), order.initialTip);
-      game.ship = game.spawnAtStation(); fly(game, 4.9);
+      approach(game, 1); game.step(dt, idle); fly(game, 4.9 - dt);
       assert.equal(order.status, 'scheduled'); assert.equal(order.elapsed, 0);
       game.pause(); const time = game.time; fly(game, 1); assert.equal(game.time, time);
       game.pause(); fly(game, .2);

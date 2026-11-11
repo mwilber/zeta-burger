@@ -27,7 +27,7 @@ test('Avalanche starts the stack, keeps older identities, and ships complete mat
   assert.deepEqual(LEVELS.map(level => level.number), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(nextLevel(level).id, 'blizzard');
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
-  assert.equal(level.boulders.spawnIntervalMax, 5); assert.equal(level.padCount, 6);
+  assert.equal(level.boulders.spawnIntervalMax, config.boulders.spawnIntervalMax); assert.equal(level.padCount, 5);
   assert.equal(level.fallingObstacleLimit, 0); assert.equal(level.seekerCount, 0);
   assert.ok(!level.storm && !level.current && !level.gravityWell);
   assert.equal(level.pads.filter(pad => pad.x + pad.width / 2 < 640).length, 3);
@@ -109,7 +109,8 @@ test('boulders bounce downhill on both slopes, roll over stations, and disintegr
 
 test('a rock rebounds from a station deck instead of exploding on contact', () => {
   const game = gameAtPlay(), pad = game.pads.find(p => p.id === 0);
-  game.ship = game.spawnAtStation();
+  const shelter = game.pads.find(p => p.id === 1);
+  game.ship = { x: shelter.x + shelter.width / 2, y: shelter.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: shelter.id };
   const boulder = rock({ x: pad.x + pad.width / 2, y: pad.y - 38, vy: 180 });
   game.boulders = [boulder]; game.step(1 / 60, idle);
   assert.ok(game.boulders.includes(boulder)); assert.ok(boulder.vy < 0);
@@ -154,9 +155,9 @@ test('all pads have clear valley approaches, safe landings, and departure lanes'
 
 test('countdown, pause, editing, final crash, restart, and level changes respect boulder lifecycle', () => {
   const game = new Game(() => .5, level); game.start('casual');
-  run(game, 2.9); assert.equal(game.boulders.length, 0); assert.equal(game.boulderSpawnTime, 3);
+  run(game, 2.9); assert.equal(game.boulders.length, 0); assert.equal(game.boulderSpawnTime, 1 + (level.boulders.spawnIntervalMax - 1) / 2);
   run(game, .1); assert.equal(game.phase, 'playing');
-  game.ship = game.spawnAtStation(); run(game, 3.1); assert.ok(game.boulders.length);
+  game.ship = game.spawnAtStation(); run(game, level.boulders.spawnIntervalMax / 2 + .6); assert.ok(game.boulders.length);
   game.pause(); const before = JSON.stringify({ rocks: game.boulders, delay: game.boulderSpawnTime, time: game.time });
   run(game, 3); assert.equal(JSON.stringify({ rocks: game.boulders, delay: game.boulderSpawnTime, time: game.time }), before);
   game.pause(); game.lives = 1; game.crash('test');
@@ -164,7 +165,7 @@ test('countdown, pause, editing, final crash, restart, and level changes respect
   assert.equal(game.phase, 'gameover'); assert.equal(JSON.stringify(game.boulders), frozen);
   game.start('casual', level, { editing: true }); run(game, 5); assert.deepEqual(game.boulders, []);
   game.start('casual', level, { designMode: false });
-  assert.deepEqual(game.boulders, []); assert.equal(game.boulderSpawnTime, 3);
+  assert.deepEqual(game.boulders, []); assert.equal(game.boulderSpawnTime, 1 + (level.boulders.spawnIntervalMax - 1) / 2);
   game.start('casual', nextLevel(level)); run(game, 4); assert.deepEqual(game.boulders, []);
 });
 

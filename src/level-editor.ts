@@ -39,7 +39,6 @@ export class LevelEditor {
     });
     get('done').addEventListener('click', () => this.close());
     get('count').addEventListener('change', () => this.change(() => this.draft.setPlatformCount(get<HTMLInputElement>('count').valueAsNumber)));
-    get('fuel').addEventListener('change', () => this.change(() => this.draft.setFuel(get<HTMLInputElement>('fuel').checked)));
     get('name').addEventListener('change', () => this.change(() => {
       this.draft.config.name = get<HTMLInputElement>('name').value.trim() || `Custom level ${this.draft.config.number}`;
       this.picker.selectedOptions[0].textContent = `${this.draft.config.number} · ${this.draft.config.name}`;
@@ -88,7 +87,7 @@ export class LevelEditor {
     }));
     get('remove').addEventListener('click', () => this.change(() => {
       if (this.selected.startsWith('pad:')) {
-        if (!this.draft.removePlatform(Number(this.selected.slice(4)))) throw new Error('Keep the restaurant and at least one delivery platform. Toggle Fuel station to remove it.');
+        if (!this.draft.removePlatform(Number(this.selected.slice(4)))) throw new Error('Keep the restaurant and at least one delivery platform.');
       } else if (this.draft.isNew) this.draft.config.structures = this.draft.config.structures?.filter(structure => `structure:${structure.id}` !== this.selected);
       this.selected = '';
     }));
@@ -161,7 +160,6 @@ export class LevelEditor {
     const config = this.draft.config;
     get<HTMLInputElement>('count').value = String(config.pads.length);
     get<HTMLInputElement>('count').min = String(this.draft.minimumPlatforms);
-    get<HTMLInputElement>('fuel').checked = config.gasStation !== null;
     get('new-options').hidden = !this.draft.isNew;
     get<HTMLInputElement>('name').value = config.name;
     get<ArtworkPicker>('background').value = config.assets?.background?.match(/-(\d+)$/)?.[1] ?? '1';
@@ -172,7 +170,7 @@ export class LevelEditor {
     get<HTMLSelectElement>('seekers').value = config.seekerCount ? config.assets?.seeker?.match(/-(\d+)$/)?.[1] ?? '3' : '0';
     get<HTMLInputElement>('current').checked = !!config.current;
     this.selection.replaceChildren(new Option('Choose a platform or barrier', ''));
-    for (const pad of config.pads) this.selection.add(new Option(`Pad ${pad.id} · ${pad.id === config.restaurant ? 'Restaurant' : pad.id === config.gasStation ? 'Fuel station' : pad.name}`, `pad:${pad.id}`));
+    for (const pad of config.pads) this.selection.add(new Option(`Pad ${pad.id} · ${pad.id === config.restaurant ? 'Restaurant' : pad.name}`, `pad:${pad.id}`));
     if (this.draft.isNew) for (const structure of config.structures ?? []) this.selection.add(new Option(`Barrier · ${structure.kind} (${structure.id})`, `structure:${structure.id}`));
     this.selection.value = this.selected;
     if (!this.selection.value) this.selected = '';
@@ -192,7 +190,7 @@ export class LevelEditor {
     }
     const config = this.draft.config;
     get<HTMLButtonElement>('remove').disabled = !position || (!this.draft.isNew && (!this.selected.startsWith('pad:')
-      || Number(this.selected.slice(4)) === config.restaurant || Number(this.selected.slice(4)) === config.gasStation
+      || Number(this.selected.slice(4)) === config.restaurant
       || config.pads.length <= this.draft.minimumPlatforms));
     for (const node of this.stage.querySelectorAll('[data-editor-selected]')) node.removeAttribute('data-editor-selected');
     if (position) {

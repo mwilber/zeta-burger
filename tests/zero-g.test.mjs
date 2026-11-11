@@ -147,11 +147,11 @@ test('clamp progress and stations freeze on pause, countdown, and final crash; r
   game.start('casual', luna); assert.equal(game.level.gravity, 100); assert.deepEqual(game.pads, luna.pads);
 });
 
-test('replacement saucers arrive securely clamped at the moving gas station and refill safely', () => {
+test('replacement saucers arrive securely clamped at the moving restaurant without automatic fueling', () => {
   const game = playing(); fly(game, 1); game.crash('test'); fly(game, CRASH_DURATION);
-  assert.equal(game.ship.landed, zeroG.gasStation); assert.equal(game.clinging, true);
-  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 65) < 1e-9); assert.equal(game.lives, 2);
-  const pad = game.pads.find(p => p.id === zeroG.gasStation); assert.equal(game.ship.y, pad.y - PHYSICS.footY);
+  assert.equal(game.ship.landed, zeroG.restaurant); assert.equal(game.clinging, true);
+  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 40) < 1e-9); assert.equal(game.lives, 2);
+  const pad = game.pads.find(p => p.id === zeroG.restaurant); assert.equal(game.ship.y, pad.y - PHYSICS.footY);
 });
 
 test('pickup and delivery wait for the landing clamp, and the clamp indicator and thrust are visible', () => {
@@ -162,7 +162,7 @@ test('pickup and delivery wait for the landing clamp, and the clamp indicator an
   assert.equal(renderer.service.querySelector('[data-refuel]').textContent, 'HOLD ↓ TO CLAMP');
   fly(game, .05, down); assert.ok(game.order);
   renderer.saucer(game, down, game.time); assert.equal(renderer.vertical.style.display, 'none');
-  assert.match(renderer.service.querySelector('[data-refuel]').textContent, /CLAMPED/);
+  assert.match(renderer.service.querySelector('[data-refuel]').textContent, /NO FUNDS FOR FUEL/);
   touchdown(game, game.order.target); fly(game, .2, down); assert.equal(game.delivered, 0);
   fly(game, .05, down); assert.equal(game.delivered, 1); assert.ok(game.bank > 0);
 });

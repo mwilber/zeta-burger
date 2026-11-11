@@ -28,13 +28,13 @@ test('configuration order controls progression regardless of level numbers', () 
   }
 });
 
-test('Luna is level 1 and preserves all seven original stations', () => {
+test('Luna is level 1 and preserves the six non-fuel stations', () => {
   const level = luna;
   assert.equal(level.number, 1);
   assert.equal(level.name, 'Luna');
-  assert.equal(level.padCount, 7);
+  assert.equal(level.padCount, 6);
   assert.deepEqual(level.pads.map(p => [p.id, p.x, p.y]), [
-    [6, 82, 640], [0, 370, 560], [1, 116, 340], [2, 563, 253],
+    [0, 370, 560], [1, 116, 340], [2, 563, 253],
     [3, 954, 363], [4, 724, 558], [5, 1120, 633]
   ]);
   assert.deepEqual(level.destinations, [1, 2, 3, 4, 5]);
@@ -55,15 +55,15 @@ test('editing a pad position moves its building, island, and all collisions toge
 
 test('pad list controls count, destinations, collision geometry, and required graphics', () => {
   const config = copyConfig();
-  config.pads = config.pads.filter(p => [0, 5, 6].includes(p.id));
+  config.pads = config.pads.filter(p => [0, 1, 5].includes(p.id));
   config.pads[2].id = 42;
   const level = createLevel(config);
   assert.equal(level.padCount, 3);
   assert.equal(level.solids.length, 9);
-  assert.deepEqual(level.destinations, [42]);
+  assert.deepEqual(level.destinations, [1, 42]);
   const names = levelAssetNames(level);
   assert.ok(names.includes('pad-42') && names.includes('pad-42-active') && names.includes('island-42'));
-  assert.ok(!names.includes('pad-1') && !names.includes('mushroom'));
+  assert.ok(!names.includes('pad-2') && !names.includes('observatory'));
 });
 
 test('asset filenames append level number after the original name and all Luna assets exist', () => {
@@ -77,8 +77,8 @@ test('configuration rejects duplicate IDs, missing station roles, and undelivera
   let config = copyConfig(); config.pads[1].id = config.pads[0].id;
   assert.throws(() => createLevel(config), /pad IDs/);
   config = copyConfig(); config.restaurant = 99;
-  assert.throws(() => createLevel(config), /restaurant and gas station/);
-  config = copyConfig(); config.pads = config.pads.slice(0, 2);
+  assert.throws(() => createLevel(config), /restaurant/);
+  config = copyConfig(); config.pads = config.pads.slice(0, 1);
   assert.throws(() => createLevel(config), /delivery pad/);
   config = copyConfig(); config.pads[0].width = -10;
   assert.throws(() => createLevel(config), /geometry/);
@@ -87,21 +87,21 @@ test('configuration rejects duplicate IDs, missing station roles, and undelivera
 test('starting another level replaces spawn, pad roles, destination schedule, and shift state', () => {
   const config = copyConfig();
   config.number = 2; config.id = 'test-world'; config.name = 'Test world';
-  config.pads = config.pads.filter(p => [0, 5, 6].includes(p.id));
-  config.restaurant = 5; config.gasStation = 0; config.start = { x: 600, y: 100 };
+  config.pads = config.pads.filter(p => [0, 1, 5].includes(p.id));
+  config.restaurant = 5; config.start = { x: 600, y: 100 };
   const next = createLevel(config), game = new Game(() => .5);
   game.start(); game.bank = 100; game.lives = 1;
   game.start('casual', next);
   assert.equal(game.level, next);
   assert.deepEqual([game.ship.x, game.ship.y], [600, 100]);
   assert.equal(game.bank, 0); assert.equal(game.lives, 3);
-  assert.ok(game.orders.every(o => o.target === 6));
+  assert.ok(game.orders.every(o => o.target === 1));
   assert.equal(game.countdownTime, START_DELAY);
   const restaurant = next.pads.find(p => p.id === 5);
   game.ship = { x: restaurant.x + restaurant.width / 2, y: restaurant.y - PHYSICS.footY, vx: 0, vy: 0, gear: true, landed: 5 };
   game.orders[0].status = 'waiting'; game.dwell = 1; game.service();
-  assert.equal(game.order.target, 6);
-  assert.equal(game.spawnAtStation().landed, 0);
+  assert.equal(game.order.target, 1);
+  assert.equal(game.spawnAtStation().landed, 5);
 });
 
 test('continuing levels carries the signed bank balance and adds new tips; fresh starts reset it', () => {
