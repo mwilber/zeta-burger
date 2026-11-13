@@ -1,7 +1,7 @@
 import { LANDING_BOUNCE, verticalThrustDirection } from './engine.js';
 import type { Game, GameEvent, Controls } from './engine.js';
 import { SPEECH_CONFIG } from './level-config.js';
-import { STUFFY_GUY, THANKS_VOICES, SPEECH_SAMPLE_RATE, synthesizeSpeech } from './speech.js';
+import { DISPATCH_VOICE, THANKS_VOICES, SPEECH_SAMPLE_RATE, synthesizeSpeech } from './speech.js';
 import type { SamVoice } from './vendor/sam-js.js';
 type SoundGroup = 'jingle' | 'effects' | 'landing' | 'speech';
 type ThrustChannel = 'vertical' | 'side';
@@ -197,12 +197,12 @@ export class Sound {
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
     if (event.type === 'arrival') {
       [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));
-      this.speak(SPEECH_CONFIG.arrival, STUFFY_GUY);
+      this.speak(SPEECH_CONFIG.arrival, DISPATCH_VOICE);
     }
     if (event.type === 'gear') this.tone(150, .06, 'square');
     if (event.type === 'pickup') {
       this.tone(440, .13); this.tone(660, .16, 'triangle', .12);
-      if (event.targetPad !== undefined) this.speak(SPEECH_CONFIG.pickup.replaceAll('#', String(event.targetPad)), STUFFY_GUY);
+      if (event.targetPad !== undefined) this.speak(SPEECH_CONFIG.pickup.replaceAll('#', String(event.targetPad)), DISPATCH_VOICE);
     }
     if (event.type === 'delivery') {
       [523, 659, 784, 1047].forEach((note, i) => this.tone(note, .19, 'triangle', i * .09));

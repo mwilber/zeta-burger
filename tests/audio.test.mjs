@@ -4,7 +4,7 @@ import { Sound } from '../dist/src/audio.js';
 import { Game, LANDING_BOUNCE, PHYSICS, ZERO_G } from '../dist/src/engine.js';
 import { LEVELS } from '../dist/src/levels.js';
 import SamJs from '../dist/src/vendor/sam-js.js';
-import { STUFFY_GUY, THANKS_VOICES } from '../dist/src/speech.js';
+import { DISPATCH_VOICE, THANKS_VOICES } from '../dist/src/speech.js';
 import { SPEECH_CONFIG } from '../dist/src/level-config.js';
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
@@ -209,11 +209,11 @@ test('arrival chimes separately from pickup and muting cancels all layers and qu
   assert.equal(nodes.length, count);
 });
 
-test('arrival and pickup synthesize the requested phrases with the exact Stuffy Guy voice', () => {
+test('arrival and pickup synthesize the requested phrases with the configured dispatch voice', () => {
   const { sound, nodes, context } = audio();
-  const voice = { speed: 82, pitch: 72, throat: 110, mouth: 105 };
+  const voice = { speed: 64, pitch: 94, throat: 158, mouth: 185 };
   const sam = new SamJs(voice);
-  assert.deepEqual(STUFFY_GUY, voice);
+  assert.deepEqual(DISPATCH_VOICE, voice);
   sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
   const arrival = nodes.at(-1);
   assert.equal(arrival.buffer.sampleRate, 22050);

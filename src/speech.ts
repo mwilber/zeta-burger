@@ -1,7 +1,7 @@
 import SamJs from './vendor/sam-js.js';
 import type { SamVoice } from './vendor/sam-js.js';
-// Presets from https://discordier.github.io/sam/ (speed, pitch, throat, mouth).
-export const STUFFY_GUY: SamVoice = { speed: 82, pitch: 72, throat: 110, mouth: 105 };
+export const DISPATCH_VOICE: SamVoice = { speed: 64, pitch: 94, throat: 158, mouth: 185 };
+// Delivery presets from https://discordier.github.io/sam/ (speed, pitch, throat, mouth).
 export const THANKS_VOICES: readonly SamVoice[] = [
   { speed: 72, pitch: 64, throat: 128, mouth: 128 }, // SAM
   { speed: 72, pitch: 64, throat: 110, mouth: 160 }, // Elf
