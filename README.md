@@ -129,12 +129,12 @@ The simulation runs at **120 Hz** independent of rendering rate. Long frame gaps
 
 ## Add designer assets
 
-The default artwork lives in editable SVG files in `public/assets/`. The playfield uses SVG rendering; there are no built-in Canvas drawing calls. Edit the SVG files directly to change the defaults, or use the optional manifest to replace the background, saucer hull, and buildings with PNG, WebP, or SVG images.
+The default artwork lives in editable SVG files in `public/assets/`. The playfield uses SVG rendering; there are no built-in Canvas drawing calls. Edit the SVG files directly to change the defaults, or use the optional manifest to replace the background and buildings with PNG, WebP, or SVG images.
 
 | Asset | Purpose |
 | --- | --- |
 | `background-1.svg` | Sky gradients, planets, mountains, and world boundary scenery |
-| `saucer-1.svg` | Saucer hull and pilot, fitted to the 48 × 25 hull box at `(-24, -17)` |
+| `saucer.svg` | Shared saucer hull and pilot for every level, fitted to the 48 × 25 hull box at `(-24, -17)` |
 | `restaurant-1.svg`, `gas-1.svg`, `mushroom-1.svg`, `observatory-1.svg`, `motel-1.svg`, `crystal-1.svg`, `outpost-1.svg` | Buildings, in local coordinates matching their rectangles in `src/level-config.ts` |
 | `island-0-1.svg` through `island-6-1.svg` | Island art, relative to each island's upper-left vertex |
 | `pad-N-1.svg`, `pad-N-active-1.svg` | Idle and highlighted pads, relative to each pad's upper-left corner |
@@ -143,7 +143,7 @@ The default artwork lives in editable SVG files in `public/assets/`. The playfie
 
 [View the original Canvas and new SVG artwork side by side](docs/screenshots/svg-art-comparison.png).
 
-SVG artboards are mapped into fixed game rectangles. Both the original negative-origin viewBoxes and Adobe Illustrator exports starting at `0 0` work without manual coordinate edits. For example, `saucer-1.svg` may use either `-24 -17 48 25` or `0 0 48 25`: its artboard still fits the hull box with upper-left corner `(-24, -17)` relative to the ship. Buildings, background, islands, pads, and effect templates receive the same normalization; animation coordinates are converted to the exported artwork's local units. Root presentation attributes and nested layer transforms are preserved.
+SVG artboards are mapped into fixed game rectangles. Both the original negative-origin viewBoxes and Adobe Illustrator exports starting at `0 0` work without manual coordinate edits. For example, `saucer.svg` may use either `-24 -17 48 25` or `0 0 48 25`: its artboard still fits the hull box with upper-left corner `(-24, -17)` relative to the ship. Buildings, background, islands, pads, and effect templates receive the same normalization; animation coordinates are converted to the exported artwork's local units. Root presentation attributes and nested layer transforms are preserved.
 
 In Illustrator, keep the existing artboard and export the full artboard rather than cropping to the artwork bounds. Padding and artwork placement inside the artboard affect alignment; the loader fits the artboard rather than centering the visible paths. The saucer's ship origin corresponds to `(24, 17)` on a `0 0 48 25` artboard. Export dimensions may change, but keep the artboard's aspect ratio to avoid stretching. Animated templates still need the IDs, `data-*` hooks, and editable SVG element types described below.
 
@@ -154,7 +154,6 @@ To use manifest overrides, put replacement images in `public/assets/` and edit `
 ```json
 {
   "background": "./assets/alien-sky.webp",
-  "saucer": "./assets/saucer-1.svg",
   "buildings": {
     "restaurant": "./assets/restaurant-1.svg",
     "gas": "./assets/gas-station.svg",
@@ -199,7 +198,7 @@ A pad's `x` and `y` locate the upper-left corner of its landing surface in the *
 }
 ```
 
-Every gameplay graphic appends `-<level number>` to its original name, before the extension. For level 2, supply `background-2.svg`, `saucer-2.svg`, `effects-2.svg`, each configured building such as `restaurant-2.svg`, and `island-<pad ID>-2.svg`, `pad-<pad ID>-2.svg`, `pad-<pad ID>-active-2.svg` for each pad. The loader derives required assets from that level's pad list; no renderer edits are needed for more pads, different IDs, or new building kinds. `icon.svg` stays shared for the page's branding. Optional image overrides use `manifest-<level number>.json` with the same format shown above; paths in the manifest are used exactly as written.
+Every level-specific gameplay graphic appends `-<level number>` to its original name, before the extension. For level 2, supply `background-2.svg`, `effects-2.svg`, each configured building such as `restaurant-2.svg`, and `island-<pad ID>-2.svg`, `pad-<pad ID>-2.svg`, `pad-<pad ID>-active-2.svg` for each pad. The loader derives required assets from that level's pad list; no renderer edits are needed for more pads, different IDs, or new building kinds. `saucer.svg` is the only saucer graphic and is shared across all levels. `icon.svg` stays shared for the page's branding. Optional image overrides use `manifest-<level number>.json` with the same format shown above; paths in the manifest are used exactly as written.
 
 To add a level during development, prepend its configuration and add its graphics. The level selector appears when multiple levels exist, and completing all deliveries automatically transitions to the next configured level. Each level starts a fresh shift with the same skill setting and the usual three-second start countdown. Your signed bank balance carries into the next level, and new delivery tips add to that running total. Starting or replaying a game resets the bank to zero. There is no dialog or confirmation between completed levels. Replay remains available on wins and losses. All scenery, ships, stations, and effects reload when switching levels; failed required art prevents starting that shift. Reload the browser after config or asset edits when using the dev server, or rebuild before deploying. Skill settings live in `SKILLS`, thruster fuel tuning in `FUEL`, and pump defaults in `REFUELING` (`src/engine.ts`). `REFUELING.refillRate` is tank percentage points per second (default **5**); `REFUELING.pricePerUnit` is dollars per percentage point (default **0.1**, or $10 for a full tank). A level can optionally override either value with `refueling: { refillRate: 5, pricePerUnit: .1 }`. Both must be finite and positive. Pricing is separate from the current skill settings so future difficulty rules can tune it independently.
 

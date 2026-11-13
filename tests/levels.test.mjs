@@ -66,7 +66,9 @@ test('pad list controls count, destinations, collision geometry, and required gr
   assert.ok(!names.includes('pad-2') && !names.includes('observatory'));
 });
 
-test('asset filenames append level number after the original name and all Luna assets exist', () => {
+test('asset filenames share the saucer, number level artwork, and all Luna assets exist', () => {
+  for (const level of LEVELS) assert.equal(levelAssetPath('saucer', level), './assets/saucer.svg');
+  assert.equal(levelAssetPath('saucer', { number: 99, assets: { saucer: 'old-ship' } }), './assets/saucer.svg');
   assert.equal(levelAssetPath('pad-3-active', { number: 2 }), './assets/pad-3-active-2.svg');
   assert.equal(levelAssetPath('manifest', { number: 1 }, 'json'), './assets/manifest-1.json');
   for (const name of levelAssetNames(luna)) accessSync(new URL('../public/' + levelAssetPath(name, luna), import.meta.url));

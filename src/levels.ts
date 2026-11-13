@@ -117,9 +117,10 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
   const index = levels.findIndex(level => level.id === current.id);
   return index < 0 ? undefined : levels[index + 1];
 }
-/** Append the level number after the full original asset name, before its extension. */
+/** The saucer is shared; other assets append the level number before the extension. */
 export function levelAssetPath(name: string, level: Pick<Level, 'number' | 'assets'>, extension = 'svg'): string {
-  return `./assets/${level.assets?.[name] ?? `${name}-${level.number}`}.${extension}`;
+  const source = name === 'saucer' ? 'saucer' : level.assets?.[name] ?? `${name}-${level.number}`;
+  return `./assets/${source}.${extension}`;
 }
 export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star' | 'assets' | 'boulders'>): string[] {
   return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.boulders ? ['boulder'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [

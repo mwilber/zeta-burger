@@ -7,7 +7,7 @@ const saucerBox = [-24, -17, 48, 25];
 const point = (matrix, x, y) => [matrix.a * x + matrix.e, matrix.d * y + matrix.f];
 
 test('Illustrator saucer exports land in the hull box and stay aligned with the gear', () => {
-  const edited = readFileSync(new URL('../public/assets/saucer-1.svg', import.meta.url), 'utf8');
+  const edited = readFileSync(new URL('../public/assets/saucer.svg', import.meta.url), 'utf8');
   const viewBox = edited.match(/viewBox="([^"]+)"/)[1];
   const matrix = viewBoxMatrix(viewBox, saucerBox);
   const [x, y, width, height] = viewBox.split(/\s+/).map(Number);

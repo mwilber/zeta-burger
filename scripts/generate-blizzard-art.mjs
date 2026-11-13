@@ -96,6 +96,5 @@ effects = effects.replace(/\n  <g id="lightning-bolt"[\s\S]*?(?=<\/svg>)/, '\n')
 effects = effects.replace('stroke="#70baff" stroke-width="1.4"', 'stroke="#ffffff" stroke-width="1.8"');
 effects = effects.replace('data-crash-colors="#ffd297,#ff918f,#dabaff"', 'data-crash-colors="#ffffff,#bce9ff,#78b6d5"');
 await save('effects', effects);
-await save('saucer', await readFile(new URL('saucer-11.svg', assets), 'utf8'));
-await writeFile(new URL('manifest-12.json', assets), '{\n  "background": "",\n  "saucer": "",\n  "buildings": {}\n}\n');
+await writeFile(new URL('manifest-12.json', assets), '{\n  "background": "",\n  "buildings": {}\n}\n');
 console.log('Generated Blizzard SVG artwork.');

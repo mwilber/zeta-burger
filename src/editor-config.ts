@@ -23,7 +23,7 @@ export class EditorDraft {
       number, id: `custom-${number}`, name: `Custom level ${number}`, theme: 'A new delivery route.',
       gravity: 100, thrustScale: 1, start: { x: 640, y: 80 }, restaurant: 0,
       fallingObstacleLimit: 0, seekerCount: 0, structures: [], pads: [],
-      assets: { background: 'background-1', saucer: 'saucer-1', effects: 'effects-1' }
+      assets: { background: 'background-1', effects: 'effects-1' }
     };
   }
   get minimumPlatforms(): number { return this.isNew ? 0 : 2; }

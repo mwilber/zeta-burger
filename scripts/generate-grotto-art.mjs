@@ -120,14 +120,5 @@ for (const pad of level.pads) {
 
 const effects = await readFile(new URL('effects-9.svg', assets), 'utf8');
 await save('effects', effects.replaceAll('#8de4cf', '#83d9c7').replaceAll('#28332e', '#1b3035').replaceAll('#4c5140', '#475751'));
-await save('saucer', svg('-24 -17 48 25', 'Grotto survey saucer', `
-  <path d="M-14 -2L-10 -13Q0 -21 10 -13L14 -2Z" fill="#83b6b4" stroke="#20383d" stroke-width="1"/>
-  <path d="M-9 -11Q0 -17 9 -11L10 -4H-10Z" fill="#21444c"/>
-  <path d="M-7 -10L-3 -12M1 -13L5 -11" stroke="#c1e5da" stroke-linecap="round" opacity=".8"/>
-  <path d="M-24 0Q-18 -7 0 -6Q18 -7 24 0L19 8H-19Z" fill="#e2d7b6" stroke="#263c3f" stroke-width=".8"/>
-  <path d="M-22 1H22L18 6H-18Z" fill="#627d79"/>
-  <path d="M-17 2H-11M-3 2H3M11 2H17" stroke="#ffc479" stroke-width="2"/>
-  <path d="M-12 7H12" stroke="#b4c7b3" stroke-width="1.5"/>
-`));
-await writeFile(new URL('manifest-10.json', assets), '{\n  "background": "",\n  "saucer": "",\n  "buildings": {}\n}\n');
+await writeFile(new URL('manifest-10.json', assets), '{\n  "background": "",\n  "buildings": {}\n}\n');
 console.log('Generated Grotto level-10 SVG assets.');

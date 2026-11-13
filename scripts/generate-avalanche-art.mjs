@@ -94,6 +94,5 @@ await save('boulder', svg('-40 -40 80 80', 'Giant rolling granite boulder', `
 <path d="M-27 -24L-16 -28M7 -31L15 -27M-30 4L-25 13" stroke="#eee1bd" stroke-width="2" opacity=".7"/>
 <g fill="#4b5550" opacity=".5"><circle cx="14" cy="-9" r="2.5"/><circle cx="-20" cy="9" r="2"/><circle cx="7" cy="24" r="1.5"/><circle cx="22" cy="13" r="2"/></g>`));
 await save('effects', await readFile(new URL('effects-10.svg', assets), 'utf8'));
-await save('saucer', await readFile(new URL('saucer-10.svg', assets), 'utf8'));
-await writeFile(new URL('manifest-13.json', assets), '{\n  "background": "",\n  "saucer": "",\n  "buildings": {}\n}\n');
+await writeFile(new URL('manifest-13.json', assets), '{\n  "background": "",\n  "buildings": {}\n}\n');
 console.log('Generated Avalanche level-13 SVG assets.');
