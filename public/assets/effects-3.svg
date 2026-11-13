@@ -14,9 +14,9 @@
     <path d="M-3 .8H4 M.8 -3V4" fill="none" stroke="#aaf5fa" stroke-width=".5"/>
   </g>
   <g id="gear" fill="none">
-    <path d="M-12 7L-16 13V20 M12 7L16 13V20" stroke="#c7d6d0" stroke-width="2.5" stroke-linejoin="round"/>
-    <circle cx="-16" cy="13" r="1.8" fill="#c7d6d0" stroke="#bdf77d" stroke-width=".8"/>
-    <circle cx="16" cy="13" r="1.8" fill="#c7d6d0" stroke="#bdf77d" stroke-width=".8"/>
+    <path d="M-12 7L-14.5 12 -16 20 M12 7L14.5 12 16 20" stroke="#c7d6d0" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="-14.5" cy="12" r="1.8" fill="#c7d6d0" stroke="#bdf77d" stroke-width=".8"/>
+    <circle cx="14.5" cy="12" r="1.8" fill="#c7d6d0" stroke="#bdf77d" stroke-width=".8"/>
     <path d="M-19 21H-13 M13 21H19" stroke="#bdf77d" stroke-width="2"/>
   </g>
   <g id="ship-shadow"><ellipse cy="24" rx="27" ry="3" fill="#1a0b2755"/></g>
