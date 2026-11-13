@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { Sound } from '../dist/src/audio.js';
 import { Game, LANDING_BOUNCE, PHYSICS, ZERO_G } from '../dist/src/engine.js';
 import { LEVELS } from '../dist/src/levels.js';
+import SamJs from '../dist/src/vendor/sam-js.js';
+import { STUFFY_GUY, THANKS_VOICES } from '../dist/src/speech.js';
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 
@@ -27,7 +29,10 @@ function audio() {
       node.frequency.setValueAtTime = (value, time) => { node.pitch = value; node.frequency.changes.push({ kind: 'set', value, time }); };
       nodes.push(node); return node;
     },
-    createBuffer(channels, length) { const samples = new Float32Array(length); return { getChannelData() { return samples; } }; },
+    createBuffer(channels, length, sampleRate) {
+      const samples = new Float32Array(length);
+      return { duration: length / sampleRate, sampleRate, getChannelData() { return samples; } };
+    },
     createBufferSource() { const node = { ...source(), kind: 'noise' }; nodes.push(node); return node; },
     createBiquadFilter() { return { frequency: parameter(), connect() {}, disconnect() {} }; },
     createGain() { return { gain: parameter(), connections: [], connect(target) { this.connections.push(target); }, disconnect() {} }; }
@@ -190,17 +195,100 @@ test('crash plays a noisy impact and falling rumble, then loss music after the f
 test('arrival chimes separately from pickup and muting cancels all layers and queued effects', () => {
   const { sound, nodes } = audio(), game = playing();
   sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
-  assert.equal(nodes.length, 3); assert.ok(nodes[2].pitch > nodes[0].pitch);
-  sound.play({ type: 'pickup', message: '', x: 0, y: 0 }); assert.equal(nodes.length, 5);
+  assert.equal(nodes.length, 4); assert.ok(nodes[2].pitch > nodes[0].pitch);
+  sound.play({ type: 'pickup', message: '', x: 0, y: 0 }); assert.equal(nodes.length, 6);
   sound.update(game, { ...idle, up: true, left: true });
   assert.equal(sound.toggle(), false);
-  assert.ok(nodes.slice(0, 5).every(node => node.stops.length === 2));
-  assert.ok(nodes.slice(5).every(node => node.stops.length === 1));
+  assert.ok(nodes.slice(0, 6).every(node => node.stops.length === 2));
+  assert.ok(nodes.slice(6).every(node => node.stops.length === 1));
   const count = nodes.length;
   sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
   sound.play({ type: 'gameover', endReason: 'delivered', message: '', x: 0, y: 0 });
   sound.update(game, { ...idle, up: true, left: true });
   assert.equal(nodes.length, count);
+});
+
+test('arrival and pickup synthesize the requested phrases with the exact Stuffy Guy voice', () => {
+  const { sound, nodes, context } = audio();
+  const voice = { speed: 82, pitch: 72, throat: 110, mouth: 105 };
+  const sam = new SamJs(voice);
+  assert.deepEqual(STUFFY_GUY, voice);
+  sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+  const arrival = nodes.at(-1);
+  assert.equal(arrival.buffer.sampleRate, 22050);
+  assert.deepEqual(arrival.buffer.getChannelData(0), sam.buf32('Order Up!'));
+  assert.equal(arrival.starts[0], context.currentTime);
+  for (let pad = 1; pad <= 5; pad++) {
+    sound.play({ type: 'pickup', targetPad: pad, message: 'Unrelated display text', x: 0, y: 0 });
+    const pickup = nodes.at(-1);
+    assert.deepEqual(pickup.buffer.getChannelData(0), sam.buf32(`Pad ${pad} please`));
+    assert.ok(pickup.buffer.getChannelData(0).some(sample => sample !== 0));
+    assert.ok(Math.abs(pickup.stops[0] - pickup.starts[0] - pickup.buffer.duration) < 1e-9);
+  }
+  const speech = nodes.filter(node => node.buffer);
+  speech.slice(1).forEach((node, i) => assert.equal(node.starts[0], speech[i].stops[0], 'announcements queue without overlapping'));
+  sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+  assert.equal(nodes.at(-1).buffer, arrival.buffer, 'repeated phrases reuse synthesized audio');
+});
+
+test('delivery randomly selects each of the other demo voices for Thanks!', t => {
+  const voices = [
+    { speed: 72, pitch: 64, throat: 128, mouth: 128 },
+    { speed: 72, pitch: 64, throat: 110, mouth: 160 },
+    { speed: 92, pitch: 60, throat: 190, mouth: 190 },
+    { speed: 82, pitch: 32, throat: 145, mouth: 145 },
+    { speed: 100, pitch: 64, throat: 150, mouth: 200 }
+  ];
+  assert.deepEqual(THANKS_VOICES, voices);
+  let random = 0;
+  t.mock.method(Math, 'random', () => random);
+  const { sound, nodes } = audio();
+  voices.forEach((voice, i) => {
+    random = (i + .5) / voices.length;
+    sound.play({ type: 'delivery', message: '', x: 0, y: 0 });
+    assert.deepEqual(nodes.at(-1).buffer.getChannelData(0), new SamJs(voice).buf32('Thanks!'));
+  });
+});
+
+test('mute, pause, and restart cancel playing and queued speech and reset its schedule', () => {
+  for (const stop of [sound => sound.toggle(), sound => sound.stopAll(), sound => sound.startJingle()]) {
+    const { sound, nodes, context } = audio();
+    sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+    sound.play({ type: 'pickup', targetPad: 3, message: '', x: 0, y: 0 });
+    const speech = nodes.filter(node => node.buffer);
+    stop(sound);
+    assert.ok(speech.every(node => node.stops.at(-1) === undefined));
+    if (!sound.enabled) {
+      const count = nodes.length;
+      sound.play({ type: 'delivery', message: '', x: 0, y: 0 });
+      assert.equal(nodes.length, count, 'muted speech does not create any nodes');
+      sound.enabled = true;
+    }
+    sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+    assert.equal(nodes.at(-1).starts[0], context.currentTime, 'canceled queue leaves no silent wait');
+    const latest = nodes.at(-1); latest.onended(); sound.stopAll();
+    assert.ok(latest.disconnected);
+    assert.equal(latest.stops.length, 1, 'finished speech releases its source');
+  }
+});
+
+test('final Thanks finishes before victory music and survives automatic level advancement', () => {
+  const win = audio();
+  win.sound.play({ type: 'delivery', message: '', x: 0, y: 0 });
+  const thanks = win.nodes.at(-1), end = thanks.stops[0];
+  win.sound.play({ type: 'gameover', endReason: 'delivered', message: '', x: 0, y: 0 });
+  assert.equal(thanks.stops.length, 1);
+  assert.equal(win.nodes.at(-8).starts[0], end, 'victory music follows speech');
+  win.sound.stopAll(true); win.sound.startJingle(0, true);
+  assert.equal(thanks.stops.length, 1, 'next-level startup preserves the final delivery speech');
+  win.sound.stopAll();
+  assert.equal(thanks.stops.length, 2, 'pause still cancels speech during the new countdown');
+
+  const loss = audio();
+  loss.sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+  const announcement = loss.nodes.at(-1);
+  loss.sound.play({ type: 'gameover', endReason: 'tips', message: '', x: 0, y: 0 });
+  assert.equal(announcement.stops.length, 2, 'losing cancels outdated order announcements');
 });
 
 test('falling obstacle impacts reuse explosion audio without interrupting the flying ship', () => {

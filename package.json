@@ -19,5 +19,8 @@
   "description": "An intergalactic burger delivery arcade game made with TypeScript and SVG.",
   "devDependencies": {
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "sam-js": "0.3.1"
   }
 }

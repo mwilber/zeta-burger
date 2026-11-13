@@ -1,6 +1,8 @@
 import { LANDING_BOUNCE, verticalThrustDirection } from './engine.js';
 import type { Game, GameEvent, Controls } from './engine.js';
-type SoundGroup = 'jingle' | 'effects' | 'landing';
+import { STUFFY_GUY, THANKS_VOICES, SPEECH_SAMPLE_RATE, synthesizeSpeech } from './speech.js';
+import type { SamVoice } from './vendor/sam-js.js';
+type SoundGroup = 'jingle' | 'effects' | 'landing' | 'speech';
 type ThrustChannel = 'vertical' | 'side';
 interface ThrustVoice { carrier: OscillatorNode; wobble: OscillatorNode; gain: GainNode }
 const START_JINGLE = [
@@ -18,7 +20,9 @@ const LOSE_JINGLE = [440, 349.23, 329.63, 261.63, 220];
 export class Sound {
   context: AudioContext | null = null;
   enabled = true;
-  private sources: Record<SoundGroup, Set<AudioScheduledSourceNode>> = { jingle: new Set(), effects: new Set(), landing: new Set() };
+  private sources: Record<SoundGroup, Set<AudioScheduledSourceNode>> = { jingle: new Set(), effects: new Set(), landing: new Set(), speech: new Set() };
+  private speechBuffers = new Map<string, AudioBuffer>();
+  private speechUntil = 0;
   private thrustVoices = new Map<ThrustChannel, ThrustVoice>();
   private landingCueActive = false;
   toggle(): boolean {
@@ -27,8 +31,8 @@ export class Sound {
     else this.stopAll();
     return this.enabled;
   }
-  startJingle(elapsed = 0) {
-    this.stopAll();
+  startJingle(elapsed = 0, keepSpeech = false) {
+    this.stopAll(keepSpeech);
     if (!this.enabled) return;
     // Called from Start/Resume gestures so the browser can unlock audio.
     this.context ??= new AudioContext();
@@ -46,8 +50,9 @@ export class Sound {
     for (const source of this.sources[group]) source.stop();
     this.sources[group].clear();
   }
-  stopAll() {
+  stopAll(keepSpeech = false) {
     this.stopJingle(); this.stopGroup('effects'); this.stopGroup('landing');
+    if (!keepSpeech) { this.stopGroup('speech'); this.speechUntil = 0; }
     this.stopThrust('vertical', true); this.stopThrust('side', true); this.landingCueActive = false;
   }
   private track(source: AudioScheduledSourceNode, nodes: AudioNode[], group: SoundGroup) {
@@ -65,14 +70,16 @@ export class Sound {
     return oscillator;
   }
   private endJingle(won: boolean) {
-    this.stopAll();
+    // The final delivery's "Thanks!" must finish even when the shift ends.
+    this.stopAll(won);
+    const delay = won && this.context ? Math.max(0, this.speechUntil - this.context.currentTime) : 0;
     const notes = won ? WIN_JINGLE : LOSE_JINGLE;
     const beat = won ? .18 : .36;
     notes.forEach((frequency, i) => {
       const final = i === notes.length - 1;
-      this.tone(frequency, final ? .8 : beat * .85, 'triangle', i * beat, .075, 'jingle');
+      this.tone(frequency, final ? .8 : beat * .85, 'triangle', delay + i * beat, .075, 'jingle');
       // A major harmony celebrates a win; a descending minor phrase marks a loss.
-      if (final) this.tone(frequency * (won ? .5 : .75), .8, 'sine', i * beat, .04, 'jingle');
+      if (final) this.tone(frequency * (won ? .5 : .75), .8, 'sine', delay + i * beat, .04, 'jingle');
     });
   }
   private startThrust(channel: ThrustChannel) {
@@ -157,6 +164,25 @@ export class Sound {
     noise.connect(filter); filter.connect(gain); gain.connect(context.destination);
     noise.start(now); noise.stop(now + duration); this.track(noise, [noise, filter, gain], 'effects');
   }
+  private speak(text: string, voice: SamVoice) {
+    if (!this.enabled || !this.context) return;
+    const context = this.context, key = `${JSON.stringify(voice)}:${text}`;
+    let buffer = this.speechBuffers.get(key);
+    if (!buffer) {
+      const samples = synthesizeSpeech(text, voice);
+      if (!samples || !samples.length) return;
+      buffer = context.createBuffer(1, samples.length, SPEECH_SAMPLE_RATE);
+      buffer.getChannelData(0).set(samples);
+      this.speechBuffers.set(key, buffer);
+    }
+    const source = context.createBufferSource(), gain = context.createGain();
+    const start = Math.max(context.currentTime, this.speechUntil);
+    this.speechUntil = start + buffer.duration;
+    source.buffer = buffer; gain.gain.setValueAtTime(.7, start);
+    source.connect(gain); gain.connect(context.destination);
+    source.start(start); source.stop(this.speechUntil);
+    this.track(source, [source, gain], 'speech');
+  }
   play(event: GameEvent) {
     if (event.type === 'gameover') { this.endJingle(event.endReason === 'delivered'); return; }
     if (event.type === 'crash') this.crash();
@@ -168,9 +194,18 @@ export class Sound {
     if (event.type === 'falling-obstacle-impact' || event.type === 'boulder-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
     if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
-    if (event.type === 'arrival') [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));
+    if (event.type === 'arrival') {
+      [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));
+      this.speak('Order Up!', STUFFY_GUY);
+    }
     if (event.type === 'gear') this.tone(150, .06, 'square');
-    if (event.type === 'pickup') { this.tone(440, .13); this.tone(660, .16, 'triangle', .12); }
-    if (event.type === 'delivery') [523, 659, 784, 1047].forEach((note, i) => this.tone(note, .19, 'triangle', i * .09));
+    if (event.type === 'pickup') {
+      this.tone(440, .13); this.tone(660, .16, 'triangle', .12);
+      if (event.targetPad !== undefined) this.speak(`Pad ${event.targetPad} please`, STUFFY_GUY);
+    }
+    if (event.type === 'delivery') {
+      [523, 659, 784, 1047].forEach((note, i) => this.tone(note, .19, 'triangle', i * .09));
+      this.speak('Thanks!', THANKS_VOICES[Math.floor(Math.random() * THANKS_VOICES.length)]);
+    }
   }
 }
