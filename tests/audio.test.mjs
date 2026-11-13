@@ -5,6 +5,7 @@ import { Game, LANDING_BOUNCE, PHYSICS, ZERO_G } from '../dist/src/engine.js';
 import { LEVELS } from '../dist/src/levels.js';
 import SamJs from '../dist/src/vendor/sam-js.js';
 import { STUFFY_GUY, THANKS_VOICES } from '../dist/src/speech.js';
+import { SPEECH_CONFIG } from '../dist/src/level-config.js';
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 
@@ -229,6 +230,19 @@ test('arrival and pickup synthesize the requested phrases with the exact Stuffy 
   speech.slice(1).forEach((node, i) => assert.equal(node.starts[0], speech[i].stops[0], 'announcements queue without overlapping'));
   sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
   assert.equal(nodes.at(-1).buffer, arrival.buffer, 'repeated phrases reuse synthesized audio');
+});
+
+test('speech uses configured phrases and substitutes every pickup # with the destination pad', t => {
+  const original = { ...SPEECH_CONFIG };
+  t.after(() => Object.assign(SPEECH_CONFIG, original));
+  Object.assign(SPEECH_CONFIG, { arrival: 'Food ready!', pickup: 'Go to #. Pad # please!', delivery: 'Thank you!' });
+  const { sound } = audio(), spoken = [];
+  t.mock.method(sound, 'speak', (text) => spoken.push(text));
+  for (const type of ['arrival', 'pickup', 'delivery']) sound.play({ type, targetPad: 12, message: '', x: 0, y: 0 });
+  assert.deepEqual(spoken, ['Food ready!', 'Go to 12. Pad 12 please!', 'Thank you!']);
+  SPEECH_CONFIG.pickup = 'Enjoy the ride!';
+  sound.play({ type: 'pickup', targetPad: 3, message: '', x: 0, y: 0 });
+  assert.equal(spoken.at(-1), 'Enjoy the ride!', 'the placeholder is optional');
 });
 
 test('delivery randomly selects each of the other demo voices for Thanks!', t => {

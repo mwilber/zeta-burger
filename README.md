@@ -24,6 +24,7 @@ npm run build       # Compile a static site into dist/
 Serve `dist/` with any static HTTP host, at the domain root or in a subdirectory such as `/games/zeta-burger/`. The game uses relative asset URLs. No server APIs or remote fonts are needed. TypeScript handles compilation and type checking. The build bundles [sam-js](https://github.com/discordier/sam) locally for Commodore 64-style speech synthesis; its upstream attribution and license notes are included in `dist/src/vendor/sam-js-README.md`.
 
 Order announcements use SAM's **Stuffy Guy** preset (speed 82, pitch 72, throat 110, mouth 105): “Order Up!” on arrival and “Pad [number] please” on pickup. Deliveries say “Thanks!” in a random other demo voice. Speech uses the same Web Audio context and mute/pause controls as the sound effects.
+Edit the three phrases in `SPEECH_CONFIG` in `src/level-config.ts`; each `#` in the pickup phrase is replaced with the destination pad number (for example, `Pad # please`).
 
 ## Deploy to Heroku
 
