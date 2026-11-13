@@ -27,7 +27,7 @@ test('Abyss preserves its identity and progression behind Megalopolis', () => {
   assert.equal(nextLevel(LEVELS.find(l => l.id === 'megalopolis')), abyss);
   assert.deepEqual(LEVELS.map(l => [l.number, l.id]), [[13, 'avalanche'], [12, 'blizzard'], [11, 'srormfront'], [10, 'grotto'], [9, 'freeman'], [8, 'megalopolis'], [7, 'abyss'], [6, 'event-horizon'], [5, 'zero-g'], [4, 'trick-or-treat'], [3, 'obsession'], [2, 'meteor-shower'], [1, 'luna']]);
   assert.equal(nextLevel(abyss).id, 'event-horizon');
-  assert.equal(abyss.padCount, 7); assert.equal(abyss.seekerCount, 4); assert.equal(abyss.fallingObstacleLimit, 0);
+  assert.equal(abyss.padCount, 6); assert.equal(abyss.seekerCount, 4); assert.equal(abyss.fallingObstacleLimit, 0);
   assert.equal(abyss.gravity, 35); assert.equal(abyss.thrustScale ?? 1, 1);
   assert.ok(LEVELS.filter(l => l !== abyss).every(l => l.current === undefined));
 });
@@ -72,7 +72,7 @@ test('full-power sideways thrust overcomes flow and consumes the usual fuel', ()
 
 test('stations, collision shapes, and docked ships ride a full current cycle safely', () => {
   const game = playing(), other = playing(), original = structuredClone(abyss);
-  dock(game, abyss.gasStation); const offset = game.ship.x - game.pads[0].x;
+  dock(game, abyss.restaurant); const offset = game.ship.x - game.pads[0].x;
   let left = false, right = false;
   for (let i = 0; i < abyss.current.period * 120; i++) {
     game.step(dt, idle);
@@ -100,7 +100,7 @@ test('stations, collision shapes, and docked ships ride a full current cycle saf
   }
 });
 
-test('moving pads accept gentle landings, serve orders, release on lift-off, and refill replacements', () => {
+test('moving pads accept gentle landings, serve orders, release on lift-off, and dock replacements', () => {
   const game = playing(); game.seekers = [];
   game.orders[0].availableAt = 0;
   const touchdown = id => {
@@ -117,15 +117,15 @@ test('moving pads accept gentle landings, serve orders, release on lift-off, and
   touchdown(game.order.target); fly(game, .81); assert.equal(game.delivered, 1); assert.ok(game.bank > 0);
   game.toggleGear(); assert.equal(game.ship.landed, null);
   game.crash('test'); fly(game, CRASH_DURATION);
-  assert.equal(game.ship.landed, abyss.gasStation); assert.equal(game.clinging, true);
-  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 65) < 1e-9); assert.equal(game.lives, 2);
+  assert.equal(game.ship.landed, abyss.restaurant); assert.equal(game.clinging, true);
+  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 40) < 1e-9); assert.equal(game.lives, 2);
 });
 
 test('fish pursue in open water, swim through scenery, wander around docked ships, and only hit in flight', () => {
   const game = playing();
   game.seekers = [fish({ x: 200, y: 80 })];
   fly(game, 1); assert.ok(game.seekers[0].x > 220); assert.ok(game.seekers[0].vx > 0);
-  dock(game, abyss.gasStation);
+  dock(game, abyss.restaurant);
   for (const solid of game.solids) {
     const x = solid.points.reduce((sum, p) => sum + p.x, 0) / solid.points.length;
     const y = solid.points.reduce((sum, p) => sum + p.y, 0) / solid.points.length;

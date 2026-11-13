@@ -32,7 +32,7 @@ test('Trick Or Treat reskins Obsession and every level has its required assets',
   assert.deepEqual(trickOrTreat.solids, obsession.solids);
   assert.deepEqual(trickOrTreat.start, obsession.start);
   assert.deepEqual(trickOrTreat.destinations, obsession.destinations);
-  for (const setting of ['restaurant', 'gasStation', 'seekerCount', 'fallingObstacleLimit']) {
+  for (const setting of ['restaurant', 'seekerCount', 'fallingObstacleLimit']) {
     assert.equal(trickOrTreat[setting], obsession[setting]);
   }
   assert.equal(obsession.number, 3); assert.equal(obsession.seekerCount, 4);
@@ -94,7 +94,7 @@ test('landed ships are immune even inside clouds, whose random headings change e
   assert.notEqual(angle, 0); assert.ok(s.wanderTime >= 1.9 && s.wanderTime <= 4);
   fly(game, 4.1);
   assert.notEqual(s.wanderAngle, angle); assert.equal(game.lives, 3); assert.equal(game.phase, 'playing');
-  assert.equal(game.ship.landed, game.level.gasStation);
+  assert.equal(game.ship.landed, game.level.restaurant);
   // Motion does not depend on where the landed ship is: it never chases a safe ship.
   const other = playing(); other.ship = { ...game.ship, x: 1100, landed: 0 };
   other.seekers = structuredClone(game.seekers); other.random = game.random;
@@ -141,7 +141,7 @@ test('taking off or retracting gear removes landed protection; a completed landi
     if (!liftOff) game.toggleGear();
     game.step(dt, { ...idle, up: liftOff }); assert.equal(game.lives, 2);
   }
-  const game = playing(), pad = game.level.pads.find(p => p.id === game.level.gasStation);
+  const game = playing(), pad = game.level.pads.find(p => p.id === game.level.restaurant);
   game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .1, vx: 0, vy: 20, gear: true, landed: null };
   game.seekers = [cloud({ x: game.ship.x, y: game.ship.y })];
   game.step(dt, idle); assert.equal(game.ship.landed, pad.id); assert.equal(game.lives, 3);
@@ -161,7 +161,7 @@ test('seekers freeze during countdown, pause, final explosion, and game over; ot
   game.pause(); const paused = structuredClone(game.seekers); fly(game, 3);
   assert.deepEqual(game.seekers, paused); game.pause();
   game.crash('test'); fly(game, .1); assert.notDeepEqual(game.seekers, paused);
-  fly(game, CRASH_DURATION); assert.equal(game.ship.landed, game.level.gasStation); assert.equal(game.lives, 2);
+  fly(game, CRASH_DURATION); assert.equal(game.ship.landed, game.level.restaurant); assert.equal(game.lives, 2);
   game.lives = 1; game.crash('test'); const final = structuredClone(game.seekers);
   fly(game, CRASH_DURATION + 1); assert.equal(game.phase, 'gameover'); assert.deepEqual(game.seekers, final);
 });

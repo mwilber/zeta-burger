@@ -28,10 +28,10 @@ test('Megalopolis retains four street-level barriers, four roofs, and three balc
   assert.equal(level.number, 8); assert.equal(nextLevel(level).id, 'abyss');
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
-  assert.equal(level.padCount, 7); assert.equal(level.structures.length, 4);
+  assert.equal(level.padCount, 6); assert.equal(level.structures.length, 4);
   const rooftops = level.pads.filter(p => p.island.length === 0);
   const balconies = level.pads.filter(p => p.island.length > 0);
-  assert.deepEqual(rooftops.map(p => p.id), [6, 0, 2, 4]);
+  assert.deepEqual(rooftops.map(p => p.id), [0, 2, 4]);
   assert.deepEqual(balconies.map(p => p.id), [1, 3, 5]);
   for (const tower of level.structures) {
     assert.equal(tower.y + tower.height, WORLD_HEIGHT);
@@ -96,10 +96,10 @@ test('tower faces, unmarked roofs, and fast horizontal crossings are fatal', () 
   assert.equal(gearOnly.phase, 'crashed'); assert.match(gearOnly.events.at(-1).message, /Landing gear impact/);
 });
 
-test('replacement ships dock on the fuel roof, refill, and clear city geometry on level changes', () => {
+test('replacement ships dock on the restaurant roof, and clear city geometry on level changes', () => {
   const game = playing(); game.crash('test'); fly(game, CRASH_DURATION);
-  assert.equal(game.ship.landed, level.gasStation); assert.equal(game.clinging, true);
-  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 65) < 1e-9); assert.equal(game.lives, 2);
+  assert.equal(game.ship.landed, level.restaurant); assert.equal(game.clinging, true);
+  game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 40) < 1e-9); assert.equal(game.lives, 2);
   game.start('casual', LEVELS.find(l => l.id === 'zero-g')); game.step(START_DELAY, idle);
   game.ship = game.spawnAtStation(); game.dwell = .25; game.step(dt, idle);
   assert.ok(game.solids.every(s => s.kind !== 'structure'));

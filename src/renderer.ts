@@ -4,13 +4,13 @@ import { LEVELS, levelAssetNames, levelAssetPath, padBuildingAssetName } from '.
 import type { Level } from './levels.js';
 import { cloneArtwork, artPoint, artLength, animateTranslation } from './svg-art.js';
 import type { ArtBox } from './svg-art.js';
-import { CRASH_DURATION, SEEKERS, verticalThrustDirection } from './engine.js';
+import { CRASH_DURATION, FUEL, SEEKERS, verticalThrustDirection } from './engine.js';
 import type { Game, Controls, GameEvent } from './engine.js';
 import { LIGHTNING, lightningArcPulse, windVelocity, windOffset } from './storm.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: string; size: number; node?: SVGGElement }
-interface ArtManifest { background?: string; saucer?: string; buildings?: Record<string, string> }
+interface ArtManifest { background?: string; buildings?: Record<string, string> }
 interface StationArt { pad: Pad; root: SVGGElement; island: SVGGElement; vines: SVGPathElement[]; idle: SVGGElement; active: SVGGElement; beacon: SVGTextElement }
 const attr = (node: Element, values: Record<string, string | number>) => {
   for (const [key, value] of Object.entries(values)) node.setAttribute(key, String(value));
@@ -187,7 +187,7 @@ export class Renderer {
       this.verticalWaves = Array.from(this.vertical.querySelectorAll('[data-wave]'));
       this.horizontalWaves = Array.from(this.horizontal.querySelectorAll('[data-wave]'));
       this.ship = this.group(); this.gear = this.asset('gear');
-      this.ship.append(this.gear, this.image('saucer', this.asset('saucer', [-24, -17, 48, 25]), -24, -17, 48, 25));
+      this.ship.append(this.gear, this.asset('saucer', [-24, -17, 48, 25]));
       this.carried = this.asset('carried-order'); this.service = this.asset('service'); this.crash = this.asset('crash-message');
       this.scene.append(this.waiting, this.shadow, this.vertical, this.horizontal, this.ship, this.carried, this.service, this.fallingObstacleLayer, this.boulderLayer, this.seekerLayer, this.particleLayer, this.crash);
       if (level.storm) {
@@ -228,7 +228,7 @@ export class Renderer {
       const response = await fetch(levelAssetPath('manifest', level, 'json'));
       if (!response.ok) return;
       const art = await response.json() as ArtManifest;
-      await Promise.all(Object.entries({ background: art.background, saucer: art.saucer, ...art.buildings }).map(async ([key, source]) => {
+      await Promise.all(Object.entries({ background: art.background, ...art.buildings }).map(async ([key, source]) => {
         if (typeof source !== 'string' || !source) return;
         const image = new Image();
         image.src = source;
@@ -249,7 +249,7 @@ export class Renderer {
     }
   }
   private buildStations(pads: Pad[]) {
-    this.pads = pads; this.images.forEach((_, key) => { if (key !== 'background' && key !== 'saucer') this.images.delete(key); });
+    this.pads = pads; this.images.forEach((_, key) => { if (key !== 'background') this.images.delete(key); });
     this.stationLayer.replaceChildren();
     this.stations = pads.map(pad => {
       const root = this.group(), base = pad.island[0];
@@ -426,7 +426,7 @@ export class Renderer {
     for (const station of this.stations) {
       const offset = padOffset(station.pad, game.time, game.level.current);
       move(station.root, offset.x, offset.y);
-      const active = station.pad.id === (game.order?.target ?? game.level.restaurant) || (game.fuel <= 25 && station.pad.id === game.level.gasStation);
+      const active = station.pad.id === (game.order?.target ?? game.level.restaurant) || (game.fuel <= 25 && station.pad.id === game.level.restaurant);
       visible(station.idle, !active); visible(station.active, active);
       animateTranslation(station.beacon, 0, this.reducedMotion ? 0 : Math.sin(time * 3) * 3);
       for (const vine of station.vines) {
@@ -481,7 +481,7 @@ export class Renderer {
     const progress = find<SVGRectElement>(this.service, '[data-progress]');
     attr(progress, { width: artLength(progress, 36 * Math.min(1, game.dwell / game.serviceDelay), 'x') });
     const refuel = find<SVGTextElement>(this.service, '[data-refuel]');
-    visible(refuel, s.landed !== null && (s.landed === game.level.gasStation || game.level.gravity === 0));
-    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.gasStation ? game.fuel < 100 ? `REFUELING ${Math.floor(game.fuel)}%` : 'TANK FULL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
+    visible(refuel, s.landed !== null && (s.landed === game.level.restaurant || game.level.gravity === 0));
+    setText(refuel, game.needsLandingThrust ? 'HOLD ↓ TO CLAMP' : s.landed === game.level.restaurant ? game.fuel >= FUEL.capacity ? 'TANK FULL' : game.bank <= 0 ? 'NO FUNDS FOR FUEL' : controls.refuel ? `FUELING ${Math.floor(game.fuel)}%` : 'HOLD F / FUEL TO REFILL' : game.level.gravityWell ? 'DOCKED · ↑ TO LIFT OFF' : 'CLAMPED · ↑ TO LIFT OFF');
   }
 }

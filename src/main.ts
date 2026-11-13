@@ -17,7 +17,7 @@ const keys = new Set<string>();
 const mobileTouch = window.matchMedia('(pointer: coarse)');
 const app = document.querySelector<HTMLElement>('.app')!;
 const touchSurface = get('touch-controls');
-const touch = new TouchControls(touchSurface, get('touch-joystick'), get('touch-knob'), toggleGear);
+const touch = new TouchControls(touchSurface, get('touch-joystick'), get('touch-knob'), toggleGear, get<HTMLButtonElement>('touch-fuel'));
 const world = get('world-wrap');
 // The flight UI uses the same 1280 × 760 coordinate space as the SVG on mobile.
 new ResizeObserver(([entry]) => {
@@ -67,7 +67,8 @@ function controls(): Controls {
   return { left: keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : swipe.left,
     right: keys.has('ArrowRight') || keys.has('KeyD') ? 1 : swipe.right,
     up: keys.has('ArrowUp') || keys.has('KeyW') ? 1 : swipe.up,
-    down: keys.has('ArrowDown') || keys.has('KeyS') ? 1 : swipe.down };
+    down: keys.has('ArrowDown') || keys.has('KeyS') ? 1 : swipe.down,
+    refuel: keys.has('KeyF') || swipe.refuel === true };
 }
 let designBeforeEditor = false;
 const editor = new LevelEditor(stage, {
@@ -165,7 +166,7 @@ overlay.addEventListener('click', event => {
   if (button?.id === 'start' || button?.dataset.action === 'restart') void start(advanceFailed);
   else if (button?.dataset.action === 'resume') pause();
 });
-const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'Space', 'KeyP', 'Escape', 'Enter']);
+const handled = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyG', 'KeyF', 'Space', 'KeyP', 'Escape', 'Enter']);
 window.addEventListener('keydown', event => {
   if (dialog.open || get<HTMLDialogElement>('editor-export-dialog').open || editor.active
     || event.target instanceof HTMLSelectElement || event.target instanceof HTMLInputElement
@@ -188,7 +189,9 @@ window.addEventListener('resize', resetInputs);
 function updateHud() {
   const touchActive = mobileTouch.matches && !editor.active && !game.designMode && !dialog.open
     && (game.phase === 'countdown' || game.phase === 'playing' || game.phase === 'crashed');
-  touch.setActive(touchActive, game.phase === 'playing');
+  touch.setActive(touchActive, game.phase === 'playing', game.atRestaurant);
+  const pump = game.refueling;
+  text(get('touch-fuel'), game.fuel >= FUEL.capacity ? 'TANK FULL' : game.bank <= 0 ? 'NO FUNDS' : `HOLD TO FUEL · ${money(pump.pricePerUnit * 10)} / 10%`);
   app.inert = touchActive;
   document.body.classList.toggle('touch-playing', touchActive);
   skillSelect.disabled = editor.active || starting || (!game.designMode && game.phase !== 'ready' && game.phase !== 'gameover');
@@ -205,10 +208,10 @@ function updateHud() {
   text(get('world-name'), game.level.name.toUpperCase());
   const intro = document.querySelector<HTMLElement>('#intro-description');
   const cavern = game.level.structures.some(structure => structure.outline);
-  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order.${game.level.gasStation === null ? ' No fuel station: conserve your fuel.' : ` Refuel at pad ${game.level.gasStation}.`}${game.level.storm?.precipitation === 'sleet' ? ' Abrupt gusts sweep white sleet across the alpine stations. Dodge ship-sized snowflakes falling slowly from the sky; they can hit your hull or gear even while docked.' : game.level.storm ? ' Abrupt gusts push your saucer through heavy rain. Watch for arcs and accelerating zaps on landing pads: they warn of lightning 3.5 seconds ahead. Stay landed for immunity, or clear the bolt before it strikes.' : game.level.boulders ? ' Fly between the mountains and land on their numbered ledges. Giant boulders bounce and roll downhill, then break apart at the valley floor. Landing stops new boulders on your side; rocks already rolling remain dangerous.' : cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
+  if (intro) text(intro, `${game.level.star ? 'Fly inside' : game.level.current ? 'Dive into' : 'Start above'} ${game.level.name}. Your first order arrives in 5 seconds. Deliver every order. Hold F at the restaurant to buy fuel, or hold the FUEL button on mobile.${game.level.storm?.precipitation === 'sleet' ? ' Abrupt gusts sweep white sleet across the alpine stations. Dodge ship-sized snowflakes falling slowly from the sky; they can hit your hull or gear even while docked.' : game.level.storm ? ' Abrupt gusts push your saucer through heavy rain. Watch for arcs and accelerating zaps on landing pads: they warn of lightning 3.5 seconds ahead. Stay landed for immunity, or clear the bolt before it strikes.' : game.level.boulders ? ' Fly between the mountains and land on their numbered ledges. Giant boulders bounce and roll downhill, then break apart at the valley floor. Landing stops new boulders on your side; rocks already rolling remain dangerous.' : cavern ? ' Pick up burgers outside, then enter the mountain. Follow the passages around the central boulders; cavern walls are solid. Only numbered pads allow landing.' : game.level.structures.length ? ' Tall towers block the city. Fly above the skyline, then descend onto numbered rooftop and balcony pads.' : game.level.current ? ' The ocean current carries you and the stations left and right. Match the drifting pad and dock for safety from fish.' : game.level.star ? ' Named for Freeman Dyson, this sphere surrounds a central star with a gentler gravitational pull. Keep clear of its bright surface. Land on any pad to stop the pull.' : game.level.blackHole ? ' The central black hole pulls harder up close. Stay on the outer rim; crossing the event horizon destroys your saucer. Land on any pad to stop the pull.' : game.level.gravity === 0 ? ' No gravity: use thrust to brake. Hold Down on a moving pad for 250 ms to clamp.' : ''}${game.level.fallingObstacleLimit ? ' Watch for falling obstacles!' : ''}${game.level.seekerCount && !game.level.current ? ' Seekers hunt you in flight. Land on any pad for safety.' : ''}`);
   text(get('help-dwell'), String(game.serviceDelay));
   text(get('help-restaurant'), `pad ${game.level.restaurant}`);
-  text(get('help-gas'), game.level.gasStation === null ? 'This level has no fuel station; conserve fuel.' : `Land at pad ${game.level.gasStation} to refill at 25% per second for free.`);
+  text(get('help-gas'), `Land at the restaurant on pad ${game.level.restaurant} and hold F, or hold the FUEL button on the right on mobile. Fuel fills at ${pump.refillRate}% per second and costs ${money(pump.pricePerUnit * 10)} per 10% of the tank, deducted as you pump. Release to stop; pumping also stops when the tank is full or your bank runs out.`);
   get('falling-obstacle-help').hidden = game.level.fallingObstacleLimit === 0;
   get('seeker-help').hidden = game.level.seekerCount === 0 || !!game.level.current;
   get('city-help').hidden = game.level.structures.length === 0 || !!game.level.boulders || cavern;
@@ -220,7 +223,7 @@ function updateHud() {
   get('black-hole-help').hidden = !game.level.blackHole;
   get('star-help').hidden = !game.level.star;
   fuelMeter.value = game.fuel;
-  const fuelDescription = `${Math.floor(game.fuel)}% · ${game.level.gasStation === null ? 'No fuel station' : `Refill at pad ${game.level.gasStation}`}`;
+  const fuelDescription = `${Math.floor(game.fuel)}% · Hold F at restaurant pad ${game.level.restaurant} · ${money(pump.pricePerUnit * 10)} / 10%`;
   fuelMeter.setAttribute('aria-valuetext', fuelDescription); fuelMeter.title = fuelDescription;
   fuelMeter.closest('.fuel-readout')!.classList.toggle('low-fuel', game.fuel <= FUEL.low);
   text(hud.bank, money(game.bank)); text(hud.tip, game.order ? money(game.tip) : '—');

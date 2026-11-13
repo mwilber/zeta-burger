@@ -15,13 +15,13 @@ function fly(game, seconds, controls = idle) {
   for (let i = 0; i < Math.round(seconds / dt); i++) game.step(dt, controls);
 }
 
-test('Event Horizon retains its central well and seven accessible peripheral stations', () => {
+test('Event Horizon retains its central well and six accessible peripheral stations', () => {
   assert.equal(level.number, 6);
   assert.equal(nextLevel(level).id, 'zero-g');
   assert.deepEqual(LEVELS.map(level => level.number), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(level.blackHole.x, WORLD_WIDTH / 2); assert.equal(level.blackHole.y, WORLD_HEIGHT / 2);
   assert.equal(level.gravity, 0); assert.equal(level.thrustScale ?? 1, 1);
-  assert.equal(level.padCount, 7); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
+  assert.equal(level.padCount, 6); assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   for (const pad of level.pads) {
     assert.ok(pad.y <= 170 || pad.y >= 640 || pad.x + pad.width / 2 < 200 || pad.x > 1080);
     assert.equal(pad.motion, undefined);
@@ -70,7 +70,7 @@ test('every station immediately shelters a landed ship without holding thrust, w
   for (const pad of level.pads) {
     const game = playing();
     game.orders[0].availableAt = 0;
-    if (pad.id !== level.restaurant && pad.id !== level.gasStation) {
+    if (pad.id !== level.restaurant) {
       game.orders[0].status = 'onboard'; game.orders[0].target = pad.id;
     }
     game.ship = { x: pad.x + pad.width / 2, y: pad.y - PHYSICS.footY - .05, vx: 0, vy: 20, gear: true, landed: null };
@@ -80,10 +80,10 @@ test('every station immediately shelters a landed ship without holding thrust, w
     assert.equal(game.dwell, 0);
     fly(game, game.serviceDelay);
     if (pad.id === level.restaurant) assert.ok(game.order);
-    else if (pad.id !== level.gasStation) assert.equal(game.delivered, 1);
+    else if (pad.id !== level.restaurant) assert.equal(game.delivered, 1);
     game.fuel = 40; const ship = { ...game.ship }; fly(game, 1);
     assert.deepEqual(game.ship, ship); assert.equal(game.lives, 3);
-    assert.ok(Math.abs(game.fuel - (pad.id === level.gasStation ? 65 : 40)) < 1e-9);
+    assert.ok(Math.abs(game.fuel - 40) < 1e-9);
     game.step(dt, { ...idle, up: true }); assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false);
   }
 });
@@ -95,7 +95,7 @@ test('landed immunity needs no fuel and ends when gear retracts or the ship take
     game.step(dt, idle); assert.equal(game.ship.landed, pad.id); assert.equal(game.clinging, true);
     const landed = { ...game.ship }; fly(game, .5);
     assert.deepEqual(game.ship, landed);
-    if (pad.id !== level.gasStation) assert.equal(game.fuel, 0);
+    if (pad.id !== level.restaurant) assert.equal(game.fuel, 0);
     game.fuel = 40;
     if (release === 'gear') game.toggleGear();
     game.step(dt, release === 'up' ? { ...idle, up: true } : idle);
@@ -115,7 +115,7 @@ test('the pull freezes during countdown, pause, and game over; replacement ships
   fly(game, 2); assert.deepEqual(game.ship, spawn); fly(game, 1);
   game.pause(); fly(game, 2); assert.deepEqual(game.ship, spawn); game.pause();
   game.ship.x = 640; game.ship.y = 380; game.step(dt, idle); fly(game, CRASH_DURATION);
-  assert.equal(game.ship.landed, level.gasStation); assert.equal(game.clinging, true);
+  assert.equal(game.ship.landed, level.restaurant); assert.equal(game.clinging, true);
   const replacement = { ...game.ship }; fly(game, 1); assert.deepEqual(game.ship, replacement);
   game.finish('lives'); fly(game, 1); assert.deepEqual(game.ship, replacement);
   game.start('casual', LEVELS.find(level => level.id === 'luna')); game.step(START_DELAY, idle);
@@ -131,7 +131,7 @@ test('malformed black-hole configurations fail with a level-specific error', () 
   }
 });
 
-for (const level of LEVELS.filter(level => level.gravityWell)) test(`${level.name}: a full restaurant–delivery–refuel–restaurant route works without losing a life`, () => {
+for (const level of LEVELS.filter(level => level.gravityWell)) test(`${level.name}: a restaurant–delivery–restaurant route supports paid fueling without losing a life`, () => {
   const game = new Game(() => .999, level); game.start('casual'); game.step(START_DELAY, idle);
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   function navigate(x, y, landId = null) {
@@ -142,9 +142,16 @@ for (const level of LEVELS.filter(level => level.gravityWell)) test(`${level.nam
       if (landId !== null && !s.gear && Math.abs(dx) < .5 && Math.abs(s.vx) < .6 && Math.abs(dy) < 12) game.toggleGear();
       const desiredX = clamp(dx * 1.8, -85, 85);
       const desiredY = s.gear ? clamp((dy + 8) * 1.5, 12, 25) : clamp(dy * 1.8, -65, 65);
+      // Use proportional touch thrust to brake and coast, conserving enough
+      // fuel for the return now that the restaurant is the only pump.
+      const well = level.gravityWell, distance = Math.hypot(well.x - s.x, well.y - s.y);
+      const pull = Math.min(well.maxAcceleration, well.strength / distance ** 2);
+      const ax = (desiredX - s.vx) * 4 - (well.x - s.x) / distance * pull;
+      const ay = (desiredY - s.vy) * 4 - (well.y - s.y) / distance * pull;
       const controls = s.landed !== null ? idle : {
-        left: !s.gear && s.vx > desiredX + .3, right: !s.gear && s.vx < desiredX - .3,
-        up: s.vy > desiredY + .3, down: s.vy < desiredY - .3
+        left: s.gear ? 0 : clamp(-ax / PHYSICS.sideThrust, 0, 1),
+        right: s.gear ? 0 : clamp(ax / PHYSICS.sideThrust, 0, 1),
+        up: clamp(-ay / PHYSICS.upThrust, 0, 1), down: clamp(ay / PHYSICS.downThrust, 0, 1)
       };
       game.step(dt, controls);
       assert.equal(game.phase, 'playing', `${game.events.at(-1)?.message} heading to ${x},${y}; fuel ${game.fuel}; ship ${JSON.stringify(s)}`);
@@ -157,16 +164,13 @@ for (const level of LEVELS.filter(level => level.gravityWell)) test(`${level.nam
   while (!game.order) game.step(dt, idle);
   assert.equal(game.order.target, 5);
   game.step(dt, { ...idle, up: true });
-  for (const [x, y] of [[318, 65], [460, 65], [460, 260], [300, 260], [137, 260]]) navigate(x, y);
-  navigate(137, 398, 6); fly(game, 4); assert.equal(game.fuel, 100);
-  game.step(dt, { ...idle, up: true });
-  for (const [x, y] of [[137, 280], [300, 280], [300, 550], [432, 550]]) navigate(x, y);
+  for (const [x, y] of [[318, 65], [460, 65], [460, 260], [300, 260], [300, 550], [432, 550]]) navigate(x, y);
   navigate(432, 633, 5); assert.equal(game.delivered, 1);
   game.step(dt, { ...idle, up: true });
-  for (const [x, y] of [[432, 550], [300, 550], [300, 320], [137, 320]]) navigate(x, y);
-  navigate(137, 398, 6); fly(game, 4); assert.equal(game.fuel, 100);
-  game.step(dt, { ...idle, up: true });
-  for (const [x, y] of [[137, 280], [460, 280], [460, 65], [318, 65]]) navigate(x, y);
+  for (const [x, y] of [[432, 550], [300, 550], [300, 280], [460, 280], [460, 65], [318, 65]]) navigate(x, y);
   navigate(318, 133, 0);
+  const fuelBefore = game.fuel, bankBefore = game.bank;
+  fly(game, 2, { ...idle, refuel: true });
+  assert.ok(game.fuel > fuelBefore); assert.ok(game.bank < bankBefore);
   assert.equal(game.lives, 3); assert.ok(game.bank > 0); assert.ok(game.order);
 });

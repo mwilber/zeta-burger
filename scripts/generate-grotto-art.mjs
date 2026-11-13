@@ -91,7 +91,7 @@ for (const pad of level.pads) {
     await save(`pad-${id}${active ? '-active' : ''}`, svg(`-5 -90 ${w + 10} 160`, `${name} landing pad${active ? ' — active' : ''}`, `
   ${active ? `<path d="M0 -3L-3 -68H${w + 3}L${w} -3Z" fill="${color}" opacity=".05"/>
   <path d="M2 -10V-48M${w - 2} -10V-48" stroke="${color}" stroke-dasharray="3 8" opacity=".38"/>
-  <text data-beacon="" x="${w / 2}" y="-70" fill="${color}" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">${id === 0 ? 'PICKUP' : id === 6 ? 'FUEL' : `PAD ${id}`}</text>` : ''}
+  <text data-beacon="" x="${w / 2}" y="-70" fill="${color}" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">${id === level.restaurant ? 'PICKUP' : `PAD ${id}`}</text>` : ''}
   <rect y="0" width="${w}" height="10" rx="1" fill="#1a292c"/>
   <path d="M1 1H${w - 1}" stroke="${color}" stroke-width="3"/>
   <path d="M6 6H${w - 6}" stroke="${color}" opacity=".55" stroke-width="2" stroke-dasharray="4 7"/>
@@ -120,14 +120,5 @@ for (const pad of level.pads) {
 
 const effects = await readFile(new URL('effects-9.svg', assets), 'utf8');
 await save('effects', effects.replaceAll('#8de4cf', '#83d9c7').replaceAll('#28332e', '#1b3035').replaceAll('#4c5140', '#475751'));
-await save('saucer', svg('-24 -17 48 25', 'Grotto survey saucer', `
-  <path d="M-14 -2L-10 -13Q0 -21 10 -13L14 -2Z" fill="#83b6b4" stroke="#20383d" stroke-width="1"/>
-  <path d="M-9 -11Q0 -17 9 -11L10 -4H-10Z" fill="#21444c"/>
-  <path d="M-7 -10L-3 -12M1 -13L5 -11" stroke="#c1e5da" stroke-linecap="round" opacity=".8"/>
-  <path d="M-24 0Q-18 -7 0 -6Q18 -7 24 0L19 8H-19Z" fill="#e2d7b6" stroke="#263c3f" stroke-width=".8"/>
-  <path d="M-22 1H22L18 6H-18Z" fill="#627d79"/>
-  <path d="M-17 2H-11M-3 2H3M11 2H17" stroke="#ffc479" stroke-width="2"/>
-  <path d="M-12 7H12" stroke="#b4c7b3" stroke-width="1.5"/>
-`));
-await writeFile(new URL('manifest-10.json', assets), '{\n  "background": "",\n  "saucer": "",\n  "buildings": {}\n}\n');
+await writeFile(new URL('manifest-10.json', assets), '{\n  "background": "",\n  "buildings": {}\n}\n');
 console.log('Generated Grotto level-10 SVG assets.');

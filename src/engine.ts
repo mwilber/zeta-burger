@@ -2,6 +2,7 @@ import { WORLD_WIDTH, WORLD_HEIGHT, intersects, rectangle, sweepContact, padAtTi
 import type { Point, Pad, Solid } from './world.js';
 import { LEVELS, SKILLS } from './levels.js';
 import type { Level, Skill } from './levels.js';
+import type { RefuelingConfig } from './level-config.js';
 import { LIGHTNING, LIGHTNING_ARC_TIMES, createLightning, lightningBodies, windVelocity } from './storm.js';
 import type { LightningStrike } from './storm.js';
 import { AVALANCHE } from './avalanche.js';
@@ -12,7 +13,10 @@ export const LANDING_BOUNCE = { duration: .25, count: 3, height: 10, nearCrashRa
 export const ZERO_G = { clingDelay: .25, rebound: 8 };
 export const CRASH_DURATION = 1.5;
 export const START_DELAY = 3;
-export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, refillRate: 25, low: 25 };
+export const FUEL = { capacity: 100, upRate: 1.8, downRate: 1.8, sideRate: .9, low: 25 };
+// Shared economy defaults; level overrides keep pricing independent of skill settings.
+// $0.10 per percentage point means $1 buys 10% of the tank.
+export const REFUELING: RefuelingConfig = { refillRate: 5, pricePerUnit: .1 };
 export const FALLING_OBSTACLES = { spawnDelay: 1, intervalMin: .8, intervalMax: 1.6, speedMin: 140, speedMax: 220, angleMax: 35 * Math.PI / 180, radiusMin: 10, radiusMax: 18 };
 export interface FallingObstacle { id: number; x: number; y: number; vx: number; vy: number; radius: number }
 // The ship has no speed cap. Use a typical 120-unit/sec flight speed as the
@@ -26,7 +30,7 @@ export function fallingObstacleBody(obstacle: FallingObstacle): Point[] {
   return Array.from({ length: 8 }, (_, i) => ({ x: obstacle.x + Math.cos(i * Math.PI / 4) * obstacle.radius, y: obstacle.y + Math.sin(i * Math.PI / 4) * obstacle.radius }));
 }
 // Keyboard inputs remain binary; touch inputs supply a fraction of full thrust.
-export interface Controls { left: boolean | number; right: boolean | number; up: boolean | number; down: boolean | number }
+export interface Controls { left: boolean | number; right: boolean | number; up: boolean | number; down: boolean | number; refuel?: boolean }
 export function verticalThrustDirection(controls: Controls): number { return Number(controls.up) - Number(controls.down); }
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
@@ -81,7 +85,7 @@ export class Game {
     return { ...this.level.start, vx: 0, vy: 0, gear: false, landed: null };
   }
   spawnAtStation(): Ship {
-    const station = this.pads.find(p => p.id === (this.level.gasStation ?? this.level.restaurant))!;
+    const station = this.pads.find(p => p.id === this.level.restaurant)!;
     return { x: station.x + station.width / 2, y: station.y - PHYSICS.footY, ...this.stationVelocity(station), gear: true, landed: station.id };
   }
   private stationVelocity(pad: Pad): { vx: number; vy: number } {
@@ -95,6 +99,9 @@ export class Game {
   }
   get clinging(): boolean { return this.ship.landed !== null && (this.level.gravityWell !== undefined || this.level.gravity > 0 || this.dwell + 1e-9 >= ZERO_G.clingDelay); }
   get needsLandingThrust(): boolean { return this.ship.landed !== null && !this.clinging; }
+  get refueling(): RefuelingConfig { return { ...REFUELING, ...this.level.refueling }; }
+  get atRestaurant(): boolean { return this.ship.landed === this.level.restaurant && this.clinging; }
+  get canRefuel(): boolean { return this.phase === 'playing' && this.atRestaurant && this.fuel < FUEL.capacity && this.bank > 0; }
   get serviceDelay(): number { return this.level.gravity === 0 ? ZERO_G.clingDelay : PHYSICS.dwell; }
   start(skill: Skill = this.skill, level: Level = this.level, options: { carryBank?: boolean; designMode?: boolean; editing?: boolean } = {}) {
     this.skill = skill; this.level = level;
@@ -445,8 +452,12 @@ export class Game {
         this.updateTilt(dt, 0);
         this.dwell += heldTime;
         if (!wasClinging && this.clinging) this.emit('clamp', 'Landing clamp engaged. Release Down; thrust Up to take off.');
-        if (s.landed === this.level.gasStation) {
-          this.fuel = Math.min(FUEL.capacity, this.fuel + FUEL.refillRate * dt);
+        if (controls.refuel && wasClinging && this.canRefuel) {
+          const { refillRate, pricePerUnit } = this.refueling;
+          const amount = Math.min(refillRate * dt, FUEL.capacity - this.fuel, this.bank / pricePerUnit);
+          this.fuel = Math.min(FUEL.capacity, this.fuel + amount);
+          // Keep fractional cents between simulation steps so 120 Hz pumping isn't free.
+          this.bank = amount === this.bank / pricePerUnit ? 0 : Math.max(0, this.bank - amount * pricePerUnit);
           if (this.fuel > FUEL.low) this.lowFuelWarned = false;
         }
         this.service(); return;
@@ -550,7 +561,7 @@ export class Game {
   private burnFuel(cost: number) {
     this.fuel = Math.max(0, this.fuel - cost);
     if (this.fuel <= FUEL.low && !this.lowFuelWarned) {
-      this.lowFuelWarned = true; this.emit('fuel', this.level.gasStation === null ? 'Low fuel! This level has no fuel station.' : `Low fuel! Land at the gas station on pad ${this.level.gasStation} to refill.`);
+      this.lowFuelWarned = true; this.emit('fuel', `Low fuel! Land at the restaurant on pad ${this.level.restaurant} and hold F or the FUEL button to buy fuel.`);
     }
   }
   service() {
@@ -562,7 +573,7 @@ export class Game {
     } else if (this.order && id === this.order.target) {
       this.servicedPad = id;
       const earned = Math.round(this.tip * 100) / 100;
-      this.bank = Math.round((this.bank + earned) * 100) / 100;
+      this.bank += earned;
       this.delivered++; this.order.status = 'delivered';
       this.emit('delivery', `Delivered! ${earned < 0 ? '−' : '+'}$${Math.abs(earned).toFixed(2)} · Head back to ${this.level.pads.find(pad => pad.id === this.level.restaurant)!.name}`);
       this.checkEnd();

@@ -29,6 +29,8 @@ class Surface extends EventTarget {
   hidden = true;
   style = {};
   captures = new Set();
+  attributes = {};
+  setAttribute(name, value) { this.attributes[name] = value; }
   getBoundingClientRect() { return { width: 800 }; }
   setPointerCapture(id) { this.captures.add(id); }
   hasPointerCapture(id) { return this.captures.has(id); }
@@ -41,11 +43,11 @@ class Surface extends EventTarget {
   }
 }
 function fixture() {
-  const surface = new Surface(), joystick = new Surface(), knob = new Surface();
+  const surface = new Surface(), joystick = new Surface(), knob = new Surface(), fuelButton = new Surface();
   let gearPresses = 0;
-  const touch = new TouchControls(surface, joystick, knob, () => gearPresses++);
+  const touch = new TouchControls(surface, joystick, knob, () => gearPresses++, fuelButton);
   touch.setActive(true, true);
-  return { surface, joystick, knob, touch, gearPresses: () => gearPresses };
+  return { surface, joystick, knob, fuelButton, touch, gearPresses: () => gearPresses };
 }
 
 test('left touch anchors a joystick; movement across the midpoint retains steering', () => {
@@ -164,4 +166,36 @@ test('Zero G clamps after 250 ms of fractional down thrust and charges proportio
   game.step(.1, neutral); assert.equal(game.clinging, true);
   game.step(.01, { ...neutral, up: .5, left: .5 });
   assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false);
+});
+
+test('fuel button appears only at the docked restaurant and holding it never toggles gear', () => {
+  const { touch, fuelButton, surface, gearPresses } = fixture();
+  assert.equal(fuelButton.hidden, true);
+  touch.setActive(true, true, true); assert.equal(fuelButton.hidden, false);
+  fuelButton.pointer('pointerdown', 2, 700, 300);
+  assert.equal(touch.controls().refuel, true); assert.equal(gearPresses(), 0);
+  assert.equal(fuelButton.attributes['aria-pressed'], 'true');
+  // Releasing the steering finger must not stop the separate pumping finger.
+  surface.pointer('pointerdown', 1, 100, 200); surface.pointer('pointerup', 1);
+  assert.equal(touch.controls().refuel, true);
+  fuelButton.pointer('pointerup', 2);
+  assert.deepEqual(touch.controls(), neutral); assert.equal(gearPresses(), 0);
+  assert.equal(fuelButton.captures.size, 0);
+  assert.equal(fuelButton.attributes['aria-pressed'], 'false');
+});
+
+test('fuel hold releases on cancellation, lost capture, departure, pause, crash, and input reset', () => {
+  for (const end of ['pointerup', 'pointercancel', 'lostpointercapture', 'departure', 'inactive', 'crashed', 'reset']) {
+    const { touch, fuelButton } = fixture(); touch.setActive(true, true, true);
+    fuelButton.pointer('pointerdown', 1);
+    if (end === 'departure') touch.setActive(true, true, false);
+    else if (end === 'inactive') touch.setActive(false, false, true);
+    else if (end === 'crashed') touch.setActive(true, false, true);
+    else if (end === 'reset') touch.reset();
+    else fuelButton.pointer(end, 1);
+    assert.deepEqual(touch.controls(), neutral, end);
+    assert.equal(fuelButton.captures.size, 0, end);
+    fuelButton.pointer('pointermove', 1, 600, 300);
+    assert.deepEqual(touch.controls(), neutral, end);
+  }
 });

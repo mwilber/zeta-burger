@@ -27,7 +27,7 @@ function bolt(x, age = LIGHTNING.warningDuration) {
 test('Srormfront follows Blizzard, preserves the old stack, and has complete artwork', () => {
   assert.equal(nextLevel(LEVELS.find(l => l.id === 'blizzard')), level);
   assert.equal(level.number, 11); assert.equal(level.name, 'Srormfront'); assert.equal(nextLevel(level).id, 'grotto');
-  assert.equal(level.padCount, 7); assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
+  assert.equal(level.padCount, 6); assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));
   assert.ok(level.storm.windSpeed > LEVELS.find(l => l.id === 'abyss').current.speed * 2);
@@ -80,7 +80,7 @@ test('station geometry stays fixed and docking blocks wind while normal service 
   fly(game, .02); assert.ok(game.order);
   fly(game, 4); assert.deepEqual(game.ship, ship); assert.deepEqual(game.pads, pads); assert.deepEqual(game.solids, solids);
   assert.equal(game.fuel, 100);
-  dock(game, level.gasStation); game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 65) < 1e-8);
+  dock(game, level.restaurant); game.fuel = 40; fly(game, 1); assert.ok(Math.abs(game.fuel - 40) < 1e-8);
   game.step(dt, { ...idle, up: true }); assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false); assert.ok(game.ship.vx !== 0);
 });
 
@@ -196,8 +196,8 @@ test('weather freezes for countdown, pause, final crash, and game over; resets o
 test('weather continues during design mode and replacement delay without killing the idle or new ship', () => {
   const design = new Game(() => .1, level); design.start('casual', level, { designMode: true });
   fly(design, LIGHTNING.spawnDelay + LIGHTNING.warningDuration + .1); assert.equal(design.lives, 3); assert.ok(design.events.some(e => e.type === 'lightning'));
-  const game = playing(); dock(game, level.gasStation); game.lightning = [bolt(game.ship.x, LIGHTNING.warningDuration - .1)]; game.crash('test');
-  fly(game, CRASH_DURATION); assert.equal(game.phase, 'playing'); assert.equal(game.lives, 2); assert.equal(game.ship.landed, level.gasStation);
+  const game = playing(); dock(game, level.restaurant); game.lightning = [bolt(game.ship.x, LIGHTNING.warningDuration - .1)]; game.crash('test');
+  fly(game, CRASH_DURATION); assert.equal(game.phase, 'playing'); assert.equal(game.lives, 2); assert.equal(game.ship.landed, level.restaurant);
 });
 
 test('a continuous restaurant–delivery–restaurant flight remains navigable through gust reversals', () => {

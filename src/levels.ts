@@ -28,7 +28,7 @@ export interface Level {
   solids: Solid[];
   start: Point;
   restaurant: number;
-  gasStation: number | null;
+  refueling?: LevelConfig['refueling'];
   fallingObstacleLimit: number;
   fallingObstacleConfig?: LevelConfig['fallingObstacleConfig'];
   boulders?: LevelConfig['boulders'];
@@ -62,6 +62,7 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
     || falling.radiusMin <= 0 || falling.radiusMax < falling.radiusMin)) fail('invalid fallingObstacleConfig');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
   if (config.boulders && (!Number.isFinite(config.boulders.spawnIntervalMax) || config.boulders.spawnIntervalMax < 1)) fail('boulders.spawnIntervalMax must be finite and at least 1 second');
+  if (config.refueling && Object.values(config.refueling).some(value => !Number.isFinite(value) || value <= 0)) fail('refueling values must be finite and positive');
   const ids = new Set<number>();
   for (const pad of config.pads) {
     if (!Number.isInteger(pad.id) || pad.id < 0 || ids.has(pad.id)) fail('pad IDs must be unique nonnegative integers');
@@ -73,8 +74,8 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
     if (pad.motion && (![pad.motion.x, pad.motion.y, pad.motion.period].every(Number.isFinite)
       || pad.motion.x < 0 || pad.motion.y < 0 || pad.motion.period <= 0)) fail(`invalid motion for pad ${pad.id}`);
   }
-  if ((!options.editing && !ids.has(config.restaurant)) || (config.gasStation !== null && (!ids.has(config.gasStation) || config.restaurant === config.gasStation))) fail('restaurant and gas station must reference distinct existing pads');
-  const destinations = config.pads.filter(pad => pad.id !== config.restaurant && pad.id !== config.gasStation).map(pad => pad.id);
+  if (!options.editing && !ids.has(config.restaurant)) fail('restaurant must reference an existing pad');
+  const destinations = config.pads.filter(pad => pad.id !== config.restaurant).map(pad => pad.id);
   if (!options.editing && !destinations.length) fail('at least one delivery pad is required');
   if (config.assets && Object.values(config.assets).some(name => !/^[a-z][a-z0-9-]*$/.test(name))) fail('invalid asset basename');
   if (![config.start.x, config.start.y].every(Number.isFinite)) fail('invalid starting position');
@@ -116,9 +117,10 @@ export function nextLevel(current: Pick<Level, 'id'>, levels: Level[] = LEVELS):
   const index = levels.findIndex(level => level.id === current.id);
   return index < 0 ? undefined : levels[index + 1];
 }
-/** Append the level number after the full original asset name, before its extension. */
+/** The saucer is shared; other assets append the level number before the extension. */
 export function levelAssetPath(name: string, level: Pick<Level, 'number' | 'assets'>, extension = 'svg'): string {
-  return `./assets/${level.assets?.[name] ?? `${name}-${level.number}`}.${extension}`;
+  const source = name === 'saucer' ? 'saucer' : level.assets?.[name] ?? `${name}-${level.number}`;
+  return `./assets/${source}.${extension}`;
 }
 export function levelAssetNames(level: Pick<Level, 'pads' | 'structures' | 'fallingObstacleLimit' | 'seekerCount' | 'blackHole' | 'star' | 'assets' | 'boulders'>): string[] {
   return [...new Set(['background', 'saucer', 'effects', ...level.structures.map(structure => structure.kind), ...(level.blackHole ? ['black-hole'] : []), ...(level.star ? ['star'] : []), ...(level.boulders ? ['boulder'] : []), ...(level.fallingObstacleLimit > 0 ? ['falling-obstacle'] : []), ...(level.seekerCount > 0 ? ['seeker'] : []), ...level.pads.flatMap(pad => [

@@ -21,7 +21,7 @@ function fly(game, seconds, controls = idle) {
 test('Grotto follows Srormfront with six sketch stations and six reusable boulder shapes', () => {
   assert.equal(nextLevel(LEVELS.find(l => l.id === 'srormfront')), level);
   assert.equal(level.number, 10); assert.equal(nextLevel(level).id, 'freeman');
-  assert.equal(level.padCount, 6); assert.deepEqual(level.destinations, [1, 2, 3, 4]);
+  assert.equal(level.padCount, 5); assert.deepEqual(level.destinations, [1, 2, 3, 4]);
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));
@@ -75,7 +75,7 @@ test('sloped empty corners are passable while boulder faces catch hulls, gear, a
   }
 });
 
-test('all six ledges allow docking, normal service, free refueling, and safe lift-off', () => {
+test('all five ledges allow docking, normal service, optional refueling, and safe lift-off', () => {
   for (const pad of level.pads) {
     const game = playing(); game.orders[0].availableAt = 0;
     if (level.destinations.includes(pad.id)) { game.orders[0].target = pad.id; game.orders[0].status = 'onboard'; }
@@ -86,12 +86,12 @@ test('all six ledges allow docking, normal service, free refueling, and safe lif
     fly(game, .02);
     if (pad.id === level.restaurant) assert.ok(game.order);
     if (level.destinations.includes(pad.id)) assert.equal(game.delivered, 1);
-    assert.ok(game.fuel >= (pad.id === level.gasStation ? 60 : 40));
+    assert.ok(game.fuel >= 40);
     game.step(dt, { ...idle, up: true });
     assert.equal(game.ship.landed, null); assert.equal(game.ship.gear, false); assert.equal(game.phase, 'playing');
   }
   const replacement = playing(); replacement.crash('test'); fly(replacement, CRASH_DURATION);
-  assert.equal(replacement.ship.landed, level.gasStation); fly(replacement, 1);
+  assert.equal(replacement.ship.landed, level.restaurant); fly(replacement, 1);
   assert.equal(replacement.phase, 'playing');
   replacement.start('casual', LEVELS.find(l => l.id === 'freeman'));
   assert.equal(replacement.solids.some(s => s.kind === 'structure'), false);
@@ -119,10 +119,10 @@ const routes = {
   4: [[380, 120], [380, 335], [950, 320], [950, 610], [1165, 610]],
   6: [[380, 120], [380, 335], [150, 355], [135, 525]]
 };
-for (const id of [1, 2, 3, 4, 6]) test(`fly from the outdoor restaurant to pad ${id} and back through the passages`, () => {
+for (const id of [1, 2, 3, 4]) test(`fly from the outdoor restaurant to pad ${id} and back through the passages`, () => {
   const game = playing(() => (Math.max(1, id) - .5) / 4);
   game.orders.forEach(order => { order.initialTip = 100; });
-  game.orders[0].availableAt = 0; game.orders[0].target = id === 6 ? 1 : id;
+  game.orders[0].availableAt = 0; game.orders[0].target = id;
   seek(game, 158, 188, 0); fly(game, 1); assert.ok(game.order);
   for (const [x, y] of routes[id]) seek(game, x, y);
   const pad = level.pads.find(p => p.id === id), x = pad.x + pad.width / 2;

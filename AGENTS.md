@@ -6,6 +6,14 @@ The array controls the starting level, selector order, and automatic progression
 Keep existing level numbers, IDs, and asset filenames stable when reordering.
 The current order is Avalanche (13), Blizzard (12), Srormfront (11), Grotto (10), Freeman (9), Megalopolis (8), Abyss (7), Event Horizon (6), Zero G (5), Trick Or Treat (4), Obsession (3), Meteor Shower (2), then Luna (1).
 
+All levels fuel at the restaurant; dedicated fuel pads are removed. Hold F or
+hold the visible right-side mobile FUEL button while docked to buy fuel. Pumping
+stops on release, takeoff, a full tank, or insufficient funds. `REFUELING` in
+`src/engine.ts` sets defaults (5 percentage points/second, $0.10 per point).
+Optional level `refueling` overrides rate and price independently of skill.
+Replacement ships dock at the restaurant with a full tank. Keep remaining pad
+IDs and their artwork filenames stable; do not restore a fuel-station editor toggle.
+
 Obsession introduces `seekers`: slow, animated cloud hazards that pass through
 scenery and each other. They wander randomly while the ship is landed and pursue
 it in flight. Landed ships are immune to seekers. Keep the generic name in code.
@@ -22,7 +30,7 @@ A clamped ship rides the station until upward thrust or gear retraction.
 Zero G alone uses `thrustScale: .3` (70% less acceleration on every thruster).
 
 Event Horizon (6) uses a central `blackHole` gravity well with inverse-square
-pull capped near its fatal event horizon. Its seven stationary pads sit on the
+pull capped near its fatal event horizon. Its six stationary pads sit on the
 periphery. It has no downward gravity and uses full thrust. Landing immediately
 blocks the pull without holding Down or using fuel; upward thrust or gear
 retraction restores it. Pickup/delivery take 250 ms. Keep black-hole artwork
@@ -35,7 +43,7 @@ with normal pickup/delivery timing. Its fish use the generic seeker behavior:
 pursue in flight, wander while landed, and never harm a landed ship.
 
 Megalopolis (8) uses solid `structures` rising from street level as tower
-barriers. Four pads sit on roofs (without islands) and three are attached
+barriers. Three pads sit on roofs (without islands) and three are attached
 balconies with steel supports. Tower SVG artboards match the structure's exact
 collision rectangle. Only numbered pads allow landing; all tower faces and
 unmarked roof surfaces are fatal. Keep the upper flight lane and balcony
@@ -44,13 +52,13 @@ falling obstacles.
 
 Freeman (9), named for Freeman Dyson, takes place inside a Dyson sphere. Its
 central `star` shares Event Horizon’s inverse-square gravity and immediate free
-docking, with half the strength and acceleration cap. Seven stationary pads use
+docking, with half the strength and acceleration cap. Six stationary pads use
 the same peripheral layout. Gravity is 0 with full thrust, no seekers, and no
 falling obstacles. The star’s visible surface matches its fatal radius; its
 corona is decorative. Level-9 SVG assets show the sphere’s interior collectors.
 
-Grotto (10) follows the mountain-cavern sketch: six pads, with the restaurant
-outside in the upper left, a trailhead ledge above the entrance, and four pads
+Grotto (10) follows the mountain-cavern sketch: five pads, with the restaurant
+outside in the upper left, a trailhead ledge above the entrance, and three pads
 inside. Six reusable convex boulder shapes overlap to form the cavern walls,
 central rock mass, and floor. Structure `outline` vertices use local world
 units and must match their SVG silhouettes. Keep the entrance, routes around
@@ -82,7 +90,7 @@ snowy granite ledges, chalets, and distant alpine peaks/pines. After building,
 `node scripts/generate-blizzard-art.mjs` regenerates the matching SVGs.
 
 Avalanche (13) is a valley between two solid convex mountain slopes, with three
-station ledges on each side. Gravity is 100 with full thrust, no wind, seekers,
+station ledges on the left and two on the right. Gravity is 100 with full thrust, no wind, seekers,
 or falling obstacles. Its `boulders.spawnIntervalMax` config sets the upper
 limit of the random 1–N second spawn delay (initially 5). Spawn side is random
 in flight; while landed, new rocks spawn only on the opposite mountainside.
