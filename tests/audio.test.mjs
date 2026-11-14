@@ -59,14 +59,15 @@ function playing(level = luna) {
 test('start jingle is audible by default and completes during the three-second start delay', () => {
   const { sound, context, nodes } = audio(); sound.startJingle();
   assert.equal(sound.enabled, true); assert.equal(context.resumeCalls, 1);
-  assert.ok(nodes.length > 60, 'layered arrangement has a developed phrase and accompaniment');
+  assert.ok(nodes.length > 20, 'compact arrangement retains the layered accompaniment');
   assert.equal(nodes.filter(node => node.starts[0] === context.currentTime).length, 4, 'all four musical parts enter together');
   const melody = nodes.slice(0, START_JINGLE.channels[0].notes.length);
   assert.ok(melody.at(-1).pitch > melody[0].pitch, 'melody resolves above the opening note');
   assert.ok(nodes.some(node => node.kind === 'noise'), 'percussion includes clocked noise');
   assert.equal(nodes[0].starts[0], context.currentTime);
   assert.ok(nodes.every(node => node.starts[0] >= context.currentTime && node.stops[0] < context.currentTime + 3));
-  assert.ok(Math.max(...nodes.map(node => node.stops[0])) > context.currentTime + 2.8, 'final cadence leads into gameplay');
+  const end = Math.max(...nodes.map(node => node.stops[0])) - context.currentTime;
+  assert.ok(end > 1.3 && end < 1.55, 'shortened phrase includes its final cadence');
 });
 
 test('pausing cancels scheduled notes and resuming plays only the remaining melody', () => {
@@ -80,6 +81,12 @@ test('pausing cancels scheduled notes and resuming plays only the remaining melo
   assert.equal(resumed[0].starts[0], context.currentTime, 'interrupted note resumes immediately');
   resumed.forEach((node, i) => assert.ok(Math.abs(node.starts[0] - context.currentTime - Math.max(0, pending[i].starts[0] - context.currentTime - 1.4)) < 1e-9, 'parts retain their relative timing'));
   assert.ok(resumed.every(node => node.stops[0] < context.currentTime + 1.6));
+});
+
+test('resuming after the shorter intro finishes leaves the rest of the countdown silent', () => {
+  const { sound, nodes } = audio();
+  sound.startJingle(1.6);
+  assert.equal(nodes.length, 0, 'finished music is not restarted during the countdown');
 });
 
 test('resuming during percussion continues from inside its original noise buffer', () => {
