@@ -87,9 +87,9 @@ open http://localhost:5173 (or set `PORT` to another port).
 - **♫:** enable or mute synthesized arcade sound. Sound begins enabled and is unlocked by Start or the sound button.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-The soundscape uses Commodore 64 SID-inspired synthesis: narrow pulse leads, pulse-width-modulated thrusters, quick ADSR envelopes, stepped pitch bends, and clocked shift-register noise. Start, victory, loss, arrival, pickup, and delivery keep their melodies with the new chip voices; gear and landing cues have short downward bends.
+The soundscape uses Commodore 64 SID-inspired synthesis: narrow pulse leads, quick ADSR envelopes, stepped pitch bends, and clocked shift-register noise. The saucer thrusters use a high, smooth whistle with a takeoff glide and wide vibrato for a 1950s sci-fi warble. Start, victory, loss, arrival, pickup, and delivery keep their melodies with the new chip voices; gear and landing cues have short downward bends.
 
-Vertical (up or down) and sideways thrust each play an independent pulsing saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes and hazard impacts use a crunchy noise burst and falling pulse rumble; thunder has a longer, lower noise sweep, and electrical arcs give a quiet descending zap. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
+Vertical (up or down) and sideways thrust each play an independent warbling saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes and hazard impacts use a crunchy noise burst and falling pulse rumble; thunder has a longer, lower noise sweep, and electrical arcs give a quiet descending zap. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
 
 Resonant low-pass filters soften the bright waveforms; compression and gentle saturation control overlapping impacts while SAM speech stays clear. This is a SID-style sound palette, not a cycle-accurate chip emulator; synthesis helpers live in `src/sid.ts` and cue tuning in `src/audio.ts`.
 

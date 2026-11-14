@@ -38,7 +38,6 @@ function audio() {
     },
     createBufferSource() { const node = { ...source(), kind: 'noise' }; nodes.push(node); return node; },
     createPeriodicWave(real, imaginary) { return { real, imaginary }; },
-    createDelay() { return { ...source(), delayTime: parameter() }; },
     createBiquadFilter() { return { ...source(), frequency: parameter(), Q: parameter() }; },
     createGain() { return { ...source(), gain: parameter() }; },
     createWaveShaper() { return source(); },
@@ -96,18 +95,17 @@ test('restarting replaces scheduled music and finished notes release their audio
   assert.ok(replay.every(node => node.stops.length === 1, 'finished notes are no longer scheduled'));
 });
 
-test('up and sideways thrust use independent sustained PWM voices that can overlap', () => {
+test('up and sideways thrust use independent high sci-fi warbles that can overlap', () => {
   const { sound, nodes } = audio(), game = playing();
   sound.update(game, { ...idle, up: true });
-  assert.equal(nodes.length, 2, 'one carrier and one pulse-width modulator');
+  assert.equal(nodes.length, 2, 'one smooth carrier and one pitch modulator');
   const upward = [...nodes];
-  assert.equal(upward[0].type, 'sawtooth'); assert.equal(upward[1].type, 'triangle'); assert.equal(upward[1].pitch, 8.5);
-  const delay = upward[0].connections[1], depth = upward[1].connections[0];
-  assert.equal(depth.connections[0], delay.delayTime, 'wobble modulates pulse width');
-  assert.equal(delay.connections[0].gain.value, -1, 'delayed saw is subtracted to form a pulse');
-  const width = delay.delayTime.changes[0].value * upward[0].pitch;
-  const sweep = depth.gain.changes[0].value * upward[0].pitch;
-  assert.ok(Math.abs(width - sweep - .1) < 1e-9 && Math.abs(width + sweep - .46) < 1e-9, 'PWM remains inside its safe duty range');
+  assert.equal(upward[0].type, 'sine'); assert.equal(upward[1].type, 'sine'); assert.equal(upward[1].pitch, 6.5);
+  const depth = upward[1].connections[0];
+  assert.equal(depth.connections[0], upward[0].frequency, 'wobble modulates pitch instead of generating a buzzy pulse');
+  assert.equal(depth.gain.changes[0].value, 110, 'wide vibrato gives the classic saucer warble');
+  assert.equal(upward[0].pitch, sidFrequency(540));
+  assert.ok(upward[0].frequency.changes.some(change => change.kind === 'linear' && change.value === sidFrequency(760)), 'takeoff glides up to a high whistle');
   assert.equal(upward[0].stops.length, 0, 'thrust remains sustained');
   sound.update(game, { ...idle, up: true, right: true });
   assert.equal(nodes.length, 4); assert.equal(nodes[2].pitch, upward[0].pitch, 'both use the same saucer sound');
@@ -348,13 +346,13 @@ test('overlapping effects share a bounded output stage with headroom for speech'
   assert.ok(limit + speechPeak < 1, 'even a saturated effects mix leaves room for the announcement');
 });
 
-test('released PWM thrusters disconnect their delay, modulation, and filter nodes', () => {
+test('released saucer thrusters disconnect their modulation and filter nodes', () => {
   const { sound, nodes } = audio(), state = playing();
   sound.update(state, { ...idle, up: true });
-  const [carrier, wobble] = nodes, [filter, delay] = carrier.connections;
-  const depth = wobble.connections[0], invert = delay.connections[0], gain = filter.connections[0];
+  const [carrier, wobble] = nodes, [filter] = carrier.connections;
+  const depth = wobble.connections[0], gain = filter.connections[0];
   sound.stopAll(); carrier.onended();
-  assert.ok([carrier, wobble, filter, delay, depth, invert, gain].every(node => node.disconnected));
+  assert.ok([carrier, wobble, filter, depth, gain].every(node => node.disconnected));
 });
 
 

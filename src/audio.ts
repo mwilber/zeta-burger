@@ -113,21 +113,19 @@ export class Sound {
     if (!this.context || this.thrustVoices.has(channel)) return;
     const context = this.context, now = context.currentTime;
     const carrier = context.createOscillator(), wobble = context.createOscillator();
-    const depth = context.createGain(), gain = context.createGain(), invert = context.createGain();
-    const delay = context.createDelay(.02), filter = context.createBiquadFilter();
-    const frequency = sidFrequency(175);
-    // A saw minus its delayed copy forms a pulse. Modulating the delay changes
-    // pulse width continuously (10–46%), giving the engine its SID-like growl.
-    carrier.type = 'sawtooth'; carrier.frequency.setValueAtTime(frequency, now);
-    wobble.type = 'triangle'; wobble.frequency.setValueAtTime(8.5, now);
-    delay.delayTime.setValueAtTime(.28 / frequency, now);
-    depth.gain.setValueAtTime(.18 / frequency, now); invert.gain.value = -1;
-    filter.type = 'lowpass'; filter.frequency.setValueAtTime(1500, now); filter.Q.value = 1.2;
-    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(.028, now + .008);
-    wobble.connect(depth); depth.connect(delay.delayTime);
-    carrier.connect(filter); carrier.connect(delay); delay.connect(invert); invert.connect(filter);
+    const depth = context.createGain(), gain = context.createGain(), filter = context.createBiquadFilter();
+    // A high, pure whistle with a short takeoff glide and smooth vibrato gives
+    // the saucer a 1950s sci-fi warble without the pulse wave's engine buzz.
+    carrier.type = 'sine'; carrier.frequency.setValueAtTime(sidFrequency(540), now);
+    carrier.frequency.linearRampToValueAtTime(sidFrequency(760), now + .12);
+    wobble.type = 'sine'; wobble.frequency.setValueAtTime(6.5, now);
+    depth.gain.setValueAtTime(110, now);
+    filter.type = 'lowpass'; filter.frequency.setValueAtTime(1800, now); filter.Q.value = .7;
+    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(.035, now + .035);
+    wobble.connect(depth); depth.connect(carrier.frequency);
+    carrier.connect(filter);
     filter.connect(gain); gain.connect(this.output());
-    carrier.onended = () => { for (const node of [carrier, wobble, depth, delay, invert, filter, gain]) node.disconnect(); };
+    carrier.onended = () => { for (const node of [carrier, wobble, depth, filter, gain]) node.disconnect(); };
     carrier.start(now); wobble.start(now);
     this.thrustVoices.set(channel, { carrier, wobble, gain });
   }
