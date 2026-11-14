@@ -5,21 +5,11 @@ import { DISPATCH_VOICE, THANKS_VOICES, SPEECH_SAMPLE_RATE, synthesizeSpeech } f
 import type { SamVoice } from './vendor/sam-js.js';
 import { sidEnvelope, sidFrequency, sidNoise, sidPitch, sidWaveform } from './sid.js';
 import type { SidPatch, SidWaveform } from './sid.js';
+import { START_JINGLE, WIN_JINGLE, LOSE_JINGLE, midiFrequency } from './music.js';
+import type { JingleScore } from './music.js';
 type SoundGroup = 'jingle' | 'effects' | 'landing' | 'speech';
 type ThrustChannel = 'vertical' | 'side';
 interface ThrustVoice { carrier: OscillatorNode; wobble: OscillatorNode; gain: GainNode }
-const START_JINGLE = [
-  { frequency: 523.25, delay: 0, duration: .18 },
-  { frequency: 659.25, delay: .25, duration: .18 },
-  { frequency: 783.99, delay: .5, duration: .18 },
-  { frequency: 1046.5, delay: .75, duration: .35 },
-  { frequency: 783.99, delay: 1.25, duration: .18 },
-  { frequency: 880, delay: 1.5, duration: .18 },
-  { frequency: 987.77, delay: 1.75, duration: .18 },
-  { frequency: 1046.5, delay: 2, duration: .9 }
-];
-const WIN_JINGLE = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.51];
-const LOSE_JINGLE = [440, 349.23, 329.63, 261.63, 220];
 export class Sound {
   context: AudioContext | null = null;
   enabled = true;
@@ -42,11 +32,7 @@ export class Sound {
     // Called from Start/Resume gestures so the browser can unlock audio.
     this.context ??= new AudioContext();
     void this.context.resume().catch(() => {});
-    for (const note of START_JINGLE) {
-      const remaining = note.duration - Math.max(0, elapsed - note.delay);
-      if (remaining <= 0) continue;
-      this.tone(note.frequency, remaining, 'pulse', Math.max(0, note.delay - elapsed), .065, 'jingle', { pulseWidth: .25, sustain: .55 });
-    }
+    this.playScore(START_JINGLE, elapsed);
   }
   stopJingle() {
     this.stopGroup('jingle');
@@ -100,14 +86,34 @@ export class Sound {
     // The final delivery's "Thanks!" must finish even when the shift ends.
     this.stopAll(won);
     const delay = won && this.context ? Math.max(0, this.speechUntil - this.context.currentTime) : 0;
-    const notes = won ? WIN_JINGLE : LOSE_JINGLE;
-    const beat = won ? .18 : .36;
-    notes.forEach((frequency, i) => {
-      const final = i === notes.length - 1;
-      this.tone(frequency, final ? .8 : beat * .85, won ? 'pulse' : 'sawtooth', delay + i * beat, .065, 'jingle', { pulseWidth: .125, cutoff: won ? 4200 : 1800 });
-      // A major harmony celebrates a win; a descending minor phrase marks a loss.
-      if (final) this.tone(frequency * (won ? .5 : .75), .8, 'triangle', delay + i * beat, .04, 'jingle');
-    });
+    this.playScore(won ? WIN_JINGLE : LOSE_JINGLE, 0, delay);
+  }
+  private playScore(score: JingleScore, elapsed = 0, delay = 0) {
+    for (const channel of score.channels) {
+      if (channel.instrument !== 'drums') {
+        for (const note of channel.notes) {
+          const start = note.beat * score.beatSeconds, duration = note.length * score.beatSeconds;
+          const remaining = duration - Math.max(0, elapsed - start);
+          if (remaining <= 0) continue;
+          this.tone(midiFrequency(note.midi), remaining, channel.waveform, delay + Math.max(0, start - elapsed), channel.volume, 'jingle', channel.patch);
+        }
+      } else {
+        for (const hit of channel.hits) {
+          const start = hit.beat * score.beatSeconds, duration = hit.length * score.beatSeconds;
+          const offset = Math.max(0, elapsed - start), remaining = duration - offset;
+          if (remaining <= 0) continue;
+          const wait = delay + Math.max(0, start - elapsed);
+          if (hit.kind === 'kick') {
+            const frequency = 140 * (46 / 140) ** (offset / duration);
+            this.tone(frequency, remaining, 'triangle', wait, .09 * channel.volume, 'jingle', { cutoff: 1000, sustain: .15, endFrequency: 46 });
+          } else if (hit.kind === 'snare') {
+            this.noiseBurst(duration, 12000, 4200, .075 * channel.volume, 4200, 1300, 'jingle', wait, offset);
+          } else {
+            this.noiseBurst(duration, 22000, 16000, .025 * channel.volume, 7800, 4000, 'jingle', wait, offset);
+          }
+        }
+      }
+    }
   }
   private startThrust(channel: ThrustChannel) {
     if (!this.context || this.thrustVoices.has(channel)) return;
@@ -167,9 +173,11 @@ export class Sound {
     this.noiseBurst(.8, 14000, 450, .18, 3600, 180);
     this.tone(164, 1.1, 'pulse', 0, .07, 'effects', { pulseWidth: .125, cutoff: 1100, sustain: .2, endFrequency: 32 });
   }
-  private noiseBurst(duration: number, fromClock: number, toClock: number, volume: number, fromCutoff: number, toCutoff: number) {
+  private noiseBurst(duration: number, fromClock: number, toClock: number, volume: number, fromCutoff: number, toCutoff: number, group: SoundGroup = 'effects', delay = 0, elapsed = 0) {
     if (!this.enabled || !this.context) return;
-    const context = this.context, now = context.currentTime;
+    const remaining = duration - elapsed;
+    if (remaining <= 0) return;
+    const context = this.context, now = context.currentTime + delay;
     const key = `${context.sampleRate}:${duration}:${fromClock}:${toClock}`;
     let buffer = this.noiseBuffers.get(key);
     if (!buffer) {
@@ -179,10 +187,11 @@ export class Sound {
     }
     const noise = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
     noise.buffer = buffer; filter.type = 'lowpass'; filter.Q.value = 1.1;
-    filter.frequency.setValueAtTime(fromCutoff, now); filter.frequency.exponentialRampToValueAtTime(toCutoff, now + duration);
-    sidEnvelope(gain.gain, volume, now, duration, .2);
+    filter.frequency.setValueAtTime(fromCutoff * (toCutoff / fromCutoff) ** (elapsed / duration), now);
+    filter.frequency.exponentialRampToValueAtTime(toCutoff, now + remaining);
+    sidEnvelope(gain.gain, volume, now, remaining, .2);
     noise.connect(filter); filter.connect(gain); gain.connect(this.output());
-    noise.start(now); noise.stop(now + duration); this.track(noise, [noise, filter, gain], 'effects');
+    noise.start(now, elapsed); noise.stop(now + remaining); this.track(noise, [noise, filter, gain], group);
   }
   private speak(text: string, voice: SamVoice) {
     if (!this.enabled || !this.context) return;

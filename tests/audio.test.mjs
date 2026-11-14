@@ -7,6 +7,7 @@ import SamJs from '../dist/src/vendor/sam-js.js';
 import { DISPATCH_VOICE, THANKS_VOICES } from '../dist/src/speech.js';
 import { SPEECH_CONFIG } from '../dist/src/level-config.js';
 import { sidFrequency } from '../dist/src/sid.js';
+import { START_JINGLE, WIN_JINGLE, LOSE_JINGLE } from '../dist/src/music.js';
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 
@@ -20,9 +21,9 @@ function audio() {
     cancelScheduledValues() {}, setTargetAtTime() {}
   });
   const source = () => ({
-    starts: [], stops: [], disconnected: false, connections: [],
+    starts: [], offsets: [], stops: [], disconnected: false, connections: [],
     connect(target) { this.connections.push(target); }, disconnect() { this.disconnected = true; },
-    start(time) { this.starts.push(time); }, stop(time) { this.stops.push(time); }
+    start(time, offset = 0) { this.starts.push(time); this.offsets.push(offset); }, stop(time) { this.stops.push(time); }
   });
   const context = {
     currentTime: 10, destination: {}, resumeCalls: 0, sampleRate: 44100,
@@ -58,11 +59,14 @@ function playing(level = luna) {
 test('start jingle is audible by default and completes during the three-second start delay', () => {
   const { sound, context, nodes } = audio(); sound.startJingle();
   assert.equal(sound.enabled, true); assert.equal(context.resumeCalls, 1);
-  assert.equal(nodes.length, 8);
-  assert.ok(nodes.at(-1).pitch > nodes[0].pitch, 'melody resolves above the opening note');
+  assert.ok(nodes.length > 60, 'layered arrangement has a developed phrase and accompaniment');
+  assert.equal(nodes.filter(node => node.starts[0] === context.currentTime).length, 4, 'all four musical parts enter together');
+  const melody = nodes.slice(0, START_JINGLE.channels[0].notes.length);
+  assert.ok(melody.at(-1).pitch > melody[0].pitch, 'melody resolves above the opening note');
+  assert.ok(nodes.some(node => node.kind === 'noise'), 'percussion includes clocked noise');
   assert.equal(nodes[0].starts[0], context.currentTime);
   assert.ok(nodes.every(node => node.starts[0] >= context.currentTime && node.stops[0] < context.currentTime + 3));
-  assert.ok(nodes.at(-1).stops[0] > context.currentTime + 2.8, 'final note leads into gameplay');
+  assert.ok(Math.max(...nodes.map(node => node.stops[0])) > context.currentTime + 2.8, 'final cadence leads into gameplay');
 });
 
 test('pausing cancels scheduled notes and resuming plays only the remaining melody', () => {
@@ -71,17 +75,33 @@ test('pausing cancels scheduled notes and resuming plays only the remaining melo
   assert.ok(original.every(node => node.stops.length === 2 && node.stops[1] === undefined));
   sound.startJingle(1.4);
   const resumed = nodes.slice(original.length);
-  assert.equal(resumed.length, 4, 'completed notes are skipped');
+  const pending = original.filter(node => node.stops[0] - (node.kind === 'noise' ? 0 : .002) > context.currentTime + 1.4);
+  assert.equal(resumed.length, pending.length, 'completed notes and drum hits are skipped across every part');
   assert.equal(resumed[0].starts[0], context.currentTime, 'interrupted note resumes immediately');
+  resumed.forEach((node, i) => assert.ok(Math.abs(node.starts[0] - context.currentTime - Math.max(0, pending[i].starts[0] - context.currentTime - 1.4)) < 1e-9, 'parts retain their relative timing'));
   assert.ok(resumed.every(node => node.stops[0] < context.currentTime + 1.6));
+});
+
+test('resuming during percussion continues from inside its original noise buffer', () => {
+  const { sound, context, nodes } = audio(); sound.startJingle();
+  const hit = nodes.find(node => node.kind === 'noise');
+  const offset = (hit.stops[0] - hit.starts[0]) / 2;
+  const elapsed = hit.starts[0] - context.currentTime + offset;
+  const count = nodes.length;
+  sound.stopJingle(); sound.startJingle(elapsed);
+  const resumed = nodes.slice(count).find(node => node.kind === 'noise');
+  assert.equal(resumed.buffer, hit.buffer);
+  assert.equal(resumed.starts[0], context.currentTime);
+  assert.ok(Math.abs(resumed.offsets[0] - offset) < 1e-9, 'resume skips the completed portion of the drum hit');
 });
 
 test('muting cancels the jingle and suppresses start and replay audio', () => {
   const { sound, context, nodes } = audio(); sound.startJingle();
+  const count = nodes.length;
   assert.equal(sound.toggle(), false);
   assert.ok(nodes.every(node => node.stops.length === 2));
   sound.startJingle(); sound.startJingle(1);
-  assert.equal(nodes.length, 8); assert.equal(context.resumeCalls, 1);
+  assert.equal(nodes.length, count); assert.equal(context.resumeCalls, 1);
 });
 
 test('restarting replaces scheduled music and finished notes release their audio nodes', () => {
@@ -154,14 +174,16 @@ test('downward thrust layers with sideways audio and balanced vertical inputs si
   assert.ok(nodes.slice(4).every(node => node.stops.length === 1), 'down thrust is silent while docked');
 });
 
-test('happy win and sad losses are selected from structured end reasons, with descending loss notes', () => {
+test('major victory and minor loss arrangements follow structured end reasons', () => {
   const win = audio(), winner = playing(); winner.finish('delivered'); win.sound.play(winner.events.at(-1));
-  assert.ok(win.nodes.at(-2).pitch > win.nodes[0].pitch, 'victory melody ascends');
+  const victoryMelody = win.nodes.slice(0, WIN_JINGLE.channels[0].notes.length);
+  assert.ok(victoryMelody.at(-1).pitch > victoryMelody[0].pitch, 'victory melody resolves upward');
   for (const reason of ['tips', 'lives']) {
     const loss = audio(), loser = playing(); loser.finish(reason);
     loss.sound.play({ ...loser.events.at(-1), message: 'All orders delivered!' });
-    const melody = loss.nodes.slice(0, -1);
-    assert.ok(melody.every((note, i) => i === 0 || note.pitch < melody[i - 1].pitch));
+    const melody = loss.nodes.slice(0, LOSE_JINGLE.channels[0].notes.length);
+    assert.ok(melody.at(-1).pitch < melody[0].pitch, 'loss melody settles an octave lower');
+    assert.ok(melody.every(node => node.type === 'sawtooth'), 'loss uses the darker lead voice');
     assert.notEqual(loss.nodes[0].pitch, win.nodes[0].pitch);
     loss.sound.update(loser, idle);
     assert.ok(loss.nodes.every(node => node.stops.length === 1), 'game over does not cancel its jingle');
@@ -301,9 +323,12 @@ test('final Thanks finishes before victory music and survives automatic level ad
   const win = audio();
   win.sound.play({ type: 'delivery', message: '', x: 0, y: 0 });
   const thanks = win.nodes.at(-1), end = thanks.stops[0];
+  const count = win.nodes.length;
   win.sound.play({ type: 'gameover', endReason: 'delivered', message: '', x: 0, y: 0 });
   assert.equal(thanks.stops.length, 1);
-  assert.equal(win.nodes.at(-8).starts[0], end, 'victory music follows speech');
+  const music = win.nodes.slice(count);
+  assert.equal(Math.min(...music.map(node => node.starts[0])), end, 'victory music follows speech');
+  assert.ok(music.every(node => node.starts[0] >= end), 'bass, arpeggios, and drums also wait for speech');
   win.sound.stopAll(true); win.sound.startJingle(0, true);
   assert.equal(thanks.stops.length, 1, 'next-level startup preserves the final delivery speech');
   win.sound.stopAll();
