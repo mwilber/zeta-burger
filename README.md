@@ -21,7 +21,10 @@ npm test            # Build and run physics, scoring, and complete flight-route 
 npm run build       # Compile a static site into dist/
 ```
 
-Serve `dist/` with any static HTTP host, at the domain root or in a subdirectory such as `/games/zeta-burger/`. The game uses relative asset URLs. No server APIs, remote fonts, or runtime dependencies are needed. TypeScript is the only development dependency, approved for compilation and type checking.
+Serve `dist/` with any static HTTP host, at the domain root or in a subdirectory such as `/games/zeta-burger/`. The game uses relative asset URLs. No server APIs or remote fonts are needed. TypeScript handles compilation and type checking. The build bundles [sam-js](https://github.com/discordier/sam) locally for Commodore 64-style speech synthesis; its upstream attribution and license notes are included in `dist/src/vendor/sam-js-README.md`.
+
+Order announcements use a custom SAM voice (speed 64, pitch 94, throat 158, mouth 185): “Order Up!” on arrival and “Pad [number] please” on pickup. Deliveries say “Thanks!” in a random demo voice. Speech uses the same Web Audio context and mute/pause controls as the sound effects.
+Edit the three phrases in `SPEECH_CONFIG` in `src/level-config.ts`; each `#` in the pickup phrase is replaced with the destination pad number (for example, `Pad # please`).
 
 ## Deploy to Heroku
 
@@ -84,7 +87,11 @@ open http://localhost:5173 (or set `PORT` to another port).
 - **♫:** enable or mute synthesized arcade sound. Sound begins enabled and is unlocked by Start or the sound button.
 - **?:** open the flight manual; the active shift pauses while it is open.
 
-The soundscape includes a happy victory jingle for delivering all orders and a sad jingle for running out of saucers or tips. Vertical (up or down) and sideways thrust each play an independent warbling saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes use a noisy impact and falling rumble, and a rising chime announces each order ready for pickup. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
+The soundscape uses Commodore 64 SID-inspired synthesis: narrow pulse leads, quick ADSR envelopes, stepped pitch bends, and clocked shift-register noise. The saucer thrusters use a high, smooth whistle with a takeoff glide and wide vibrato for a 1950s sci-fi warble. The intro and ending themes use four musical parts: a lead melody, fast chord arpeggios, a moving triangle bass, and kick/snare/hat percussion. The SID itself had three synth voices; this arrangement adds a fourth percussion channel. The intro uses a jazzy major turnaround, victory builds to a major-key fanfare, and loss answers with a slower minor phrase. Each theme lasts about 1.4 seconds with a relaxed tempo and a complete cadence; the intro's four parts resume together after a pause, and victory waits for the final spoken “Thanks!”. Scores live in `src/music.ts`. Arrival, pickup, and delivery retain their short cues; gear and landing cues have short downward bends.
+
+Vertical (up or down) and sideways thrust each play an independent warbling saucer sound, so both can overlap; gear lock, empty fuel, and releasing controls silence the corresponding thruster. Close-call landings stutter in time with the visual hops. Crashes and hazard impacts use a crunchy noise burst and falling pulse rumble; thunder has a longer, lower noise sweep, and electrical arcs give a quiet descending zap. Pause and mute stop active sounds; the final loss jingle follows the crash animation.
+
+Resonant low-pass filters soften the bright waveforms; compression and gentle saturation control overlapping impacts while SAM speech stays clear. This is a SID-style sound palette, not a cycle-accurate chip emulator; synthesis helpers live in `src/sid.ts` and cue tuning in `src/audio.ts`.
 
 Start floating at the **top center of the play field**, with no initial drift and gear retracted. Choose a skill setting before starting. Starting or replaying a shift closes the dialog and plays a **short musical jingle during a three-second pause** before flight, fuel use, arrivals, and tip clocks begin. Pause, Help, and switching away freeze the start delay and stop the jingle; resuming continues the remaining melody. The sound button mutes the jingle along with the other effects. Then fly to **pad 0** at the restaurant. Touch down gently with gear extended and remain docked for 0.8 seconds to load the oldest waiting order. You carry one order at a time. The HUD and a beacon identify its numbered destination. Land there to unload, collect the current signed tip, and return to the restaurant for another order.
 

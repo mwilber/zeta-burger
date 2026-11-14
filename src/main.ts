@@ -120,17 +120,17 @@ async function start(continuing = false, designMode = game.designMode) {
   const loaded = await renderer.setLevel(level);
   starting = false;
   if (!loaded) { advanceFailed = true; toast(`Could not load ${level.name} artwork. Retry to continue.`); updateHud(); return; }
-  sound.stopAll();
+  sound.stopAll(continuing);
   game.start(skill, level, { carryBank: continuing, designMode }); resetInputs(); overlay.hidden = true;
   accumulator = 0; last = performance.now(); renderer.particles = [];
   toast(designMode ? 'Design mode · Saucer idle, tips frozen, world running.' : continuing ? `${level.name} is about to begin…` : 'Your shift is about to begin…');
   if (continuing && (document.hidden || dialog.open)) {
     game.pause(); sound.stopAll(); helpPaused = dialog.open;
-  } else if (!designMode) playStartJingle();
+  } else if (!designMode) playStartJingle(continuing);
   stage.focus({ preventScroll: true }); updateHud();
 }
-function playStartJingle() {
-  try { sound.startJingle(START_DELAY - game.countdownTime); }
+function playStartJingle(keepSpeech = false) {
+  try { sound.startJingle(START_DELAY - game.countdownTime, keepSpeech); }
   catch { /* The start delay still works when audio is unavailable. */ }
 }
 function pause() {

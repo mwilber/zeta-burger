@@ -227,6 +227,7 @@ test('pickup requires restaurant dwell; wrong destination never pays; delivery p
   const game = airborne(); game.orders[0].availableAt = 0; approach(game, 0); game.step(dt, idle);
   fly(game, .5); assert.equal(game.order, null); fly(game, .5);
   assert.equal(game.order.target, 3); assert.equal(game.order.initialTip, 7.5);
+  assert.equal(game.events.find(event => event.type === 'pickup').targetPad, 3, 'pickup includes its destination for speech');
   approach(game, 2); game.step(dt, idle); fly(game, 1); assert.equal(game.delivered, 0);
   approach(game, 3); game.step(dt, idle); fly(game, 1);
   assert.equal(game.delivered, 1); assert.equal(game.order, null); assert.ok(game.bank > 6.5 && game.bank < 7.5);

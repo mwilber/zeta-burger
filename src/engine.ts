@@ -35,7 +35,7 @@ export function verticalThrustDirection(controls: Controls): number { return Num
 export interface Ship { x: number; y: number; vx: number; vy: number; gear: boolean; landed: number | null }
 export interface Order { id: number; target: number; initialTip: number; elapsed: number; availableAt: number; status: 'scheduled' | 'waiting' | 'onboard' | 'delivered' }
 export type EndReason = 'delivered' | 'tips' | 'lives';
-export type GameEvent = { type: 'crash' | 'lightning' | 'lightning-arc' | 'falling-obstacle-impact' | 'boulder-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean };
+export type GameEvent = { type: 'crash' | 'lightning' | 'lightning-arc' | 'falling-obstacle-impact' | 'boulder-impact' | 'land' | 'clamp' | 'pickup' | 'delivery' | 'respawn' | 'gear' | 'arrival' | 'fuel' | 'gameover'; message: string; x: number; y: number; endReason?: EndReason; hardLanding?: boolean; targetPad?: number };
 export type Phase = 'ready' | 'countdown' | 'playing' | 'idle' | 'paused' | 'crashed' | 'gameover';
 export function shipBody(ship: Ship): Point[] {
   return [{ x: ship.x - 24, y: ship.y }, { x: ship.x - 13, y: ship.y - 7 }, { x: ship.x - 9, y: ship.y - 17 }, { x: ship.x + 9, y: ship.y - 17 }, { x: ship.x + 13, y: ship.y - 7 }, { x: ship.x + 24, y: ship.y }, { x: ship.x + 19, y: ship.y + 8 }, { x: ship.x - 19, y: ship.y + 8 }];
@@ -153,7 +153,7 @@ export class Game {
     // leave a nonnegative bank balance, and no more orders are incoming.
     else if (this.orders.length && this.scheduledCount === 0 && this.orders.filter(order => order.status !== 'delivered').every(order => this.tipFor(order) < -this.bank)) this.finish('tips');
   }
-  emit(type: GameEvent['type'], message: string, details: Pick<GameEvent, 'endReason' | 'hardLanding'> = {}) { this.events.push({ type, message, x: this.ship.x, y: this.ship.y, ...details }); }
+  emit(type: GameEvent['type'], message: string, details: Pick<GameEvent, 'endReason' | 'hardLanding' | 'targetPad'> = {}) { this.events.push({ type, message, x: this.ship.x, y: this.ship.y, ...details }); }
   toggleGear() {
     if (this.phase !== 'playing') return;
     this.ship.gear = !this.ship.gear;
@@ -569,7 +569,7 @@ export class Game {
     const id = this.ship.landed;
     if (id === this.level.restaurant && !this.order && this.waitingOrders.length) {
       const order = this.waitingOrders[0]; order.status = 'onboard'; this.servicedPad = id;
-      this.emit('pickup', `Order #${order.id} loaded! Pad ${order.target} · Tip $${this.tip.toFixed(2)}`);
+      this.emit('pickup', `Order #${order.id} loaded! Pad ${order.target} · Tip $${this.tip.toFixed(2)}`, { targetPad: order.target });
     } else if (this.order && id === this.order.target) {
       this.servicedPad = id;
       const earned = Math.round(this.tip * 100) / 100;
