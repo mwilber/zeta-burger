@@ -3,6 +3,8 @@ import type { Game, GameEvent, Controls } from './engine.js';
 import { SPEECH_CONFIG } from './level-config.js';
 import { DISPATCH_VOICE, THANKS_VOICES, SPEECH_SAMPLE_RATE, synthesizeSpeech } from './speech.js';
 import type { SamVoice } from './vendor/sam-js.js';
+import { sidEnvelope, sidFrequency, sidNoise, sidPitch, sidWaveform } from './sid.js';
+import type { SidPatch, SidWaveform } from './sid.js';
 type SoundGroup = 'jingle' | 'effects' | 'landing' | 'speech';
 type ThrustChannel = 'vertical' | 'side';
 interface ThrustVoice { carrier: OscillatorNode; wobble: OscillatorNode; gain: GainNode }
@@ -23,12 +25,14 @@ export class Sound {
   enabled = true;
   private sources: Record<SoundGroup, Set<AudioScheduledSourceNode>> = { jingle: new Set(), effects: new Set(), landing: new Set(), speech: new Set() };
   private speechBuffers = new Map<string, AudioBuffer>();
+  private noiseBuffers = new Map<string, AudioBuffer>();
+  private effectsBus: DynamicsCompressorNode | null = null;
   private speechUntil = 0;
   private thrustVoices = new Map<ThrustChannel, ThrustVoice>();
   private landingCueActive = false;
   toggle(): boolean {
     this.enabled = !this.enabled;
-    if (this.enabled) { this.context ??= new AudioContext(); void this.context.resume().catch(() => {}); this.tone(440, .08, 'sine'); }
+    if (this.enabled) { this.context ??= new AudioContext(); void this.context.resume().catch(() => {}); this.tone(440, .08); }
     else this.stopAll();
     return this.enabled;
   }
@@ -41,7 +45,7 @@ export class Sound {
     for (const note of START_JINGLE) {
       const remaining = note.duration - Math.max(0, elapsed - note.delay);
       if (remaining <= 0) continue;
-      this.tone(note.frequency, remaining, 'triangle', Math.max(0, note.delay - elapsed), .08, 'jingle');
+      this.tone(note.frequency, remaining, 'pulse', Math.max(0, note.delay - elapsed), .065, 'jingle', { pulseWidth: .25, sustain: .55 });
     }
   }
   stopJingle() {
@@ -60,14 +64,36 @@ export class Sound {
     this.sources[group].add(source);
     source.onended = () => { this.sources[group].delete(source); for (const node of nodes) node.disconnect(); };
   }
-  tone(frequency: number, duration: number, type: OscillatorType = 'triangle', delay = 0, volume = .08, group: SoundGroup = 'effects') {
+  private output(): DynamicsCompressorNode {
+    if (!this.effectsBus) {
+      const context = this.context!, bus = context.createDynamicsCompressor();
+      bus.threshold.value = -12; bus.knee.value = 6; bus.ratio.value = 4;
+      bus.attack.value = .003; bus.release.value = .12;
+      // Warm the mix and catch impact transients before they clip alongside
+      // speech. The compressor alone can let its initial attack overshoot.
+      const saturation = context.createWaveShaper(), curve = new Float32Array(2049);
+      for (let i = 0; i < curve.length; i++) {
+        const input = i * 2 / (curve.length - 1) - 1;
+        curve[i] = .6 * Math.tanh(input / .6);
+      }
+      saturation.curve = curve;
+      bus.connect(saturation); saturation.connect(context.destination); this.effectsBus = bus;
+    }
+    return this.effectsBus;
+  }
+  tone(frequency: number, duration: number, type: SidWaveform = 'pulse', delay = 0, volume = .065, group: SoundGroup = 'effects', patch: SidPatch = {}) {
     if (!this.enabled || !this.context) return;
     const context = this.context, time = context.currentTime + delay;
-    const oscillator = context.createOscillator(), gain = context.createGain();
-    oscillator.type = type; oscillator.frequency.setValueAtTime(frequency, time);
-    gain.gain.setValueAtTime(.0001, time); gain.gain.exponentialRampToValueAtTime(volume, time + Math.min(.008, duration / 2)); gain.gain.exponentialRampToValueAtTime(.0001, time + duration);
-    oscillator.connect(gain); gain.connect(context.destination); oscillator.start(time); oscillator.stop(time + duration + .02);
-    this.track(oscillator, [oscillator, gain], group);
+    const oscillator = context.createOscillator(), filter = context.createBiquadFilter(), gain = context.createGain();
+    sidWaveform(context, oscillator, type, patch.pulseWidth);
+    if (patch.endFrequency !== undefined) sidPitch(oscillator.frequency, frequency, patch.endFrequency, time, duration);
+    else oscillator.frequency.setValueAtTime(sidFrequency(frequency), time);
+    filter.type = 'lowpass'; filter.Q.value = .85;
+    filter.frequency.setValueAtTime(patch.cutoff ?? 4200, time);
+    sidEnvelope(gain.gain, volume, time, duration, patch.sustain);
+    oscillator.connect(filter); filter.connect(gain); gain.connect(this.output());
+    oscillator.start(time); oscillator.stop(time + duration + .002);
+    this.track(oscillator, [oscillator, filter, gain], group);
     return oscillator;
   }
   private endJingle(won: boolean) {
@@ -78,23 +104,30 @@ export class Sound {
     const beat = won ? .18 : .36;
     notes.forEach((frequency, i) => {
       const final = i === notes.length - 1;
-      this.tone(frequency, final ? .8 : beat * .85, 'triangle', delay + i * beat, .075, 'jingle');
+      this.tone(frequency, final ? .8 : beat * .85, won ? 'pulse' : 'sawtooth', delay + i * beat, .065, 'jingle', { pulseWidth: .125, cutoff: won ? 4200 : 1800 });
       // A major harmony celebrates a win; a descending minor phrase marks a loss.
-      if (final) this.tone(frequency * (won ? .5 : .75), .8, 'sine', delay + i * beat, .04, 'jingle');
+      if (final) this.tone(frequency * (won ? .5 : .75), .8, 'triangle', delay + i * beat, .04, 'jingle');
     });
   }
   private startThrust(channel: ThrustChannel) {
     if (!this.context || this.thrustVoices.has(channel)) return;
     const context = this.context, now = context.currentTime;
     const carrier = context.createOscillator(), wobble = context.createOscillator();
-    const depth = context.createGain(), gain = context.createGain();
-    carrier.type = 'sine'; carrier.frequency.setValueAtTime(350, now);
-    wobble.type = 'sine'; wobble.frequency.setValueAtTime(8.5, now);
-    depth.gain.setValueAtTime(90, now);
-    gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(.035, now + .035);
-    wobble.connect(depth); depth.connect(carrier.frequency);
-    carrier.connect(gain); gain.connect(context.destination);
-    carrier.onended = () => { carrier.disconnect(); wobble.disconnect(); depth.disconnect(); gain.disconnect(); };
+    const depth = context.createGain(), gain = context.createGain(), invert = context.createGain();
+    const delay = context.createDelay(.02), filter = context.createBiquadFilter();
+    const frequency = sidFrequency(175);
+    // A saw minus its delayed copy forms a pulse. Modulating the delay changes
+    // pulse width continuously (10–46%), giving the engine its SID-like growl.
+    carrier.type = 'sawtooth'; carrier.frequency.setValueAtTime(frequency, now);
+    wobble.type = 'triangle'; wobble.frequency.setValueAtTime(8.5, now);
+    delay.delayTime.setValueAtTime(.28 / frequency, now);
+    depth.gain.setValueAtTime(.18 / frequency, now); invert.gain.value = -1;
+    filter.type = 'lowpass'; filter.frequency.setValueAtTime(1500, now); filter.Q.value = 1.2;
+    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(.028, now + .008);
+    wobble.connect(depth); depth.connect(delay.delayTime);
+    carrier.connect(filter); carrier.connect(delay); delay.connect(invert); invert.connect(filter);
+    filter.connect(gain); gain.connect(this.output());
+    carrier.onended = () => { for (const node of [carrier, wobble, depth, delay, invert, filter, gain]) node.disconnect(); };
     carrier.start(now); wobble.start(now);
     this.thrustVoices.set(channel, { carrier, wobble, gain });
   }
@@ -114,7 +147,7 @@ export class Sound {
       const start = i * hop, duration = hop * .5;
       const remaining = duration - Math.max(0, elapsed - start);
       if (remaining <= 0) continue;
-      this.tone(110 - i * 12, remaining, 'sawtooth', Math.max(0, start - elapsed), .08 * (1 - i / (LANDING_BOUNCE.count + 1)), 'landing');
+      this.tone(110 - i * 12, remaining, 'pulse', Math.max(0, start - elapsed), .065 * (1 - i / (LANDING_BOUNCE.count + 1)), 'landing', { pulseWidth: .125, cutoff: 1600, endFrequency: 55 - i * 5 });
     }
   }
   update(game: Game, controls: Controls) {
@@ -133,36 +166,24 @@ export class Sound {
   private crash(stopShip = true) {
     if (!this.enabled || !this.context) return;
     if (stopShip) { this.stopThrust('vertical'); this.stopThrust('side'); this.stopGroup('landing'); this.landingCueActive = false; }
-    const context = this.context, now = context.currentTime;
-    // Filtered noise makes the impact burst, with a falling rumble beneath it.
-    const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * .8), context.sampleRate);
-    const samples = buffer.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
-    const noise = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
-    noise.buffer = buffer; filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(2600, now); filter.frequency.exponentialRampToValueAtTime(120, now + .8);
-    gain.gain.setValueAtTime(.18, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .8);
-    noise.connect(filter); filter.connect(gain); gain.connect(context.destination);
-    noise.start(now); noise.stop(now + .8); this.track(noise, [noise, filter, gain], 'effects');
-    const rumble = this.tone(160, 1.1, 'sawtooth', 0, .09);
-    rumble?.frequency.exponentialRampToValueAtTime(30, now + 1.1);
+    this.noiseBurst(.8, 14000, 450, .18, 3600, 180);
+    this.tone(164, 1.1, 'pulse', 0, .07, 'effects', { pulseWidth: .125, cutoff: 1100, sustain: .2, endFrequency: 32 });
   }
-  private thunder() {
+  private noiseBurst(duration: number, fromClock: number, toClock: number, volume: number, fromCutoff: number, toCutoff: number) {
     if (!this.enabled || !this.context) return;
-    const context = this.context, now = context.currentTime, duration = 1.7;
-    const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
-    const samples = buffer.getChannelData(0);
-    let low = 0;
-    for (let i = 0; i < samples.length; i++) {
-      const noise = Math.random() * 2 - 1;
-      low = low * .94 + noise * .06;
-      samples[i] = noise * Math.exp(-i / context.sampleRate * 24) * .45 + low * 3;
+    const context = this.context, now = context.currentTime;
+    const key = `${context.sampleRate}:${duration}:${fromClock}:${toClock}`;
+    let buffer = this.noiseBuffers.get(key);
+    if (!buffer) {
+      const samples = sidNoise(context.sampleRate, duration, fromClock, toClock);
+      buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.getChannelData(0).set(samples); this.noiseBuffers.set(key, buffer);
     }
     const noise = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
-    noise.buffer = buffer; filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1500, now); filter.frequency.exponentialRampToValueAtTime(90, now + duration);
-    gain.gain.setValueAtTime(.3, now); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
-    noise.connect(filter); filter.connect(gain); gain.connect(context.destination);
+    noise.buffer = buffer; filter.type = 'lowpass'; filter.Q.value = 1.1;
+    filter.frequency.setValueAtTime(fromCutoff, now); filter.frequency.exponentialRampToValueAtTime(toCutoff, now + duration);
+    sidEnvelope(gain.gain, volume, now, duration, .2);
+    noise.connect(filter); filter.connect(gain); gain.connect(this.output());
     noise.start(now); noise.stop(now + duration); this.track(noise, [noise, filter, gain], 'effects');
   }
   private speak(text: string, voice: SamVoice) {
@@ -187,25 +208,24 @@ export class Sound {
   play(event: GameEvent) {
     if (event.type === 'gameover') { this.endJingle(event.endReason === 'delivered'); return; }
     if (event.type === 'crash') this.crash();
-    if (event.type === 'lightning') this.thunder();
+    if (event.type === 'lightning') this.noiseBurst(1.7, 10500, 180, .25, 2200, 100);
     if (event.type === 'lightning-arc') {
-      const zap = this.tone(1800, .055, 'sawtooth', 0, .018);
-      if (zap && this.context) zap.frequency.exponentialRampToValueAtTime(320, this.context.currentTime + .055);
+      this.tone(1800, .055, 'pulse', 0, .018, 'effects', { pulseWidth: .125, endFrequency: 320 });
     }
     if (event.type === 'falling-obstacle-impact' || event.type === 'boulder-impact') this.crash(false);
     if (event.type === 'land' && event.hardLanding) { this.stopGroup('landing'); this.landingCueActive = false; }
-    if (event.type === 'land' && !event.hardLanding) this.tone(220, .12);
+    if (event.type === 'land' && !event.hardLanding) this.tone(220, .12, 'triangle', 0, .08, 'effects', { cutoff: 1200, endFrequency: 110 });
     if (event.type === 'arrival') {
-      [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'sine', i * .16, .075));
+      [659.25, 880, 1318.51].forEach((frequency, i) => this.tone(frequency, .14, 'pulse', i * .16, .06, 'effects', { pulseWidth: .125 }));
       this.speak(SPEECH_CONFIG.arrival, DISPATCH_VOICE);
     }
-    if (event.type === 'gear') this.tone(150, .06, 'square');
+    if (event.type === 'gear') this.tone(300, .06, 'pulse', 0, .05, 'effects', { pulseWidth: .125, cutoff: 2200, endFrequency: 100 });
     if (event.type === 'pickup') {
-      this.tone(440, .13); this.tone(660, .16, 'triangle', .12);
+      this.tone(440, .13); this.tone(660, .16, 'pulse', .12);
       if (event.targetPad !== undefined) this.speak(SPEECH_CONFIG.pickup.replaceAll('#', String(event.targetPad)), DISPATCH_VOICE);
     }
     if (event.type === 'delivery') {
-      [523, 659, 784, 1047].forEach((note, i) => this.tone(note, .19, 'triangle', i * .09));
+      [523, 659, 784, 1047].forEach((note, i) => this.tone(note, .19, 'pulse', i * .09, .06, 'effects', { pulseWidth: .25 }));
       this.speak(SPEECH_CONFIG.delivery, THANKS_VOICES[Math.floor(Math.random() * THANKS_VOICES.length)]);
     }
   }

@@ -6,6 +6,7 @@ import { LEVELS } from '../dist/src/levels.js';
 import SamJs from '../dist/src/vendor/sam-js.js';
 import { DISPATCH_VOICE, THANKS_VOICES } from '../dist/src/speech.js';
 import { SPEECH_CONFIG } from '../dist/src/level-config.js';
+import { sidFrequency } from '../dist/src/sid.js';
 const luna = LEVELS.find(level => level.id === 'luna');
 const idle = { up: false, down: false, left: false, right: false };
 
@@ -14,6 +15,7 @@ function audio() {
   const parameter = () => ({
     changes: [],
     setValueAtTime(value, time) { this.changes.push({ kind: 'set', value, time }); },
+    linearRampToValueAtTime(value, time) { this.changes.push({ kind: 'linear', value, time }); },
     exponentialRampToValueAtTime(value, time) { this.changes.push({ kind: 'ramp', value, time }); },
     cancelScheduledValues() {}, setTargetAtTime() {}
   });
@@ -26,8 +28,8 @@ function audio() {
     currentTime: 10, destination: {}, resumeCalls: 0, sampleRate: 44100,
     async resume() { this.resumeCalls++; },
     createOscillator() {
-      const node = { ...source(), frequency: parameter() };
-      node.frequency.setValueAtTime = (value, time) => { node.pitch = value; node.frequency.changes.push({ kind: 'set', value, time }); };
+      const node = { ...source(), frequency: parameter(), setPeriodicWave(wave) { this.type = 'custom'; this.wave = wave; } };
+      node.frequency.setValueAtTime = (value, time) => { node.pitch ??= value; node.frequency.changes.push({ kind: 'set', value, time }); };
       nodes.push(node); return node;
     },
     createBuffer(channels, length, sampleRate) {
@@ -35,8 +37,14 @@ function audio() {
       return { duration: length / sampleRate, sampleRate, getChannelData() { return samples; } };
     },
     createBufferSource() { const node = { ...source(), kind: 'noise' }; nodes.push(node); return node; },
-    createBiquadFilter() { return { frequency: parameter(), connect() {}, disconnect() {} }; },
-    createGain() { return { gain: parameter(), connections: [], connect(target) { this.connections.push(target); }, disconnect() {} }; }
+    createPeriodicWave(real, imaginary) { return { real, imaginary }; },
+    createDelay() { return { ...source(), delayTime: parameter() }; },
+    createBiquadFilter() { return { ...source(), frequency: parameter(), Q: parameter() }; },
+    createGain() { return { ...source(), gain: parameter() }; },
+    createWaveShaper() { return source(); },
+    createDynamicsCompressor() {
+      return { ...source(), threshold: parameter(), knee: parameter(), ratio: parameter(), attack: parameter(), release: parameter() };
+    }
   };
   const sound = new Sound(); sound.context = context;
   return { sound, context, nodes };
@@ -88,13 +96,18 @@ test('restarting replaces scheduled music and finished notes release their audio
   assert.ok(replay.every(node => node.stops.length === 1, 'finished notes are no longer scheduled'));
 });
 
-test('up and sideways thrust use independent sustained saucer voices that can overlap', () => {
+test('up and sideways thrust use independent sustained PWM voices that can overlap', () => {
   const { sound, nodes } = audio(), game = playing();
   sound.update(game, { ...idle, up: true });
-  assert.equal(nodes.length, 2, 'one carrier and one pitch wobble');
+  assert.equal(nodes.length, 2, 'one carrier and one pulse-width modulator');
   const upward = [...nodes];
-  assert.equal(upward[0].type, 'sine'); assert.equal(upward[1].pitch, 8.5);
-  assert.equal(upward[1].connections[0].connections[0], upward[0].frequency, 'wobble modulates the carrier pitch');
+  assert.equal(upward[0].type, 'sawtooth'); assert.equal(upward[1].type, 'triangle'); assert.equal(upward[1].pitch, 8.5);
+  const delay = upward[0].connections[1], depth = upward[1].connections[0];
+  assert.equal(depth.connections[0], delay.delayTime, 'wobble modulates pulse width');
+  assert.equal(delay.connections[0].gain.value, -1, 'delayed saw is subtracted to form a pulse');
+  const width = delay.delayTime.changes[0].value * upward[0].pitch;
+  const sweep = depth.gain.changes[0].value * upward[0].pitch;
+  assert.ok(Math.abs(width - sweep - .1) < 1e-9 && Math.abs(width + sweep - .46) < 1e-9, 'PWM remains inside its safe duty range');
   assert.equal(upward[0].stops.length, 0, 'thrust remains sustained');
   sound.update(game, { ...idle, up: true, right: true });
   assert.equal(nodes.length, 4); assert.equal(nodes[2].pitch, upward[0].pitch, 'both use the same saucer sound');
@@ -186,7 +199,7 @@ test('crash plays a noisy impact and falling rumble, then loss music after the f
   const noise = nodes.find(node => node.kind === 'noise'); assert.ok(noise.buffer.getChannelData(0).some(sample => sample !== 0));
   assert.equal(noise.starts[0], context.currentTime);
   const rumble = nodes.at(-1);
-  assert.ok(rumble.frequency.changes.some(change => change.kind === 'ramp' && change.value < rumble.pitch));
+  assert.ok(rumble.frequency.changes.some(change => change.kind === 'set' && change.value < rumble.pitch));
   game.step(1.49, idle); assert.equal(game.phase, 'crashed'); assert.equal(game.events.some(event => event.type === 'gameover'), false);
   game.step(.01, idle); const end = game.events.at(-1);
   assert.equal(end.endReason, 'lives'); sound.play(end);
@@ -305,17 +318,43 @@ test('final Thanks finishes before victory music and survives automatic level ad
   assert.equal(announcement.stops.length, 2, 'losing cancels outdated order announcements');
 });
 
-test('falling obstacle impacts reuse explosion audio without interrupting the flying ship', () => {
+test('falling obstacle and boulder impacts reuse explosion audio without interrupting the flying ship', () => {
   const { sound, nodes } = audio(), game = playing();
   const controls = { ...idle, up: true, right: true };
   sound.update(game, controls);
   const thrust = [...nodes];
-  sound.play({ type: 'falling-obstacle-impact', message: '', x: 0, y: 0 });
+  for (const type of ['falling-obstacle-impact', 'boulder-impact']) sound.play({ type, message: '', x: 0, y: 0 });
   assert.ok(nodes.some(node => node.kind === 'noise' && node.buffer.getChannelData(0).some(sample => sample !== 0)));
-  assert.ok(nodes.at(-1).frequency.changes.some(change => change.kind === 'ramp' && change.value < nodes.at(-1).pitch));
+  assert.ok(nodes.at(-1).frequency.changes.some(change => change.kind === 'set' && change.value < nodes.at(-1).pitch));
   assert.ok(thrust.every(node => node.stops.length === 0));
   const count = nodes.length; sound.update(game, controls);
   assert.equal(nodes.length, count, 'ship thrust voices continue without restarting');
+});
+
+test('overlapping effects share a bounded output stage with headroom for speech', () => {
+  const { sound, nodes, context } = audio();
+  for (let i = 0; i < 6; i++) sound.play({ type: 'boulder-impact', message: '', x: 0, y: 0 });
+  sound.play({ type: 'arrival', message: '', x: 0, y: 0 });
+  const speech = nodes.at(-1), effects = nodes.slice(0, -1);
+  const outputs = effects.map(node => node.connections[0].connections[0].connections[0]);
+  assert.ok(outputs.every(output => output === outputs[0]), 'all effects pass through the shared mixer');
+  const saturation = outputs[0].connections[0];
+  assert.equal(saturation.connections[0], context.destination);
+  assert.equal(speech.connections[0].connections[0], context.destination, 'speech retains its original clarity');
+  const limit = saturation.curve.reduce((peak, value) => Math.max(peak, Math.abs(value)), 0);
+  assert.ok(limit > .5 && limit < .6);
+  assert.equal(saturation.curve[(saturation.curve.length - 1) / 2], 0, 'no DC offset');
+  const speechPeak = speech.buffer.getChannelData(0).reduce((peak, value) => Math.max(peak, Math.abs(value)), 0) * .7;
+  assert.ok(limit + speechPeak < 1, 'even a saturated effects mix leaves room for the announcement');
+});
+
+test('released PWM thrusters disconnect their delay, modulation, and filter nodes', () => {
+  const { sound, nodes } = audio(), state = playing();
+  sound.update(state, { ...idle, up: true });
+  const [carrier, wobble] = nodes, [filter, delay] = carrier.connections;
+  const depth = wobble.connections[0], invert = delay.connections[0], gain = filter.connections[0];
+  sound.stopAll(); carrier.onended();
+  assert.ok([carrier, wobble, filter, delay, depth, invert, gain].every(node => node.disconnected));
 });
 
 
@@ -348,11 +387,11 @@ test('each electrical arc plays a short quiet zap and mute or pause cancels it',
   const { sound, nodes } = audio();
   sound.play({ type: 'lightning-arc', message: '', x: 428, y: 560 });
   assert.equal(nodes.length, 1);
-  const zap = nodes[0], gain = zap.connections[0];
-  assert.equal(zap.type, 'sawtooth');
+  const zap = nodes[0], gain = zap.connections[0].connections[0];
+  assert.equal(zap.type, 'custom');
   assert.ok(zap.stops[0] - zap.starts[0] < .1);
   assert.ok(gain.gain.changes.some(change => change.value === .018));
-  assert.ok(zap.frequency.changes.some(change => change.kind === 'ramp' && change.value === 320));
+  assert.ok(zap.frequency.changes.some(change => change.kind === 'set' && change.value === sidFrequency(320)));
   sound.stopAll(); assert.equal(zap.stops.at(-1), undefined);
   sound.enabled = false;
   sound.play({ type: 'lightning-arc', message: '', x: 428, y: 560 });
