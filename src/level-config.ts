@@ -1,6 +1,5 @@
 import type { Point } from './world.js';
 import { GROTTO_BOULDERS } from './grotto.js';
-import { AVALANCHE_MOUNTAINS } from './avalanche.js';
 
 // Shared spoken phrases for every level. Each # in pickup becomes the destination pad number.
 export const SPEECH_CONFIG = {
