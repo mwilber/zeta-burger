@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 266">
+  <title>Abyss west-lower kelp — solid ship obstacle</title>
+  <defs>
+    <linearGradient id="kelp-west-lower"><stop stop-color="#164f43"/><stop offset=".5" stop-color="#378861"/><stop offset="1" stop-color="#103f3b"/></linearGradient>
+    <clipPath id="kelp-clip-west-lower"><polygon points="19,0 31,30 38,128 33,266 5,266 0,128 7,30"/></clipPath>
+  </defs>
+  <polygon data-plant-outline="" points="19,0 31,30 38,128 33,266 5,266 0,128 7,30" fill="url(#kelp-west-lower)"/>
+  <g clip-path="url(#kelp-clip-west-lower)">
+    <g>
+      <path d="M19 66Q3 60 1 36Q15 42 19 53Z" fill="#328d62"/>
+      <path d="M19 63Q9 52 1 36" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 66Q35 60 37 36Q23 42 19 53Z" fill="#4aab73"/>
+      <path d="M19 63Q29 52 37 36" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 94Q3 88 1 64Q15 70 19 81Z" fill="#328d62"/>
+      <path d="M19 91Q9 80 1 64" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 94Q35 88 37 64Q23 70 19 81Z" fill="#4aab73"/>
+      <path d="M19 91Q29 80 37 64" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 122Q3 116 1 92Q15 98 19 109Z" fill="#328d62"/>
+      <path d="M19 119Q9 108 1 92" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 122Q35 116 37 92Q23 98 19 109Z" fill="#4aab73"/>
+      <path d="M19 119Q29 108 37 92" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 150Q3 144 1 120Q15 126 19 137Z" fill="#328d62"/>
+      <path d="M19 147Q9 136 1 120" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 150Q35 144 37 120Q23 126 19 137Z" fill="#4aab73"/>
+      <path d="M19 147Q29 136 37 120" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 178Q3 172 1 148Q15 154 19 165Z" fill="#328d62"/>
+      <path d="M19 175Q9 164 1 148" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 178Q35 172 37 148Q23 154 19 165Z" fill="#4aab73"/>
+      <path d="M19 175Q29 164 37 148" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 206Q3 200 1 176Q15 182 19 193Z" fill="#328d62"/>
+      <path d="M19 203Q9 192 1 176" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 206Q35 200 37 176Q23 182 19 193Z" fill="#4aab73"/>
+      <path d="M19 203Q29 192 37 176" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 234Q3 228 1 204Q15 210 19 221Z" fill="#328d62"/>
+      <path d="M19 231Q9 220 1 204" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 234Q35 228 37 204Q23 210 19 221Z" fill="#4aab73"/>
+      <path d="M19 231Q29 220 37 204" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 262Q3 256 1 232Q15 238 19 249Z" fill="#328d62"/>
+      <path d="M19 259Q9 248 1 232" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 262Q35 256 37 232Q23 238 19 249Z" fill="#4aab73"/>
+      <path d="M19 259Q29 248 37 232" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 266Q15 186.2 19 133T19 8" fill="none" stroke="#91c880" stroke-width="3"/>
+      <path d="M20 266V16" stroke="#d1e5a0" stroke-width=".7" opacity=".5"/>
+    </g>
+    <polygon points="19,0 31,30 38,128 33,266 5,266 0,128 7,30" fill="none" stroke="#64bb8b" stroke-width="1.6" stroke-linejoin="round"/>
+  </g>
+</svg>

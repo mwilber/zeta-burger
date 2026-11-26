@@ -511,8 +511,10 @@ export class Game {
     for (const solid of this.solids) {
       if (solid.padId === null) {
         if (sweepContact(shipBody(previous), solid.points, { x: s.x - previous.x, y: s.y - previous.y }) !== null) {
-          this.crash(this.level.boulders ? 'Mountain impact. Keep to the valley and land on numbered ledges.'
-            : this.level.structures.find(structure => structure.id === solid.structureId)?.outline
+          const structure = this.level.structures.find(structure => structure.id === solid.structureId);
+          this.crash(structure?.kind.startsWith('sea-plant-') ? 'Sea plant impact. Fly through the openings in the kelp.'
+            : this.level.boulders ? 'Mountain impact. Keep to the valley and land on numbered ledges.'
+            : structure?.outline
             ? 'Cavern wall impact. Follow the open passages and land on numbered pads.'
             : 'Tower impact. Clear the rooftops before crossing the city.'); return;
         }

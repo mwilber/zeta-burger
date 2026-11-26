@@ -259,7 +259,9 @@ Configure the well with optional `blackHole: { x, y, radius, strength, maxAccele
 
 ![Abyss ocean stations, reversing current, and fish hazards.](docs/screenshots/abyss-level.jpg)
 
-**Abyss (level 7)** follows Megalopolis in the development play order, underwater in the deep ocean. Six reef stations drift together in a reversing horizontal current, with pressure-sealed habitats, coral, light shafts, bubbles, and an ocean-colored delivery submersible. The current indicator shows the flow direction. Gravity is reduced to **35**, so the ship slowly sinks; thrusters retain full power.
+**Abyss (level 7)** follows Megalopolis in the development play order, underwater in the deep ocean. Four reef stations drift together in a reversing horizontal current, with pressure-sealed habitats, coral, light shafts, bubbles, and an ocean-colored delivery submersible. The current indicator shows the flow direction. Gravity is reduced to **35**, so the ship slowly sinks; thrusters retain full power.
+
+Tall kelp fronds divide the field into three sections, with a mid-height opening on the left and a higher opening on the right. Plants remain fixed while the stations drift. Only the ship's hull and extended landing gear collide with them; fish and landing stations pass through freely. `src/abyss.ts` defines the convex silhouettes and placements. After building, run `node scripts/generate-abyss-plants.mjs` and rebuild to regenerate the matching `sea-plant-*-7.svg` artwork.
 
 Configure flow with optional `current: { speed, period, drag }`: peak water speed in world units/second, cycle length in seconds, and the ship’s horizontal drag response in 1/second. Stations follow the integrated flow, moving their artwork and all collision shapes together. Water drag carries airborne ships even with empty fuel or extended gear. Brake with sideways thrust before extending the landing gear and match the station’s velocity. Docking immediately secures the ship, which rides the current for free; pickup and delivery use the normal 0.8-second dwell. Upward thrust or gear retraction releases it.
 

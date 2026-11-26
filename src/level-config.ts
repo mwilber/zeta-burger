@@ -1,6 +1,7 @@
 import type { Point } from './world.js';
 import { GROTTO_BOULDERS } from './grotto.js';
 import { AVALANCHE_MOUNTAINS } from './avalanche.js';
+import { ABYSS_PLANTS } from './abyss.js';
 
 // Shared spoken phrases for every level. Each # in pickup becomes the destination pad number.
 export const SPEECH_CONFIG = {
@@ -212,7 +213,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   "number": 7,
   "id": "abyss",
   "name": "Abyss",
-  "theme": "Deep ocean deliveries. Ride the reversing current. Dock to shelter from the fish.",
+  "theme": "Thread the kelp openings. Ride the reversing current. Dock to shelter from the fish.",
   "gravity": 35,
   "current": {
     "speed": 22,
@@ -225,12 +226,166 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   },
   "restaurant": 0,
   "fallingObstacleLimit": 0,
-  "seekerCount": 4,
+  "seekerCount": 3,
+  "structures": [
+    {
+      "id": "west-upper",
+      "x": 446,
+      "y": 0,
+      "width": 38,
+      "height": 346,
+      "kind": "sea-plant-west-upper",
+      "outline": [
+        {
+          "x": 7,
+          "y": 316
+        },
+        {
+          "x": 0,
+          "y": 180
+        },
+        {
+          "x": 5,
+          "y": 0
+        },
+        {
+          "x": 33,
+          "y": 0
+        },
+        {
+          "x": 38,
+          "y": 180
+        },
+        {
+          "x": 31,
+          "y": 316
+        },
+        {
+          "x": 19,
+          "y": 346
+        }
+      ]
+    },
+    {
+      "id": "west-lower",
+      "x": 446,
+      "y": 494,
+      "width": 38,
+      "height": 266,
+      "kind": "sea-plant-west-lower",
+      "outline": [
+        {
+          "x": 19,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 30
+        },
+        {
+          "x": 38,
+          "y": 128
+        },
+        {
+          "x": 33,
+          "y": 266
+        },
+        {
+          "x": 5,
+          "y": 266
+        },
+        {
+          "x": 0,
+          "y": 128
+        },
+        {
+          "x": 7,
+          "y": 30
+        }
+      ]
+    },
+    {
+      "id": "east-upper",
+      "x": 850,
+      "y": 0,
+      "width": 38,
+      "height": 130,
+      "kind": "sea-plant-east-upper",
+      "outline": [
+        {
+          "x": 7,
+          "y": 100
+        },
+        {
+          "x": 0,
+          "y": 68
+        },
+        {
+          "x": 5,
+          "y": 0
+        },
+        {
+          "x": 33,
+          "y": 0
+        },
+        {
+          "x": 38,
+          "y": 68
+        },
+        {
+          "x": 31,
+          "y": 100
+        },
+        {
+          "x": 19,
+          "y": 130
+        }
+      ]
+    },
+    {
+      "id": "east-lower",
+      "x": 850,
+      "y": 258,
+      "width": 38,
+      "height": 502,
+      "kind": "sea-plant-east-lower",
+      "outline": [
+        {
+          "x": 19,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 30
+        },
+        {
+          "x": 38,
+          "y": 241
+        },
+        {
+          "x": 33,
+          "y": 502
+        },
+        {
+          "x": 5,
+          "y": 502
+        },
+        {
+          "x": 0,
+          "y": 241
+        },
+        {
+          "x": 7,
+          "y": 30
+        }
+      ]
+    }
+  ],
   "pads": [
     {
       "id": 0,
       "name": "Zeta Burger",
-      "x": 162,
+      "x": 149,
       "y": 560,
       "width": 116,
       "color": "#ffd18c",
@@ -248,8 +403,8 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     {
       "id": 1,
       "name": "Coral Cove",
-      "x": 160,
-      "y": 191,
+      "x": 105,
+      "y": 196,
       "width": 102,
       "color": "#ff9ca5",
       "island": {
@@ -266,8 +421,8 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     {
       "id": 2,
       "name": "Bathysphere Lab",
-      "x": 565,
-      "y": 271,
+      "x": 665,
+      "y": 317,
       "width": 104,
       "color": "#72e6dc",
       "island": {
@@ -284,8 +439,8 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     {
       "id": 3,
       "name": "Nautilus Lodge",
-      "x": 930,
-      "y": 363,
+      "x": 989,
+      "y": 613,
       "width": 104,
       "color": "#ffd18c",
       "island": {

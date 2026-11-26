@@ -41,6 +41,10 @@ The current moves whole stations, including art and collisions; water drag
 carries airborne ships even without fuel. Docked ships ride pads for free,
 with normal pickup/delivery timing. Its fish use the generic seeker behavior:
 pursue in flight, wander while landed, and never harm a landed ship.
+Four solid kelp fronds form two stationary dividers with staggered openings.
+Only the ship (hull and gear) collides with plants; fish and drifting stations
+pass through freely. Geometry lives in `src/abyss.ts`; after building,
+`node scripts/generate-abyss-plants.mjs` regenerates matching level-7 SVGs.
 
 Megalopolis (8) uses solid `structures` rising from street level as tower
 barriers. Three pads sit on roofs (without islands) and three are attached
