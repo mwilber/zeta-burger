@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 130">
+  <title>Abyss east-upper kelp — solid ship obstacle</title>
+  <defs>
+    <linearGradient id="kelp-east-upper"><stop stop-color="#164f43"/><stop offset=".5" stop-color="#378861"/><stop offset="1" stop-color="#103f3b"/></linearGradient>
+    <clipPath id="kelp-clip-east-upper"><polygon points="7,100 0,68 5,0 33,0 38,68 31,100 19,130"/></clipPath>
+  </defs>
+  <polygon data-plant-outline="" points="7,100 0,68 5,0 33,0 38,68 31,100 19,130" fill="url(#kelp-east-upper)"/>
+  <g clip-path="url(#kelp-clip-east-upper)">
+    <g transform="translate(0 130) scale(1 -1)">
+      <path d="M19 66Q3 60 1 36Q15 42 19 53Z" fill="#328d62"/>
+      <path d="M19 63Q9 52 1 36" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 66Q35 60 37 36Q23 42 19 53Z" fill="#4aab73"/>
+      <path d="M19 63Q29 52 37 36" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 94Q3 88 1 64Q15 70 19 81Z" fill="#328d62"/>
+      <path d="M19 91Q9 80 1 64" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 94Q35 88 37 64Q23 70 19 81Z" fill="#4aab73"/>
+      <path d="M19 91Q29 80 37 64" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 122Q3 116 1 92Q15 98 19 109Z" fill="#328d62"/>
+      <path d="M19 119Q9 108 1 92" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 122Q35 116 37 92Q23 98 19 109Z" fill="#4aab73"/>
+      <path d="M19 119Q29 108 37 92" fill="none" stroke="#a4d78b" stroke-opacity=".42" stroke-width=".8"/>
+      <path d="M19 130Q15 91 19 65T19 8" fill="none" stroke="#91c880" stroke-width="3"/>
+      <path d="M20 130V16" stroke="#d1e5a0" stroke-width=".7" opacity=".5"/>
+    </g>
+    <polygon points="7,100 0,68 5,0 33,0 38,68 31,100 19,130" fill="none" stroke="#64bb8b" stroke-width="1.6" stroke-linejoin="round"/>
+  </g>
+</svg>

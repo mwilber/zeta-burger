@@ -41,6 +41,10 @@ The current moves whole stations, including art and collisions; water drag
 carries airborne ships even without fuel. Docked ships ride pads for free,
 with normal pickup/delivery timing. Its fish use the generic seeker behavior:
 pursue in flight, wander while landed, and never harm a landed ship.
+Four solid kelp fronds form two stationary dividers with staggered openings.
+Only the ship (hull and gear) collides with plants; fish and drifting stations
+pass through freely. Geometry lives in `src/abyss.ts`; after building,
+`node scripts/generate-abyss-plants.mjs` regenerates matching level-7 SVGs.
 
 Megalopolis (8) uses solid `structures` rising from street level as tower
 barriers. Three pads sit on roofs (without islands) and three are attached
@@ -57,9 +61,10 @@ the same peripheral layout. Gravity is 0 with full thrust, no seekers, and no
 falling obstacles. The star’s visible surface matches its fatal radius; its
 corona is decorative. Level-9 SVG assets show the sphere’s interior collectors.
 
-Grotto (10) follows the mountain-cavern sketch: five pads, with the restaurant
-outside in the upper left, a trailhead ledge above the entrance, and three pads
-inside. Six reusable convex boulder shapes overlap to form the cavern walls,
+Grotto (10) follows the mountain-cavern sketch: six pads, with the restaurant
+outside in the upper left, a trailhead ledge above the entrance, and four pads
+inside, including Cavern Outpost on the lower-left ledge. Six reusable convex
+boulder shapes overlap to form the cavern walls,
 central rock mass, and floor. Structure `outline` vertices use local world
 units and must match their SVG silhouettes. Keep the entrance, routes around
 both sides of the central mass, and lower passage navigable. Gravity is 100
@@ -91,8 +96,9 @@ snowy granite ledges, chalets, and distant alpine peaks/pines. After building,
 
 Avalanche (13) is a valley between two solid convex mountain slopes, with three
 station ledges on the left and two on the right. Gravity is 100 with full thrust, no wind, seekers,
-or falling obstacles. Its `boulders.spawnIntervalMax` config sets the upper
-limit of the random 1–N second spawn delay (initially 5). Spawn side is random
+or falling obstacles. Its `boulders.spawnIntervalMin` and `spawnIntervalMax`
+config set the random spawn delay bounds, currently 5–10 seconds; an omitted
+minimum defaults to 1 second. Spawn side is random
 in flight; while landed, new rocks spawn only on the opposite mountainside.
 Existing rocks keep moving and remain dangerous to landed ships. Giant boulders
 bounce and roll against slopes and stations, rotate with travel, and disintegrate

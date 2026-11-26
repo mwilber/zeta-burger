@@ -27,7 +27,7 @@ test('Abyss preserves its identity and progression behind Megalopolis', () => {
   assert.equal(nextLevel(LEVELS.find(l => l.id === 'megalopolis')), abyss);
   assert.deepEqual(LEVELS.map(l => [l.number, l.id]), [[13, 'avalanche'], [12, 'blizzard'], [11, 'srormfront'], [10, 'grotto'], [9, 'freeman'], [8, 'megalopolis'], [7, 'abyss'], [6, 'event-horizon'], [5, 'zero-g'], [4, 'trick-or-treat'], [3, 'obsession'], [2, 'meteor-shower'], [1, 'luna']]);
   assert.equal(nextLevel(abyss).id, 'event-horizon');
-  assert.equal(abyss.padCount, 6); assert.equal(abyss.seekerCount, 4); assert.equal(abyss.fallingObstacleLimit, 0);
+  assert.equal(abyss.padCount, 4); assert.equal(abyss.seekerCount, 4); assert.equal(abyss.fallingObstacleLimit, 0);
   assert.equal(abyss.gravity, 35); assert.equal(abyss.thrustScale ?? 1, 1);
   assert.ok(LEVELS.filter(l => l !== abyss).every(l => l.current === undefined));
 });
@@ -160,8 +160,8 @@ test('current-driven scenery cannot sweep through the ship between frames', () =
   assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 2); assert.match(game.events.at(-1).message, /Hull impact/);
 });
 
-test('a continuous restaurant–delivery–restaurant flight works across current reversals', () => {
-  const game = new Game(() => 0, abyss); game.start('casual'); game.step(START_DELAY, idle);
+test('a continuous restaurant–delivery–restaurant flight crosses both kelp openings and current reversals', () => {
+  const game = new Game(() => .99, abyss); game.start('casual'); game.step(START_DELAY, idle);
   // Isolate navigation and moving-pad landings; fish contacts are covered above.
   game.seekers = [];
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -186,15 +186,18 @@ test('a continuous restaurant–delivery–restaurant flight works across curren
   function approach(id, height = PHYSICS.footY) {
     return () => { const pad = game.pads.find(p => p.id === id); return { x: pad.x + pad.width / 2, y: pad.y - height, pad }; };
   }
-  navigate(() => ({ x: 640, y: 110 })); navigate(() => ({ x: 428, y: 110 }));
+  // The eastern side of the lab leaves room to descend below its drifting reef.
+  navigate(() => ({ x: 822, y: 110 })); navigate(() => ({ x: 822, y: 420 }));
+  navigate(() => ({ x: 360, y: 420 }));
   navigate(approach(0, 100)); navigate(approach(0), 0);
   while (!game.order) game.step(dt, idle);
-  fly(game, .25, { ...idle, up: true });
-  const departureX = game.ship.x; navigate(() => ({ x: departureX, y: 110 }));
-  navigate(approach(1, 240)); navigate(approach(1, 100)); navigate(approach(1), 1); fly(game, 1);
+  assert.equal(game.order.target, 3);
+  const departureX = game.ship.x; navigate(() => ({ x: departureX, y: 420 }));
+  navigate(() => ({ x: 822, y: 420 })); navigate(() => ({ x: 822, y: 194 }));
+  navigate(approach(3, 169)); navigate(approach(3, 100)); navigate(approach(3), 3); fly(game, 1);
   assert.equal(game.delivered, 1); assert.ok(game.bank > 0);
-  fly(game, .25, { ...idle, up: true });
-  const returnX = game.ship.x; navigate(() => ({ x: returnX, y: 110 }));
-  navigate(() => ({ x: 428, y: 110 })); navigate(approach(0, 100)); navigate(approach(0), 0); fly(game, 1);
+  navigate(approach(3, 169)); navigate(() => ({ x: 822, y: 194 }));
+  navigate(() => ({ x: 822, y: 420 })); navigate(() => ({ x: 360, y: 420 }));
+  navigate(approach(0, 100)); navigate(approach(0), 0); fly(game, 1);
   assert.equal(game.lives, 3); assert.ok(game.order); assert.ok(game.fuel > 0);
 });

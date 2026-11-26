@@ -21,7 +21,7 @@ function fly(game, seconds, controls = idle) {
 test('Grotto follows Srormfront with six sketch stations and six reusable boulder shapes', () => {
   assert.equal(nextLevel(LEVELS.find(l => l.id === 'srormfront')), level);
   assert.equal(level.number, 10); assert.equal(nextLevel(level).id, 'freeman');
-  assert.equal(level.padCount, 5); assert.deepEqual(level.destinations, [1, 2, 3, 4]);
+  assert.equal(level.padCount, 6); assert.deepEqual(level.destinations, [1, 2, 3, 4, 5]);
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
   assert.equal(level.seekerCount, 0); assert.equal(level.fallingObstacleLimit, 0);
   assert.ok(!level.current && !level.gravityWell && level.pads.every(p => !p.motion));
@@ -30,7 +30,8 @@ test('Grotto follows Srormfront with six sketch stations and six reusable boulde
     assert.deepEqual(level.solids.find(solid => solid.structureId === s.id).points, s.outline.map(p => ({ x: s.x + p.x, y: s.y + p.y })));
   }
   const heart = level.solids.filter(s => s.structureId?.startsWith('heart-'));
-  assert.ok(heart.length >= 5);
+  assert.equal(heart.length, 4);
+  assert.ok(!level.structures.some(s => s.id === 'heart-west'));
   assert.ok(heart.every(s => heart.some(other => s !== other && intersects(s.points, other.points))), 'central rocks form one overlapping group');
 });
 
@@ -63,19 +64,22 @@ test('convex structure outlines reject invalid, concave, repeated, and crossing 
 
 test('sloped empty corners are passable while boulder faces catch hulls, gear, and fast crossings', () => {
   const corner = playing();
-  // This point is inside the bounding rectangle of heart-west, above its slope.
-  Object.assign(corner.ship, { x: 300, y: 420 }); corner.step(dt, idle);
+  // This point is inside the bounding rectangle of heart-east, above its slope.
+  Object.assign(corner.ship, { x: 815, y: 400 }); corner.step(dt, idle);
   assert.equal(corner.phase, 'playing');
-  const west = level.solids.find(s => s.structureId === 'heart-west');
-  assert.equal(sweepContact(rectangle(277, 400, 46, 28), west.points, { x: 0, y: 0 }), null);
-  for (const [x, y, vx, gear] of [[400, 480, 0, false], [200, 480, 36000, false], [500, 369, 0, true]]) {
+  const east = level.solids.find(s => s.structureId === 'heart-east');
+  assert.equal(sweepContact(rectangle(792, 386, 46, 28), east.points, { x: 0, y: 0 }), null);
+  const opening = playing();
+  Object.assign(opening.ship, { x: 400, y: 480 }); opening.step(dt, idle);
+  assert.equal(opening.phase, 'playing', 'the removed western rock leaves a clear approach');
+  for (const [x, y, vx, gear] of [[500, 480, 0, false], [350, 480, 36000, false], [500, 369, 0, true]]) {
     const game = playing(); Object.assign(game.ship, { x, y, vx, gear }); game.step(dt, idle);
     assert.equal(game.phase, 'crashed'); assert.equal(game.lives, 2);
     assert.match(game.events.at(-1).message, gear ? /Landing gear impact/ : /Cavern wall impact/);
   }
 });
 
-test('all five ledges allow docking, normal service, optional refueling, and safe lift-off', () => {
+test('all six ledges allow docking, normal service, optional refueling, and safe lift-off', () => {
   for (const pad of level.pads) {
     const game = playing(); game.orders[0].availableAt = 0;
     if (level.destinations.includes(pad.id)) { game.orders[0].target = pad.id; game.orders[0].status = 'onboard'; }
@@ -117,17 +121,17 @@ const routes = {
   2: [[380, 120], [380, 335], [950, 320], [1155, 310]],
   3: [[380, 120], [380, 335], [950, 320], [950, 620], [755, 620]],
   4: [[380, 120], [380, 335], [950, 320], [950, 610], [1165, 610]],
-  6: [[380, 120], [380, 335], [150, 355], [135, 525]]
+  5: [[380, 120], [380, 335], [150, 355], [145, 525]]
 };
-for (const id of [1, 2, 3, 4]) test(`fly from the outdoor restaurant to pad ${id} and back through the passages`, () => {
-  const game = playing(() => (Math.max(1, id) - .5) / 4);
+for (const id of level.destinations) test(`fly from the outdoor restaurant to pad ${id} and back through the passages`, () => {
+  const game = playing(() => (id - .5) / level.destinations.length);
   game.orders.forEach(order => { order.initialTip = 100; });
   game.orders[0].availableAt = 0; game.orders[0].target = id;
   seek(game, 158, 188, 0); fly(game, 1); assert.ok(game.order);
   for (const [x, y] of routes[id]) seek(game, x, y);
   const pad = level.pads.find(p => p.id === id), x = pad.x + pad.width / 2;
   seek(game, x, pad.y - PHYSICS.footY, id); fly(game, 1);
-  if (id !== 6) assert.equal(game.delivered, 1);
+  assert.equal(game.delivered, 1);
   for (const [x, y] of [...routes[id]].reverse()) seek(game, x, y);
   seek(game, 158, 100); seek(game, 158, 188, 0); fly(game, 1);
   assert.equal(game.lives, 3); assert.ok(game.fuel > 0); assert.ok(game.order);

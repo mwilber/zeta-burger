@@ -1,6 +1,5 @@
 import type { Point } from './world.js';
 import { GROTTO_BOULDERS } from './grotto.js';
-import { AVALANCHE_MOUNTAINS } from './avalanche.js';
 
 // Shared spoken phrases for every level. Each # in pickup becomes the destination pad number.
 export const SPEECH_CONFIG = {
@@ -74,8 +73,8 @@ export interface LevelConfig {
   fallingObstacleLimit: number;
   // Optional speed (units/s) and collision radius overrides for falling hazards.
   fallingObstacleConfig?: { speedMin: number; speedMax: number; radiusMin: number; radiusMax: number };
-  // Rolling mountain hazards: each spawn waits a random 1–spawnIntervalMax seconds.
-  boulders?: { spawnIntervalMax: number };
+  // Rolling mountain hazards: random min–max spawn delay in seconds; min defaults to 1.
+  boulders?: { spawnIntervalMin?: number; spawnIntervalMax: number };
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
   seekerCount: number;
   // Stationary solid barriers, independent of individual landing pads.
@@ -90,62 +89,415 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
-  number: 13,
-  id: 'avalanche',
-  name: 'Avalanche',
-  theme: 'A delivery route between two mountains. Land to halt new boulders on your side; watch for rocks already rolling.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  boulders: { spawnIntervalMax: 10 },
-  structures: AVALANCHE_MOUNTAINS,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 200, y: 260, width: 116, color: '#ffd397', island: { x: -28, width: 154 }, building: { x: -46, width: 38, height: 62, kind: 'restaurant' } },
-    { id: 1, name: 'West Ridge Lodge', x: 307, y: 450, width: 108, color: '#a6e9d8', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 58, kind: 'lodge' } },
-    { id: 2, name: 'Talus Refuge', x: 413, y: 640, width: 108, color: '#ffd397', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 52, kind: 'refuge' } },
-    { id: 3, name: 'Summit Observatory', x: 964, y: 260, width: 116, color: '#a6e9d8', island: { x: -10, width: 154 }, building: { x: 124, width: 38, height: 62, kind: 'observatory' } },
-    { id: 4, name: 'East Ridge Chalet', x: 865, y: 450, width: 108, color: '#ffd397', island: { x: -10, width: 146 }, building: { x: 116, width: 38, height: 58, kind: 'chalet' } },
+  "number": 13,
+  "id": "avalanche",
+  "name": "Avalanche",
+  "theme": "A delivery route between two mountains. Land to halt new boulders on your side; watch for rocks already rolling.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "boulders": {
+    "spawnIntervalMin": 5,
+    "spawnIntervalMax": 10
+  },
+  "structures": [
+    {
+      "id": "west-mountain",
+      "x": 0,
+      "y": 100,
+      "width": 450,
+      "height": 628,
+      "kind": "mountain-west",
+      "outline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 628
+        },
+        {
+          "x": 0,
+          "y": 628
+        }
+      ]
+    },
+    {
+      "id": "east-mountain",
+      "x": 830,
+      "y": 100,
+      "width": 450,
+      "height": 628,
+      "kind": "mountain-east",
+      "outline": [
+        {
+          "x": 350,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 628
+        },
+        {
+          "x": 0,
+          "y": 628
+        }
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 317,
+      "y": 443,
+      "width": 116,
+      "color": "#ffd397",
+      "island": {
+        "x": -28,
+        "width": 154
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 62,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "West Ridge Lodge",
+      "x": 204,
+      "y": 247,
+      "width": 108,
+      "color": "#a6e9d8",
+      "island": {
+        "x": -28,
+        "width": 146
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 58,
+        "kind": "lodge"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Talus Refuge",
+      "x": 413,
+      "y": 640,
+      "width": 108,
+      "color": "#ffd397",
+      "island": {
+        "x": -28,
+        "width": 146
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 52,
+        "kind": "refuge"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Summit Observatory",
+      "x": 946,
+      "y": 282,
+      "width": 116,
+      "color": "#a6e9d8",
+      "island": {
+        "x": -10,
+        "width": 154
+      },
+      "building": {
+        "x": 124,
+        "width": 38,
+        "height": 62,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 4,
+      "name": "East Ridge Chalet",
+      "x": 823,
+      "y": 511,
+      "width": 108,
+      "color": "#ffd397",
+      "island": {
+        "x": -10,
+        "width": 146
+      },
+      "building": {
+        "x": 116,
+        "width": 38,
+        "height": 58,
+        "kind": "chalet"
+      }
+    }
   ]
 }, {
-  number: 12,
-  id: 'blizzard',
-  name: 'Blizzard',
-  theme: 'Alpine deliveries in whiteout winds. Dodge the giant snowflakes and brake before landing.',
-  gravity: 100,
-  storm: { windSpeed: 63.75, gustDuration: 1.4, drag: 1.6, rainCount: 560, lightning: false, precipitation: 'sleet' },
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 6,
-  fallingObstacleConfig: { speedMin: 45, speedMax: 70, radiusMin: 24, radiusMax: 24 },
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd397', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Pinecrest Chalet', x: 116, y: 340, width: 102, color: '#a6e9f4', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'chalet' } },
-    { id: 2, name: 'Summit Observatory', x: 563, y: 253, width: 104, color: '#a6e9f4', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Edelweiss Lodge', x: 954, y: 363, width: 104, color: '#ffd397', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'lodge' } },
-    { id: 4, name: 'Glacier Refuge', x: 724, y: 558, width: 104, color: '#a6e9f4', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'refuge' } },
-    { id: 5, name: 'North Ridge Hut', x: 1120, y: 633, width: 104, color: '#ffd397', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 12,
+  "id": "blizzard",
+  "name": "Blizzard",
+  "theme": "Alpine deliveries in whiteout winds. Dodge the giant snowflakes and brake before landing.",
+  "gravity": 100,
+  "storm": {
+    "windSpeed": 63.75,
+    "gustDuration": 1.4,
+    "drag": 1.6,
+    "rainCount": 560,
+    "lightning": false,
+    "precipitation": "sleet"
+  },
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 6,
+  "fallingObstacleConfig": {
+    "speedMin": 45,
+    "speedMax": 70,
+    "radiusMin": 24,
+    "radiusMax": 24
+  },
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 486,
+      "y": 562,
+      "width": 116,
+      "color": "#ffd397",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Pinecrest Chalet",
+      "x": 125,
+      "y": 286,
+      "width": 102,
+      "color": "#a6e9f4",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "chalet"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Summit Observatory",
+      "x": 1077,
+      "y": 602,
+      "width": 104,
+      "color": "#a6e9f4",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Glacier Refuge",
+      "x": 942,
+      "y": 291,
+      "width": 104,
+      "color": "#a6e9f4",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "refuge"
+      }
+    },
+    {
+      "id": 5,
+      "name": "North Ridge Hut",
+      "x": 109,
+      "y": 498,
+      "width": 104,
+      "color": "#ffd397",
+      "island": {
+        "x": -95,
+        "width": 233
+      },
+      "building": {
+        "x": -73,
+        "width": 53,
+        "height": 67,
+        "kind": "outpost"
+      }
+    }
   ]
 }, {
-  number: 11,
-  id: 'srormfront',
-  name: 'Srormfront',
-  theme: 'Deliver through the squall. Fight the gusts and clear the ground charge before lightning strikes.',
-  gravity: 100,
-  storm: { windSpeed: 63.75, gustDuration: 1.4, drag: 1.6, rainCount: 560 },
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Rainwatch', x: 116, y: 340, width: 102, color: '#8de4ef', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Weather Observatory', x: 563, y: 253, width: 104, color: '#8de4ef', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Thunderhead Lodge', x: 954, y: 363, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Petrichor Gardens', x: 724, y: 558, width: 104, color: '#8de4ef', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Gale Outpost', x: 1120, y: 633, width: 104, color: '#ffd789', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 11,
+  "id": "srormfront",
+  "name": "Srormfront",
+  "theme": "Deliver through the squall. Fight the gusts and clear the ground charge before lightning strikes.",
+  "gravity": 100,
+  "storm": {
+    "windSpeed": 63.75,
+    "gustDuration": 1.4,
+    "drag": 1.6,
+    "rainCount": 560
+  },
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 163,
+      "y": 364,
+      "width": 116,
+      "color": "#ffd789",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Rainwatch",
+      "x": 143,
+      "y": 618,
+      "width": 102,
+      "color": "#8de4ef",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Weather Observatory",
+      "x": 1039,
+      "y": 288,
+      "width": 104,
+      "color": "#8de4ef",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Thunderhead Lodge",
+      "x": 995,
+      "y": 618,
+      "width": 104,
+      "color": "#ffd789",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Petrichor Gardens",
+      "x": 416,
+      "y": 619,
+      "width": 104,
+      "color": "#8de4ef",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "crystal"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Gale Outpost",
+      "x": 758,
+      "y": 619,
+      "width": 104,
+      "color": "#ffd789",
+      "island": {
+        "x": -95,
+        "width": 233
+      },
+      "building": {
+        "x": -73,
+        "width": 53,
+        "height": 67,
+        "kind": "outpost"
+      }
+    }
   ]
 }, {
   number: 10,
@@ -163,26 +515,120 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     { id: 1, name: 'Trailhead Lodge', x: 595, y: 180, width: 110, color: '#ffc479', building: { x: 124, width: 40, height: 57, kind: 'lodge' } },
     { id: 2, name: 'Echo Station', x: 1100, y: 355, width: 110, color: '#83d9c7', building: { x: 122, width: 35, height: 56, kind: 'echo' } },
     { id: 3, name: 'Deepstone Lab', x: 700, y: 710, width: 110, color: '#bba5ec', building: { x: -53, width: 38, height: 53, kind: 'lab' } },
-    { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } }
+    { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } },
+    { id: 5, name: 'Cavern Outpost', x: 80, y: 615, width: 130, color: '#83d9c7', building: { x: -62, width: 38, height: 53, kind: 'outpost' } }
   ]
 }, {
-  number: 9,
-  id: 'freeman',
-  name: 'Freeman',
-  theme: 'Inside Freeman Dyson’s sphere. Circle the star, brake against its gentle pull, and dock for safety.',
-  gravity: 0,
-  star: { x: 640, y: 380, radius: 52, strength: 3600000, maxAcceleration: 120 },
-  start: { x: 640, y: 65 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 260, y: 155, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Sunward Habitat', x: 1100, y: 420, width: 102, color: '#e9b780', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Dyson Observatory', x: 588, y: 155, width: 104, color: '#8de4cf', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Daybreak Lodge', x: 950, y: 155, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Solar Gardens', x: 865, y: 655, width: 104, color: '#e9b780', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Collector Outpost', x: 380, y: 655, width: 104, color: '#8de4cf', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 9,
+  "id": "freeman",
+  "name": "Freeman",
+  "theme": "Inside Freeman Dyson’s sphere. Circle the star, brake against its gentle pull, and dock for safety.",
+  "gravity": 0,
+  "star": {
+    "x": 640,
+    "y": 380,
+    "radius": 52,
+    "strength": 3600000,
+    "maxAcceleration": 120
+  },
+  "start": {
+    "x": 640,
+    "y": 65
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 162,
+      "y": 243,
+      "width": 116,
+      "color": "#ffd789",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Sunward Habitat",
+      "x": 1117,
+      "y": 485,
+      "width": 102,
+      "color": "#e9b780",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Dyson Observatory",
+      "x": 1061,
+      "y": 201,
+      "width": 104,
+      "color": "#8de4cf",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Daybreak Lodge",
+      "x": 238,
+      "y": 651,
+      "width": 104,
+      "color": "#ffd789",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Solar Gardens",
+      "x": 865,
+      "y": 655,
+      "width": 104,
+      "color": "#e9b780",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "crystal"
+      }
+    }
   ]
 }, {
   number: 8,
@@ -209,132 +655,819 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     { id: 5, name: 'Eastside Balcony', x: 950, y: 600, width: 110, color: '#6fe4e9', island: { x: 0, width: 118 }, building: { x: 112, width: 20, height: 38, kind: 'eastside' } }
   ]
 }, {
-  number: 7,
-  id: 'abyss',
-  name: 'Abyss',
-  theme: 'Deep ocean deliveries. Ride the reversing current. Dock to shelter from the fish.',
-  gravity: 35,
-  current: { speed: 22, period: 14, drag: 1.1 },
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 4,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd18c', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Coral Cove', x: 140, y: 340, width: 102, color: '#ff9ca5', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Bathysphere Lab', x: 563, y: 253, width: 104, color: '#72e6dc', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Nautilus Lodge', x: 930, y: 363, width: 104, color: '#ffd18c', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Pearl Gardens', x: 724, y: 558, width: 104, color: '#ff9ca5', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Trench Outpost', x: 1080, y: 633, width: 104, color: '#72e6dc', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 7,
+  "id": "abyss",
+  "name": "Abyss",
+  "theme": "Thread the kelp openings. Ride the reversing current. Dock to shelter from the fish.",
+  "gravity": 35,
+  "current": {
+    "speed": 22,
+    "period": 14,
+    "drag": 1.1
+  },
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 3,
+  "structures": [
+    {
+      "id": "west-upper",
+      "x": 446,
+      "y": 0,
+      "width": 38,
+      "height": 346,
+      "kind": "sea-plant-west-upper",
+      "outline": [
+        {
+          "x": 7,
+          "y": 316
+        },
+        {
+          "x": 0,
+          "y": 180
+        },
+        {
+          "x": 5,
+          "y": 0
+        },
+        {
+          "x": 33,
+          "y": 0
+        },
+        {
+          "x": 38,
+          "y": 180
+        },
+        {
+          "x": 31,
+          "y": 316
+        },
+        {
+          "x": 19,
+          "y": 346
+        }
+      ]
+    },
+    {
+      "id": "west-lower",
+      "x": 446,
+      "y": 494,
+      "width": 38,
+      "height": 266,
+      "kind": "sea-plant-west-lower",
+      "outline": [
+        {
+          "x": 19,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 30
+        },
+        {
+          "x": 38,
+          "y": 128
+        },
+        {
+          "x": 33,
+          "y": 266
+        },
+        {
+          "x": 5,
+          "y": 266
+        },
+        {
+          "x": 0,
+          "y": 128
+        },
+        {
+          "x": 7,
+          "y": 30
+        }
+      ]
+    },
+    {
+      "id": "east-upper",
+      "x": 850,
+      "y": 0,
+      "width": 38,
+      "height": 130,
+      "kind": "sea-plant-east-upper",
+      "outline": [
+        {
+          "x": 7,
+          "y": 100
+        },
+        {
+          "x": 0,
+          "y": 68
+        },
+        {
+          "x": 5,
+          "y": 0
+        },
+        {
+          "x": 33,
+          "y": 0
+        },
+        {
+          "x": 38,
+          "y": 68
+        },
+        {
+          "x": 31,
+          "y": 100
+        },
+        {
+          "x": 19,
+          "y": 130
+        }
+      ]
+    },
+    {
+      "id": "east-lower",
+      "x": 850,
+      "y": 258,
+      "width": 38,
+      "height": 502,
+      "kind": "sea-plant-east-lower",
+      "outline": [
+        {
+          "x": 19,
+          "y": 0
+        },
+        {
+          "x": 31,
+          "y": 30
+        },
+        {
+          "x": 38,
+          "y": 241
+        },
+        {
+          "x": 33,
+          "y": 502
+        },
+        {
+          "x": 5,
+          "y": 502
+        },
+        {
+          "x": 0,
+          "y": 241
+        },
+        {
+          "x": 7,
+          "y": 30
+        }
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 149,
+      "y": 560,
+      "width": 116,
+      "color": "#ffd18c",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Coral Cove",
+      "x": 105,
+      "y": 196,
+      "width": 102,
+      "color": "#ff9ca5",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bathysphere Lab",
+      "x": 665,
+      "y": 317,
+      "width": 104,
+      "color": "#72e6dc",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Nautilus Lodge",
+      "x": 989,
+      "y": 613,
+      "width": 104,
+      "color": "#ffd18c",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    }
   ]
 }, {
-  number: 6,
-  id: 'event-horizon',
-  name: 'Event Horizon',
-  theme: 'Stay on the outer rim. The black hole pulls harder as you approach. Land for safety.',
-  gravity: 0,
-  blackHole: { x: 640, y: 380, radius: 52, strength: 7200000, maxAcceleration: 240 },
-  start: { x: 640, y: 65 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 260, y: 155, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 1100, y: 420, width: 102, color: '#b1b5ff', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 588, y: 155, width: 104, color: '#80e9ff', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 950, y: 155, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 865, y: 655, width: 104, color: '#b1b5ff', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 380, y: 655, width: 104, color: '#80e9ff', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 6,
+  "id": "event-horizon",
+  "name": "Event Horizon",
+  "theme": "Stay on the outer rim. The black hole pulls harder as you approach. Land for safety.",
+  "gravity": 0,
+  "blackHole": {
+    "x": 640,
+    "y": 380,
+    "radius": 52,
+    "strength": 7200000,
+    "maxAcceleration": 240
+  },
+  "start": {
+    "x": 640,
+    "y": 65
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 142,
+      "y": 310,
+      "width": 116,
+      "color": "#ffd789",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 1100,
+      "y": 420,
+      "width": 102,
+      "color": "#b1b5ff",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Moon Motel",
+      "x": 131,
+      "y": 625,
+      "width": 104,
+      "color": "#ffd789",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Crystal Gardens",
+      "x": 865,
+      "y": 655,
+      "width": 104,
+      "color": "#b1b5ff",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "crystal"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Cosmic Outpost",
+      "x": 1080,
+      "y": 157,
+      "width": 104,
+      "color": "#80e9ff",
+      "island": {
+        "x": -95,
+        "width": 233
+      },
+      "building": {
+        "x": -73,
+        "width": 53,
+        "height": 67,
+        "kind": "outpost"
+      }
+    }
   ]
 }, {
-  number: 5,
-  id: 'zero-g',
-  name: 'Zero G',
-  theme: 'No gravity. Hold Down on a pad for 250 ms to engage the landing clamp.',
-  gravity: 0,
-  thrustScale: .3,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd789', motion: { x: 18, y: 12, period: 20 }, island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#b1b5ff', motion: { x: 16, y: 12, period: 16 }, island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#80e9ff', motion: { x: 18, y: 10, period: 22 }, island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#ffd789', motion: { x: 14, y: 12, period: 19 }, island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#b1b5ff', motion: { x: 16, y: 10, period: 17 }, island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#80e9ff', motion: { x: 14, y: 10, period: 21 }, island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 5,
+  "id": "zero-g",
+  "name": "Zero G",
+  "theme": "No gravity. Hold Down on a pad for 250 ms to engage the landing clamp.",
+  "gravity": 0,
+  "thrustScale": 0.3,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 1005,
+      "y": 595,
+      "width": 116,
+      "color": "#ffd789",
+      "motion": {
+        "x": 18,
+        "y": 12,
+        "period": 20
+      },
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 134,
+      "y": 484,
+      "width": 102,
+      "color": "#b1b5ff",
+      "motion": {
+        "x": 16,
+        "y": 12,
+        "period": 16
+      },
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Orbit Observatory",
+      "x": 727,
+      "y": 284,
+      "width": 104,
+      "color": "#80e9ff",
+      "motion": {
+        "x": 18,
+        "y": 10,
+        "period": 22
+      },
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Spore Heights",
+      "x": 224,
+      "y": 204,
+      "width": 102,
+      "color": "#b1b5ff",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    }
+  ],
+  "assets": {
+    "pad-3": "pad-1-5",
+    "pad-3-active": "pad-1-active-5",
+    "island-3": "island-1-5",
+    "building-3": "mushroom-5"
+  }
+}, {
+  "number": 4,
+  "id": "trick-or-treat",
+  "name": "Trick Or Treat",
+  "theme": "Burgers, boos, and midnight deliveries. Land to escape the ghosts.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 4,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 663,
+      "y": 635,
+      "width": 116,
+      "color": "#ff9b47",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 136,
+      "y": 234,
+      "width": 102,
+      "color": "#ff9b47",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Orbit Observatory",
+      "x": 101,
+      "y": 596,
+      "width": 104,
+      "color": "#b4ed72",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Moon Motel",
+      "x": 934,
+      "y": 259,
+      "width": 104,
+      "color": "#d7a0ff",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Crystal Gardens",
+      "x": 1069,
+      "y": 594,
+      "width": 104,
+      "color": "#ff9b47",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "crystal"
+      }
+    }
   ]
 }, {
-  number: 4,
-  id: 'trick-or-treat',
-  name: 'Trick Or Treat',
-  theme: 'Burgers, boos, and midnight deliveries. Land to escape the ghosts.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 4,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ff9b47', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#ff9b47', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#b4ed72', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#d7a0ff', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#ff9b47', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#b4ed72', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 3,
+  "id": "obsession",
+  "name": "Obsession",
+  "theme": "Neon skies. Something is following you. Land for safety.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 4,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 211,
+      "y": 611,
+      "width": 116,
+      "color": "#ff65d8",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 542,
+      "y": 323,
+      "width": 102,
+      "color": "#ff65d8",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Orbit Observatory",
+      "x": 974,
+      "y": 225,
+      "width": 104,
+      "color": "#53f4ff",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Moon Motel",
+      "x": 1004,
+      "y": 598,
+      "width": 104,
+      "color": "#ffb86b",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    }
   ]
 }, {
-  number: 3,
-  id: 'obsession',
-  name: 'Obsession',
-  theme: 'Neon skies. Something is following you. Land for safety.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 4,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ff65d8', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#ff65d8', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#53f4ff', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#ffb86b', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#ff65d8', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#53f4ff', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 2,
+  "id": "meteor-shower",
+  "name": "Meteor Shower",
+  "theme": "Cool skies. Watch for falling rocks.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 4,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 408,
+      "y": 590,
+      "width": 116,
+      "color": "#b6c8d8",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 116,
+      "y": 340,
+      "width": 102,
+      "color": "#b6c8d8",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Orbit Observatory",
+      "x": 697,
+      "y": 400,
+      "width": 104,
+      "color": "#b6c8d8",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Moon Motel",
+      "x": 1004,
+      "y": 594,
+      "width": 104,
+      "color": "#b6c8d8",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    }
   ]
 }, {
-  number: 2,
-  id: 'meteor-shower',
-  name: 'Meteor Shower',
-  theme: 'Cool skies. Watch for falling rocks.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 4,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#b6c8d8', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#b6c8d8', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#b6c8d8', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#b6c8d8', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#b6c8d8', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#b6c8d8', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
-  ]
-}, {
-  number: 1,
-  id: 'luna',
-  name: 'Luna',
-  theme: 'Low gravity. High stakes.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#bdf77d', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Spore Heights', x: 116, y: 340, width: 102, color: '#da9fec', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Orbit Observatory', x: 563, y: 253, width: 104, color: '#98daed', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Moon Motel', x: 954, y: 363, width: 104, color: '#ffc481', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Crystal Gardens', x: 724, y: 558, width: 104, color: '#da9fec', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Cosmic Outpost', x: 1120, y: 633, width: 104, color: '#98daed', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
-  ]
-}];
+  "number": 1,
+  "id": "luna",
+  "name": "Luna",
+  "theme": "Low gravity. High stakes.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 190,
+      "y": 403,
+      "width": 116,
+      "color": "#bdf77d",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Spore Heights",
+      "x": 627,
+      "y": 575,
+      "width": 102,
+      "color": "#da9fec",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Orbit Observatory",
+      "x": 989,
+      "y": 413,
+      "width": 104,
+      "color": "#98daed",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    }
+  ],
+  "assets": {}
+},];
