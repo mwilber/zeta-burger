@@ -209,23 +209,96 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     { id: 5, name: 'Eastside Balcony', x: 950, y: 600, width: 110, color: '#6fe4e9', island: { x: 0, width: 118 }, building: { x: 112, width: 20, height: 38, kind: 'eastside' } }
   ]
 }, {
-  number: 7,
-  id: 'abyss',
-  name: 'Abyss',
-  theme: 'Deep ocean deliveries. Ride the reversing current. Dock to shelter from the fish.',
-  gravity: 35,
-  current: { speed: 22, period: 14, drag: 1.1 },
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 4,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 370, y: 560, width: 116, color: '#ffd18c', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Coral Cove', x: 140, y: 340, width: 102, color: '#ff9ca5', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Bathysphere Lab', x: 563, y: 253, width: 104, color: '#72e6dc', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Nautilus Lodge', x: 930, y: 363, width: 104, color: '#ffd18c', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Pearl Gardens', x: 724, y: 558, width: 104, color: '#ff9ca5', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Trench Outpost', x: 1080, y: 633, width: 104, color: '#72e6dc', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 7,
+  "id": "abyss",
+  "name": "Abyss",
+  "theme": "Deep ocean deliveries. Ride the reversing current. Dock to shelter from the fish.",
+  "gravity": 35,
+  "current": {
+    "speed": 22,
+    "period": 14,
+    "drag": 1.1
+  },
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 4,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 162,
+      "y": 560,
+      "width": 116,
+      "color": "#ffd18c",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Coral Cove",
+      "x": 160,
+      "y": 191,
+      "width": 102,
+      "color": "#ff9ca5",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bathysphere Lab",
+      "x": 565,
+      "y": 271,
+      "width": 104,
+      "color": "#72e6dc",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Nautilus Lodge",
+      "x": 930,
+      "y": 363,
+      "width": 104,
+      "color": "#ffd18c",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    }
   ]
 }, {
   "number": 6,
