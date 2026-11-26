@@ -192,7 +192,8 @@ export class Game {
     }
   }
   private nextBoulderDelay(): number {
-    return 1 + this.random() * (this.level.boulders!.spawnIntervalMax - 1);
+    const { spawnIntervalMin = 1, spawnIntervalMax } = this.level.boulders!;
+    return spawnIntervalMin + this.random() * (spawnIntervalMax - spawnIntervalMin);
   }
   private stepBoulders(dt: number, previousShip: Ship, canHitShip: boolean) {
     if (!this.level.boulders || dt <= 0) return;

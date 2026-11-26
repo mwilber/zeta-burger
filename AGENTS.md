@@ -96,8 +96,9 @@ snowy granite ledges, chalets, and distant alpine peaks/pines. After building,
 
 Avalanche (13) is a valley between two solid convex mountain slopes, with three
 station ledges on the left and two on the right. Gravity is 100 with full thrust, no wind, seekers,
-or falling obstacles. Its `boulders.spawnIntervalMax` config sets the upper
-limit of the random 1–N second spawn delay (initially 5). Spawn side is random
+or falling obstacles. Its `boulders.spawnIntervalMin` and `spawnIntervalMax`
+config set the random spawn delay bounds, currently 5–10 seconds; an omitted
+minimum defaults to 1 second. Spawn side is random
 in flight; while landed, new rocks spawn only on the opposite mountainside.
 Existing rocks keep moving and remain dangerous to landed ships. Giant boulders
 bounce and roll against slopes and stations, rotate with travel, and disintegrate

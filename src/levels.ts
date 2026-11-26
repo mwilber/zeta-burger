@@ -61,7 +61,11 @@ export function createLevel(config: LevelConfig, options: { editing?: boolean } 
     || falling.speedMin <= 0 || falling.speedMax < falling.speedMin
     || falling.radiusMin <= 0 || falling.radiusMax < falling.radiusMin)) fail('invalid fallingObstacleConfig');
   if (!Number.isInteger(config.seekerCount) || config.seekerCount < 0) fail('seekerCount must be a nonnegative integer');
-  if (config.boulders && (!Number.isFinite(config.boulders.spawnIntervalMax) || config.boulders.spawnIntervalMax < 1)) fail('boulders.spawnIntervalMax must be finite and at least 1 second');
+  if (config.boulders) {
+    const { spawnIntervalMin = 1, spawnIntervalMax } = config.boulders;
+    if (!Number.isFinite(spawnIntervalMin) || spawnIntervalMin < 1) fail('boulders.spawnIntervalMin must be finite and at least 1 second');
+    if (!Number.isFinite(spawnIntervalMax) || spawnIntervalMax < spawnIntervalMin) fail('boulders.spawnIntervalMax must be finite and at least spawnIntervalMin');
+  }
   if (config.refueling && Object.values(config.refueling).some(value => !Number.isFinite(value) || value <= 0)) fail('refueling values must be finite and positive');
   const ids = new Set<number>();
   for (const pad of config.pads) {

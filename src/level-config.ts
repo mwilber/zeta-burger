@@ -74,8 +74,8 @@ export interface LevelConfig {
   fallingObstacleLimit: number;
   // Optional speed (units/s) and collision radius overrides for falling hazards.
   fallingObstacleConfig?: { speedMin: number; speedMax: number; radiusMin: number; radiusMax: number };
-  // Rolling mountain hazards: each spawn waits a random 1–spawnIntervalMax seconds.
-  boulders?: { spawnIntervalMax: number };
+  // Rolling mountain hazards: random min–max spawn delay in seconds; min defaults to 1.
+  boulders?: { spawnIntervalMin?: number; spawnIntervalMax: number };
   // Persistent, intangible cloud hazards. Set to 0 to disable them.
   seekerCount: number;
   // Stationary solid barriers, independent of individual landing pads.
@@ -99,7 +99,7 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
   restaurant: 0,
   fallingObstacleLimit: 0,
   seekerCount: 0,
-  boulders: { spawnIntervalMax: 10 },
+  boulders: { spawnIntervalMin: 5, spawnIntervalMax: 10 },
   structures: AVALANCHE_MOUNTAINS,
   pads: [
     { id: 0, name: 'Zeta Burger', x: 200, y: 260, width: 116, color: '#ffd397', island: { x: -28, width: 154 }, building: { x: -46, width: 38, height: 62, kind: 'restaurant' } },

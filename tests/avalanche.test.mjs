@@ -27,7 +27,7 @@ test('Avalanche starts the stack, keeps older identities, and ships complete mat
   assert.deepEqual(LEVELS.map(level => level.number), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
   assert.equal(nextLevel(level).id, 'blizzard');
   assert.equal(level.gravity, 100); assert.equal(level.thrustScale ?? 1, 1);
-  assert.equal(level.boulders.spawnIntervalMax, config.boulders.spawnIntervalMax); assert.equal(level.padCount, 5);
+  assert.deepEqual(level.boulders, { spawnIntervalMin: 5, spawnIntervalMax: 10 }); assert.equal(level.padCount, 5);
   assert.equal(level.fallingObstacleLimit, 0); assert.equal(level.seekerCount, 0);
   assert.ok(!level.storm && !level.current && !level.gravityWell);
   assert.equal(level.pads.filter(pad => pad.x + pad.width / 2 < 640).length, 3);
@@ -40,20 +40,25 @@ test('Avalanche starts the stack, keeps older identities, and ships complete mat
   }
 });
 
-test('spawn interval is configurable and every initial/subsequent delay lies between 1 and its maximum', () => {
-  for (const max of [1, 2, 5, 9]) for (const sample of [0, .5, 1]) {
-    const custom = createLevel({ ...config, boulders: { spawnIntervalMax: max } });
+test('spawn interval supports configurable bounds and defaults an omitted minimum to one second', () => {
+  for (const [min, max] of [[undefined, 1], [undefined, 9], [1, 2], [2, 5], [5, 10], [7, 7]]) for (const sample of [0, .5, 1]) {
+    const custom = createLevel({ ...config, boulders: { spawnIntervalMin: min, spawnIntervalMax: max } });
     const game = new Game(() => sample, custom); game.start('casual', custom, { designMode: true });
-    assert.equal(game.boulderSpawnTime, 1 + sample * (max - 1));
+    const minimum = min ?? 1, expected = minimum + sample * (max - minimum);
+    assert.equal(game.boulderSpawnTime, expected);
     game.boulderSpawnTime = 0; game.step(dt, idle);
     assert.equal(game.boulders.length, 1);
-    assert.equal(game.boulderSpawnTime, 1 + sample * (max - 1));
+    assert.equal(game.boulderSpawnTime, expected);
     assert.ok(game.boulders[0].radius >= BOULDERS.radiusMin && game.boulders[0].radius <= BOULDERS.radiusMax);
     run(game, .9); assert.equal(game.boulders.length, 1, 'no second spawn before one second');
   }
   for (const value of [undefined, NaN, Infinity, -1, 0, .9]) {
     assert.throws(() => createLevel({ ...config, boulders: { spawnIntervalMax: value } }), /boulders.spawnIntervalMax/);
   }
+  for (const value of [NaN, Infinity, -1, 0, .9]) {
+    assert.throws(() => createLevel({ ...config, boulders: { spawnIntervalMin: value, spawnIntervalMax: 10 } }), /boulders.spawnIntervalMin/);
+  }
+  assert.throws(() => createLevel({ ...config, boulders: { spawnIntervalMin: 5, spawnIntervalMax: 4 } }), /boulders.spawnIntervalMax/);
 });
 
 test('airborne spawn sides are random; landing on every ledge forces the opposite side', () => {
@@ -155,9 +160,10 @@ test('all pads have clear valley approaches, safe landings, and departure lanes'
 
 test('countdown, pause, editing, final crash, restart, and level changes respect boulder lifecycle', () => {
   const game = new Game(() => .5, level); game.start('casual');
-  run(game, 2.9); assert.equal(game.boulders.length, 0); assert.equal(game.boulderSpawnTime, 1 + (level.boulders.spawnIntervalMax - 1) / 2);
+  const midpointDelay = (level.boulders.spawnIntervalMin + level.boulders.spawnIntervalMax) / 2;
+  run(game, 2.9); assert.equal(game.boulders.length, 0); assert.equal(game.boulderSpawnTime, midpointDelay);
   run(game, .1); assert.equal(game.phase, 'playing');
-  game.ship = game.spawnAtStation(); run(game, level.boulders.spawnIntervalMax / 2 + .6); assert.ok(game.boulders.length);
+  game.ship = game.spawnAtStation(); run(game, midpointDelay + .1); assert.ok(game.boulders.length);
   game.pause(); const before = JSON.stringify({ rocks: game.boulders, delay: game.boulderSpawnTime, time: game.time });
   run(game, 3); assert.equal(JSON.stringify({ rocks: game.boulders, delay: game.boulderSpawnTime, time: game.time }), before);
   game.pause(); game.lives = 1; game.crash('test');
@@ -165,7 +171,7 @@ test('countdown, pause, editing, final crash, restart, and level changes respect
   assert.equal(game.phase, 'gameover'); assert.equal(JSON.stringify(game.boulders), frozen);
   game.start('casual', level, { editing: true }); run(game, 5); assert.deepEqual(game.boulders, []);
   game.start('casual', level, { designMode: false });
-  assert.deepEqual(game.boulders, []); assert.equal(game.boulderSpawnTime, 1 + (level.boulders.spawnIntervalMax - 1) / 2);
+  assert.deepEqual(game.boulders, []); assert.equal(game.boulderSpawnTime, midpointDelay);
   game.start('casual', nextLevel(level)); run(game, 4); assert.deepEqual(game.boulders, []);
 });
 
