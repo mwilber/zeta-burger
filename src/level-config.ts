@@ -90,23 +90,167 @@ export interface LevelConfig {
 // Array order is play order. Rearrange level entries without changing their
 // numbers, IDs, or asset filenames. The first entry is the starting level.
 export const LEVEL_CONFIG: LevelConfig[] = [{
-  number: 13,
-  id: 'avalanche',
-  name: 'Avalanche',
-  theme: 'A delivery route between two mountains. Land to halt new boulders on your side; watch for rocks already rolling.',
-  gravity: 100,
-  start: { x: 640, y: 80 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  boulders: { spawnIntervalMin: 5, spawnIntervalMax: 10 },
-  structures: AVALANCHE_MOUNTAINS,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 200, y: 260, width: 116, color: '#ffd397', island: { x: -28, width: 154 }, building: { x: -46, width: 38, height: 62, kind: 'restaurant' } },
-    { id: 1, name: 'West Ridge Lodge', x: 307, y: 450, width: 108, color: '#a6e9d8', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 58, kind: 'lodge' } },
-    { id: 2, name: 'Talus Refuge', x: 413, y: 640, width: 108, color: '#ffd397', island: { x: -28, width: 146 }, building: { x: -46, width: 38, height: 52, kind: 'refuge' } },
-    { id: 3, name: 'Summit Observatory', x: 964, y: 260, width: 116, color: '#a6e9d8', island: { x: -10, width: 154 }, building: { x: 124, width: 38, height: 62, kind: 'observatory' } },
-    { id: 4, name: 'East Ridge Chalet', x: 865, y: 450, width: 108, color: '#ffd397', island: { x: -10, width: 146 }, building: { x: 116, width: 38, height: 58, kind: 'chalet' } },
+  "number": 13,
+  "id": "avalanche",
+  "name": "Avalanche",
+  "theme": "A delivery route between two mountains. Land to halt new boulders on your side; watch for rocks already rolling.",
+  "gravity": 100,
+  "start": {
+    "x": 640,
+    "y": 80
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "boulders": {
+    "spawnIntervalMin": 5,
+    "spawnIntervalMax": 10
+  },
+  "structures": [
+    {
+      "id": "west-mountain",
+      "x": 0,
+      "y": 100,
+      "width": 450,
+      "height": 628,
+      "kind": "mountain-west",
+      "outline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 100,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 628
+        },
+        {
+          "x": 0,
+          "y": 628
+        }
+      ]
+    },
+    {
+      "id": "east-mountain",
+      "x": 830,
+      "y": 100,
+      "width": 450,
+      "height": 628,
+      "kind": "mountain-east",
+      "outline": [
+        {
+          "x": 350,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 0
+        },
+        {
+          "x": 450,
+          "y": 628
+        },
+        {
+          "x": 0,
+          "y": 628
+        }
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 317,
+      "y": 443,
+      "width": 116,
+      "color": "#ffd397",
+      "island": {
+        "x": -28,
+        "width": 154
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 62,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "West Ridge Lodge",
+      "x": 204,
+      "y": 247,
+      "width": 108,
+      "color": "#a6e9d8",
+      "island": {
+        "x": -28,
+        "width": 146
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 58,
+        "kind": "lodge"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Talus Refuge",
+      "x": 413,
+      "y": 640,
+      "width": 108,
+      "color": "#ffd397",
+      "island": {
+        "x": -28,
+        "width": 146
+      },
+      "building": {
+        "x": -46,
+        "width": 38,
+        "height": 52,
+        "kind": "refuge"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Summit Observatory",
+      "x": 946,
+      "y": 282,
+      "width": 116,
+      "color": "#a6e9d8",
+      "island": {
+        "x": -10,
+        "width": 154
+      },
+      "building": {
+        "x": 124,
+        "width": 38,
+        "height": 62,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 4,
+      "name": "East Ridge Chalet",
+      "x": 823,
+      "y": 511,
+      "width": 108,
+      "color": "#ffd397",
+      "island": {
+        "x": -10,
+        "width": 146
+      },
+      "building": {
+        "x": 116,
+        "width": 38,
+        "height": 58,
+        "kind": "chalet"
+      }
+    }
   ]
 }, {
   "number": 12,
