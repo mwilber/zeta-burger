@@ -167,23 +167,116 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } }
   ]
 }, {
-  number: 9,
-  id: 'freeman',
-  name: 'Freeman',
-  theme: 'Inside Freeman Dyson’s sphere. Circle the star, brake against its gentle pull, and dock for safety.',
-  gravity: 0,
-  star: { x: 640, y: 380, radius: 52, strength: 3600000, maxAcceleration: 120 },
-  start: { x: 640, y: 65 },
-  restaurant: 0,
-  fallingObstacleLimit: 0,
-  seekerCount: 0,
-  pads: [
-    { id: 0, name: 'Zeta Burger', x: 260, y: 155, width: 116, color: '#ffd789', island: { x: -112, width: 254 }, building: { x: -90, width: 76, height: 95, kind: 'restaurant' } },
-    { id: 1, name: 'Sunward Habitat', x: 1100, y: 420, width: 102, color: '#e9b780', island: { x: -74, width: 204 }, building: { x: -56, width: 43, height: 73, kind: 'mushroom' } },
-    { id: 2, name: 'Dyson Observatory', x: 588, y: 155, width: 104, color: '#8de4cf', island: { x: -36, width: 217 }, building: { x: 120, width: 44, height: 65, kind: 'observatory' } },
-    { id: 3, name: 'Daybreak Lodge', x: 950, y: 155, width: 104, color: '#ffd789', island: { x: -24, width: 272 }, building: { x: 127, width: 65, height: 83, kind: 'motel' } },
-    { id: 4, name: 'Solar Gardens', x: 865, y: 655, width: 104, color: '#e9b780', island: { x: -50, width: 214 }, building: { x: 121, width: 26, height: 64, kind: 'crystal' } },
-    { id: 5, name: 'Collector Outpost', x: 380, y: 655, width: 104, color: '#8de4cf', island: { x: -95, width: 233 }, building: { x: -73, width: 53, height: 67, kind: 'outpost' } }
+  "number": 9,
+  "id": "freeman",
+  "name": "Freeman",
+  "theme": "Inside Freeman Dyson’s sphere. Circle the star, brake against its gentle pull, and dock for safety.",
+  "gravity": 0,
+  "star": {
+    "x": 640,
+    "y": 380,
+    "radius": 52,
+    "strength": 3600000,
+    "maxAcceleration": 120
+  },
+  "start": {
+    "x": 640,
+    "y": 65
+  },
+  "restaurant": 0,
+  "fallingObstacleLimit": 0,
+  "seekerCount": 0,
+  "pads": [
+    {
+      "id": 0,
+      "name": "Zeta Burger",
+      "x": 162,
+      "y": 243,
+      "width": 116,
+      "color": "#ffd789",
+      "island": {
+        "x": -112,
+        "width": 254
+      },
+      "building": {
+        "x": -90,
+        "width": 76,
+        "height": 95,
+        "kind": "restaurant"
+      }
+    },
+    {
+      "id": 1,
+      "name": "Sunward Habitat",
+      "x": 1117,
+      "y": 485,
+      "width": 102,
+      "color": "#e9b780",
+      "island": {
+        "x": -74,
+        "width": 204
+      },
+      "building": {
+        "x": -56,
+        "width": 43,
+        "height": 73,
+        "kind": "mushroom"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Dyson Observatory",
+      "x": 1061,
+      "y": 201,
+      "width": 104,
+      "color": "#8de4cf",
+      "island": {
+        "x": -36,
+        "width": 217
+      },
+      "building": {
+        "x": 120,
+        "width": 44,
+        "height": 65,
+        "kind": "observatory"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Daybreak Lodge",
+      "x": 238,
+      "y": 651,
+      "width": 104,
+      "color": "#ffd789",
+      "island": {
+        "x": -24,
+        "width": 272
+      },
+      "building": {
+        "x": 127,
+        "width": 65,
+        "height": 83,
+        "kind": "motel"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Solar Gardens",
+      "x": 865,
+      "y": 655,
+      "width": 104,
+      "color": "#e9b780",
+      "island": {
+        "x": -50,
+        "width": 214
+      },
+      "building": {
+        "x": 121,
+        "width": 26,
+        "height": 64,
+        "kind": "crystal"
+      }
+    }
   ]
 }, {
   number: 8,
