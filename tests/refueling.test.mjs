@@ -21,7 +21,7 @@ function run(game, seconds, controls = pump) {
 
 test('every level removes its former fuel pad, graphics, and station collisions while keeping destinations', () => {
   for (const level of LEVELS) {
-    assert.equal(level.padCount, [10, 13].includes(level.number) ? 5 : 6);
+    assert.equal(level.padCount, level.number === 13 ? 5 : 6);
     assert.ok(!level.pads.some(pad => pad.id === 6 || pad.building.kind === 'gas'));
     assert.ok(!level.solids.some(solid => solid.padId === 6));
     assert.ok(!levelAssetNames(level).some(name => /^(gas|pad-6|island-6)/.test(name)));

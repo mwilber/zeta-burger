@@ -1,7 +1,6 @@
 import type { Point } from './world.js';
 import { GROTTO_BOULDERS } from './grotto.js';
 import { AVALANCHE_MOUNTAINS } from './avalanche.js';
-import { ABYSS_PLANTS } from './abyss.js';
 
 // Shared spoken phrases for every level. Each # in pickup becomes the destination pad number.
 export const SPEECH_CONFIG = {
@@ -164,7 +163,8 @@ export const LEVEL_CONFIG: LevelConfig[] = [{
     { id: 1, name: 'Trailhead Lodge', x: 595, y: 180, width: 110, color: '#ffc479', building: { x: 124, width: 40, height: 57, kind: 'lodge' } },
     { id: 2, name: 'Echo Station', x: 1100, y: 355, width: 110, color: '#83d9c7', building: { x: 122, width: 35, height: 56, kind: 'echo' } },
     { id: 3, name: 'Deepstone Lab', x: 700, y: 710, width: 110, color: '#bba5ec', building: { x: -53, width: 38, height: 53, kind: 'lab' } },
-    { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } }
+    { id: 4, name: 'Crystal Refuge', x: 1110, y: 665, width: 110, color: '#ffc479', building: { x: 124, width: 32, height: 55, kind: 'refuge' } },
+    { id: 5, name: 'Cavern Outpost', x: 80, y: 615, width: 130, color: '#83d9c7', building: { x: -62, width: 38, height: 53, kind: 'outpost' } }
   ]
 }, {
   "number": 9,

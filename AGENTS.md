@@ -61,9 +61,10 @@ the same peripheral layout. Gravity is 0 with full thrust, no seekers, and no
 falling obstacles. The star’s visible surface matches its fatal radius; its
 corona is decorative. Level-9 SVG assets show the sphere’s interior collectors.
 
-Grotto (10) follows the mountain-cavern sketch: five pads, with the restaurant
-outside in the upper left, a trailhead ledge above the entrance, and three pads
-inside. Six reusable convex boulder shapes overlap to form the cavern walls,
+Grotto (10) follows the mountain-cavern sketch: six pads, with the restaurant
+outside in the upper left, a trailhead ledge above the entrance, and four pads
+inside, including Cavern Outpost on the lower-left ledge. Six reusable convex
+boulder shapes overlap to form the cavern walls,
 central rock mass, and floor. Structure `outline` vertices use local world
 units and must match their SVG silhouettes. Keep the entrance, routes around
 both sides of the central mass, and lower passage navigable. Gravity is 100

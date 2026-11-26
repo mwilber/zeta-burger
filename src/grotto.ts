@@ -31,7 +31,6 @@ export const GROTTO_BOULDERS: StructureConfig[] = [
   rock('mountain-crown', 'crown', 1080, -50, 250, 260),
   rock('upper-east', 'shelf', 970, 175, 340, 85),
   // The central group is assembled from overlapping, individually solid rocks.
-  rock('heart-west', 'wedge', 270, 402, 230, 135),
   rock('heart-crown', 'crown', 425, 385, 240, 155),
   rock('heart-east', 'slope', 625, 385, 215, 160),
   rock('heart-base', 'slab', 440, 485, 300, 80),

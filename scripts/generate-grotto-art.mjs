@@ -102,7 +102,7 @@ for (const pad of level.pads) {
   <text x="${w / 2}" y="48" fill="#e1dac5" font-family="monospace" font-size="7" text-anchor="middle">${name.toUpperCase()}</text>`));
   }
   const b = pad.building, h = b.height + 10, bw = b.width;
-  const sign = { restaurant: 'ZETA', lodge: 'LODGE', echo: 'ECHO', gas: 'FUEL', lab: 'LAB', refuge: 'REST' }[b.kind];
+  const sign = { restaurant: 'ZETA', lodge: 'LODGE', echo: 'ECHO', gas: 'FUEL', lab: 'LAB', refuge: 'REST', outpost: 'POST' }[b.kind];
   await save(b.kind, svg(`0 0 ${bw} ${h}`, `${name} mountain station`, `
   <path d="M0 ${h}V8L${bw * .2} 0H${bw * .8}L${bw} 8V${h}Z" fill="#223438"/>
   <path d="M1 ${h}V9L${bw * .2} 1H${bw * .8}L${bw - 1} 9V${h}" fill="none" stroke="#81948a" stroke-width="1"/>
